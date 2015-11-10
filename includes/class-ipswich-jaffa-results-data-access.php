@@ -15,19 +15,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
-	
-	/** The name of the database for WordPress */
-	define('JAFFA_RESULTS_DB_NAME', '***');
-
-	/** MySQL database username */
-	define('JAFFA_RESULTS_DB_USER', '***');
-
-	/** MySQL database password */
-	define('JAFFA_RESULTS_DB_PASSWORD', '***');
-
-	/** MySQL hostname */
-	define('JAFFA_RESULTS_DB_HOST', '***');
+if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {	
 		
 	class Ipswich_JAFFA_Results_Data_Access {		
 
