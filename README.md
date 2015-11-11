@@ -2,7 +2,7 @@
 
 REST API for the Ipswich JAFFA Running Club results database.
 
- #### Functionality
+#### Functionality
 This functionality is only accessible to valid Ipswich JAFFA Wordpress users with the right levels user role capabilities. The following CRUD operations are supported.
 
   * Results
