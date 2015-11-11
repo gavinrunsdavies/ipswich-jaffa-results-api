@@ -17,6 +17,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {	
 		
+	require_once plugin_dir_path( __FILE__ ) .'config.php';
+	
 	class Ipswich_JAFFA_Results_Data_Access {		
 
 		private $jdb;
