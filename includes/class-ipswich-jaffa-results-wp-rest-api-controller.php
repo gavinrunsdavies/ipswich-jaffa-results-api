@@ -301,21 +301,21 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller' ) ) {
 			if ($request['winners']['men'] > 0)
 			$response = $this->data_access->insertRunnerOfTheMonthWinners(
 				$request['winners']['men'],
-				'men',
+				'Men',
 				$request['winners']['month'],
 				$request['winners']['year']);
 				
 			if ($response == true && $request['winners']['women'] > 0)
 				$response = $this->data_access->insertRunnerOfTheMonthWinners(
 				$request['winners']['women'],
-				'women',
+				'Ladies',
 				$request['winners']['month'],
 				$request['winners']['year']);
 				
 			if ($response == true && $request['winners']['junior'] > 0)
 				$response = $this->data_access->insertRunnerOfTheMonthWinners(
 				$request['winners']['junior'],
-				'junior',
+				'Juniors',
 				$request['winners']['month'],
 				$request['winners']['year']);
 			

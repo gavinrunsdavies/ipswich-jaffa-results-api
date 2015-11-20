@@ -15,6 +15,3 @@ define('JAFFA_RESULTS_DB_USER', '***');
 
 /** MySQL database password */
 define('JAFFA_RESULTS_DB_PASSWORD', '***');
-
-/** MySQL hostname */
-define('JAFFA_RESULTS_DB_HOST', '***');
