@@ -194,7 +194,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		public function updateResult($resultId, $field, $value) {		
 
 			// Only name and website may be changed.
-			if ($field == 'info' || $field == 'position' || $field == "grandprix") 
+			if ($field == 'info' || $field == 'position' || $field == "grandprix" || $field == "scoring_team") 
 			{
 				$result = $this->jdb->update( 
 					'results', 
@@ -497,7 +497,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 				$standardType = $this->getStandardTypeId($categoryId, $result['time'], $result['eventId']);				
 			}
 			
-			$sql = $this->jdb->prepare('INSERT INTO results (`result`, `event_id`, `course_id`, `racedate`, `info`, `runner_id`, `club_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `grandprix`) VALUES(%s, %d, %d, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d);', $result['time'], $result['eventId'], $result['courseId'], $result['date'], $result['info'], $result['runnerId'], 439, $result['position'], $categoryId, $pb, $seasonBest, $standardType, $result['isGrandPrixResult']);
+			$sql = $this->jdb->prepare('INSERT INTO results (`result`, `event_id`, `course_id`, `racedate`, `info`, `runner_id`, `club_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `grandprix`, `scoring_team`) VALUES(%s, %d, %d, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d);', $result['time'], $result['eventId'], $result['courseId'], $result['date'], $result['info'], $result['runnerId'], 439, $result['position'], $categoryId, $pb, $seasonBest, $standardType, $result['isGrandPrixResult'], $result['team']);
 			
 			$success = $this->jdb->query($sql);
 
@@ -553,7 +553,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 			if ($limit <= 0)
 				$limit = 100;
 
-			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', r.percentage_grading as 'percentageGrading', r.course_id as 'courseId', p.name as 'runnerName', e.name as 'eventName', d.distance FROM results r, runners p, events e LEFT JOIN distance d ON e.distance_id = d.id WHERE r.runner_id = p.id AND r.event_id = e.id $whereEvent $whereFrom $whereTo ORDER BY r.racedate DESC, r.event_id, r.position ASC, r.result ASC LIMIT $limit";
+			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', r.course_id as 'courseId', p.name as 'runnerName', e.name as 'eventName', d.distance FROM results r, runners p, events e LEFT JOIN distance d ON e.distance_id = d.id WHERE r.runner_id = p.id AND r.event_id = e.id $whereEvent $whereFrom $whereTo ORDER BY r.racedate DESC, r.event_id, r.position ASC, r.result ASC LIMIT $limit";
 							
 			$results = $this->jdb->get_results($sql, OBJECT);
 
@@ -570,7 +570,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		
 		public function getResult($resultId) {
 						
-			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', r.percentage_grading as 'percentageGrading', r.course_id as 'courseId', p.name as 'runnerName', e.name as 'eventName', d.distance FROM results r, runners p, events e LEFT JOIN distance d ON e.distance_id = d.id WHERE r.runner_id = p.id AND r.event_id = e.id AND r.id = $resultId";
+			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', r.course_id as 'courseId', p.name as 'runnerName', e.name as 'eventName', d.distance FROM results r, runners p, events e LEFT JOIN distance d ON e.distance_id = d.id WHERE r.runner_id = p.id AND r.event_id = e.id AND r.id = $resultId";
 							
 			$results = $this->jdb->get_row($sql, OBJECT);
 

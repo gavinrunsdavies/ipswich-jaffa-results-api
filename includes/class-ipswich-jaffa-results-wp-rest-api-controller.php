@@ -488,11 +488,11 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller' ) ) {
 		}
 		
 		public function is_valid_result_update_field($value, $request, $key){
-			if ( $value == 'info' || $value == 'position' || $value == 'result' || $value == 'grandprix') {
+			if ( $value == 'info' || $value == 'position' || $value == 'result' || $value == 'grandprix' || $value == 'scoring_team') {
 				return true;
 			} else {
 				return new WP_Error( 'rest_invalid_param',
-					sprintf( '%s %d must be info or position or result or grandprix only.', $key, $value ), array( 'status' => 400 ) );
+					sprintf( '%s %d must be info or position or result or grandprix or scoring_team only.', $key, $value ), array( 'status' => 400 ) );
 			} 			
 		}
 
@@ -562,6 +562,11 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller' ) ) {
 			if (intval($result['position']) < 0) {				
 				return new WP_Error( 'rest_invalid_param',
 					sprintf( '%s %s has invalid position value', $key, json_encode($result)), array( 'status' => 400 ) );
+			}
+			
+			if (intval($result['team']) < 0) {				
+				return new WP_Error( 'rest_invalid_param',
+					sprintf( '%s %s has invalid team value', $key, json_encode($result)), array( 'status' => 400 ) );
 			}
 			
 			if ($result['isGrandPrixResult'] < 0 ||
