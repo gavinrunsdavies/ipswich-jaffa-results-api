@@ -49,3 +49,8 @@ This functionality is only accessible to valid Ipswich JAFFA Wordpress users wit
     * Read 
   * Course Type
     * Read 
+  * Statistics
+    * Read
+      * Result by year
+      * Result by year and county
+      * Result by year and country
