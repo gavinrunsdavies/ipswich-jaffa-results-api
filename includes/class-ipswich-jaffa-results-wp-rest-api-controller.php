@@ -20,8 +20,9 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller' ) ) {
 			$this->register_routes_distances($namespace);
 			$this->register_routes_events($namespace);
 			$this->register_routes_runners($namespace);
-			$this->register_routes_results($namespace);			
+			$this->register_routes_results($namespace);						
 			$this->register_routes_runner_of_the_month($namespace);		
+			$this->register_routes_statistics($namespace);			
 			
 			add_filter( 'rest_endpoints', array( $this, 'remove_wordpress_core_endpoints'), 10, 1 );			
 		}
@@ -61,6 +62,27 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller' ) ) {
 				'callback'            => array( $this, 'get_distances' ),
 				'permission_callback' => array( $this, 'permission_check' )
 			) );					
+		}
+		
+		private function register_routes_statistics($namespace) {			
+						
+			register_rest_route( $namespace, '/v1/statistics/county', array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'get_resultsByYearAndCounty' ),
+				'permission_callback' => array( $this, 'permission_check' )
+			) );
+
+			register_rest_route( $namespace, '/v1/statistics/country', array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'get_resultsByYearAndCountry' ),
+				'permission_callback' => array( $this, 'permission_check' )
+			) );
+
+			register_rest_route( $namespace, '/v1/statistics/year', array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'get_resultsCountByYear' ),
+				'permission_callback' => array( $this, 'permission_check' )
+			) );			
 		}
 		
 		private function register_routes_runner_of_the_month($namespace) {			
@@ -324,6 +346,24 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller' ) ) {
 		
 		public function get_distances( WP_REST_Request $request ) {
 		    $response = $this->data_access->getDistances();
+
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_resultsByYearAndCounty( WP_REST_Request $request ) {
+		    $response = $this->data_access->getResultsByYearAndCounty();
+
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_resultsCountByYear( WP_REST_Request $request ) {
+		    $response = $this->data_access->getResultsCountByYear();
+
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_resultsByYearAndCountry( WP_REST_Request $request ) {
+		    $response = $this->data_access->getResultsByYearAndCountry();
 
 			return rest_ensure_response( $response );
 		}

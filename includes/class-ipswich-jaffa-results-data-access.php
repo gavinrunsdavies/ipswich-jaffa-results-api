@@ -93,7 +93,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		
 		public function insertCourse($course)
 		{			
-			$sql = $this->jdb->prepare('INSERT INTO course (`event_id`, `type_id`, `registered_distance`, `certified_accurate`, `course_number`, `area`, `county`) VALUES(%d, %d, %d, %d, %s, %s, %s);', $course['eventId'], $course['typeId'], $course['registeredDistance'], $course['certifiedAccurate'], $course['courseNumber'], $course['area'], $course['county']);
+			$sql = $this->jdb->prepare('INSERT INTO course (`event_id`, `type_id`, `registered_distance`, `certified_accurate`, `course_number`, `area`, `county`, `country_code`) VALUES(%d, %d, %d, %d, %s, %s, %s);', $course['eventId'], $course['typeId'], $course['registeredDistance'], $course['certifiedAccurate'], $course['courseNumber'], $course['area'], $course['county'], $course['countryCode']);
 
 			$result = $this->jdb->query($sql);
 
@@ -108,7 +108,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		
 		public function getCourse($courseId) {
 			// Get updated event
-			$sql = $this->jdb->prepare("SELECT e.name, c.id, c.event_id as 'eventId', c.type_id as 'typeId', c.registered_distance as 'registeredDistance', c.certified_accurate as 'certifiedAccurate', c.course_number as 'courseNumber', c.area, c.county  FROM `events` e LEFT OUTER JOIN `course` c ON e.id = c.event_id WHERE c.id = %d", $courseId);			
+			$sql = $this->jdb->prepare("SELECT e.name, c.id, c.event_id as 'eventId', c.type_id as 'typeId', c.registered_distance as 'registeredDistance', c.certified_accurate as 'certifiedAccurate', c.course_number as 'courseNumber', c.area, c.county, c.country_code  FROM `events` e LEFT OUTER JOIN `course` c ON e.id = c.event_id WHERE c.id = %d", $courseId);			
 
 			$result = $this->jdb->get_row($sql, OBJECT);
 			
@@ -470,7 +470,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		} // end function getGenders
 		
 		public function getCourses($eventId) {
-			$sql = $this->jdb->prepare("SELECT e.name, c.id, c.event_id as 'eventId', c.type_id as 'typeId', c.registered_distance as 'registeredDistance', c.certified_accurate as 'certifiedAccurate', c.course_number as 'courseNumber', c.area, c.county  FROM `events` e LEFT OUTER JOIN `course` c ON e.id = c.event_id WHERE e.id = %d ORDER BY c.course_number DESC", $eventId);
+			$sql = $this->jdb->prepare("SELECT e.name, c.id, c.event_id as 'eventId', c.type_id as 'typeId', c.registered_distance as 'registeredDistance', c.certified_accurate as 'certifiedAccurate', c.course_number as 'courseNumber', c.area, c.county, c.country_code  FROM `events` e LEFT OUTER JOIN `course` c ON e.id = c.event_id WHERE e.id = %d ORDER BY c.course_number DESC", $eventId);
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 
@@ -594,6 +594,45 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 
 			return new WP_Error( 'ipswich_jaffa_api_insertRunnerOfTheMonthWinners',
 						'Unknown error in inserting runner in to the database', array( 'status' => 500 ) );
+		}
+		
+		public function getResultsByYearAndCounty() {
+			$sql = "SELECT YEAR(r.racedate) as Year, c.county, count(r.id) as count FROM `course` c INNER join results r on c.id = r.course_id WHERE c.county IS NOT NULL GROUP BY YEAR(r.racedate), c.county ORDER BY `Year` ASC";
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getResultsByYearAndCounty',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
+		
+		public function getResultsByYearAndCountry() {
+			$sql = "SELECT YEAR(r.racedate) as Year, c.country_code, count(r.id) as count FROM `course` c INNER join results r on c.id = r.course_id WHERE c.country_code IS NOT NULL GROUP BY YEAR(r.racedate), c.country_code ORDER BY `Year` ASC";
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getResultsByYearAndCountry',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
+		
+		public function getResultsCountByYear() {
+			$sql = "SELECT YEAR(r.racedate) as Year, count(r.id) as count FROM results r GROUP BY YEAR(r.racedate) ORDER BY `Year` DESC";
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getResultsCountByYear',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
 		}
 		
 		private function updateAgeGrading($resultId, $eventId, $runnerId, $date) {
