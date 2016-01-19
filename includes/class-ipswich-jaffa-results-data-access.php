@@ -649,7 +649,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		}
 		
 		public function getPersonalBestTotalByYear() {
-			$sql = "SELECT count(*), YEAR(r.racedate) as year from results r where r.personal_best = 1 GROUP by year order by year desc";
+			$sql = "SELECT count(*) AS count, YEAR(r.racedate) as year from results r where r.personal_best = 1 GROUP by year order by year desc";
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 
