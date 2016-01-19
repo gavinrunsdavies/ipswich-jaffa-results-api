@@ -597,7 +597,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		}
 		
 		public function getResultsByYearAndCounty() {
-			$sql = "SELECT YEAR(r.racedate) as Year, c.county, count(r.id) as count FROM `course` c INNER join results r on c.id = r.course_id WHERE c.county IS NOT NULL GROUP BY YEAR(r.racedate), c.county ORDER BY `Year` ASC";
+			$sql = "SELECT YEAR(r.racedate) as year, c.county, count(r.id) as count FROM `course` c INNER join results r on c.id = r.course_id WHERE c.county IS NOT NULL GROUP BY YEAR(r.racedate), c.county ORDER BY `year` ASC";
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 
@@ -610,7 +610,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		}
 		
 		public function getResultsByYearAndCountry() {
-			$sql = "SELECT YEAR(r.racedate) as Year, c.country_code, count(r.id) as count FROM `course` c INNER join results r on c.id = r.course_id WHERE c.country_code IS NOT NULL GROUP BY YEAR(r.racedate), c.country_code ORDER BY `Year` ASC";
+			$sql = "SELECT YEAR(r.racedate) as year, c.country_code, count(r.id) as count FROM `course` c INNER join results r on c.id = r.course_id WHERE c.country_code IS NOT NULL GROUP BY YEAR(r.racedate), c.country_code ORDER BY `year` ASC";
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 
@@ -623,12 +623,77 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		}
 		
 		public function getResultsCountByYear() {
-			$sql = "SELECT YEAR(r.racedate) as Year, count(r.id) as count FROM results r GROUP BY YEAR(r.racedate) ORDER BY `Year` DESC";
+			$sql = "SELECT YEAR(r.racedate) as year, count(r.id) as count FROM results r GROUP BY YEAR(r.racedate) ORDER BY `year` DESC";
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 
 			if (!$results)	{			
 				return new WP_Error( 'ipswich_jaffa_api_getResultsCountByYear',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
+		
+		public function getPersonalBestTotals() {
+			$sql = "SELECT p.name, count(r.id) as count, MIN(r.racedate) AS firstPB, MAX(r.racedate) AS lastPB FROM `results` r inner join runners p on r.runner_id = p.id where r.personal_best = 1 group by p.name order by count DESC limit 10";
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getPersonalBestTotals',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
+		
+		public function getPersonalBestTotalByYear() {
+			$sql = "SELECT count(*), YEAR(r.racedate) as year from results r where r.personal_best = 1 GROUP by year order by year desc";
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getPersonalBestTotalByYear',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
+		
+		public function getTopAttendedRaces() {
+			$sql = "SELECT e.name, r.racedate, count(r.id) as count FROM `results` r inner join events e on r.event_id = e.id group by e.name, r.racedate order by count desc limit 10";
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getTopAttendedRaces',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
+		
+		public function getTopMembersRacing() {
+			$sql = "SELECT p.name, count(r.id) as count FROM `results` r inner join runners p on r.runner_id = p.id group by p.name order by count desc limit 10";
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getTopMembersRacing',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
+		
+		public function getTopMembersRacingByYear() {
+			$sql = "select YEAR(r.racedate) AS year, count(r.id) AS count, p.name from results r inner join runners p on p.id = r.runner_id group by year, p.name order by count DESC, year ASC LIMIT 10";
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getTopMembersRacingByYear',
 						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
 			}
 

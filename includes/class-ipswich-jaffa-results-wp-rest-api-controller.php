@@ -66,22 +66,16 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller' ) ) {
 		
 		private function register_routes_statistics($namespace) {			
 						
-			register_rest_route( $namespace, '/v1/statistics/county', array(
+			register_rest_route( $namespace, '/v1/statistics', array(
 				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_resultsByYearAndCounty' ),
-				'permission_callback' => array( $this, 'permission_check' )
-			) );
-
-			register_rest_route( $namespace, '/v1/statistics/country', array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_resultsByYearAndCountry' ),
-				'permission_callback' => array( $this, 'permission_check' )
-			) );
-
-			register_rest_route( $namespace, '/v1/statistics/year', array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_resultsCountByYear' ),
-				'permission_callback' => array( $this, 'permission_check' )
+				'callback'            => array( $this, 'get_statistics' ),
+				'permission_callback' => array( $this, 'permission_check' ),
+				'args'                => array(
+					'typeId'           => array(
+						'required'          => true,												
+						'validate_callback' => array( $this, 'is_valid_id' ),
+						)
+					)
 			) );			
 		}
 		
@@ -350,9 +344,37 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller' ) ) {
 			return rest_ensure_response( $response );
 		}
 		
-		public function get_resultsByYearAndCounty( WP_REST_Request $request ) {
-		    $response = $this->data_access->getResultsByYearAndCounty();
-
+		public function get_statistics( WP_REST_Request $request ) {
+			switch ($request['typeId'])
+			{
+				case 1:
+					$response = $this->data_access->getResultsByYearAndCounty();
+					break;
+				case 2:
+					$response = $this->data_access->getResultsByYearAndCountry();
+					break;
+				case 3:
+					$response = $this->data_access->getResultsCountByYear();
+					break;
+				case 4:
+					$response = $this->data_access->getPersonalBestTotals();
+					break;
+				case 5:
+					$response = $this->data_access->getPersonalBestTotalByYear();
+					break;				
+				case 6:
+					$response = $this->data_access->getTopAttendedRaces();
+					break;
+				case 7:
+					$response = $this->data_access->getTopMembersRacing();
+					break;	
+				case 8:
+					$response = $this->data_access->getTopMembersRacingByYear();
+					break;					
+				default:
+				break;
+			}
+		    
 			return rest_ensure_response( $response );
 		}
 		

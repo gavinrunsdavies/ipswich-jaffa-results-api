@@ -51,6 +51,11 @@ This functionality is only accessible to valid Ipswich JAFFA Wordpress users wit
     * Read 
   * Statistics
     * Read
-      * Result by year
-      * Result by year and county
-      * Result by year and country
+      * Count of results by year
+      * Count of results by year and county
+      * Count of results by year and country
+	  * Count of member Personal Best results
+	  * Count of member Personal Bests results by year
+	  * Top attended races
+	  * Top members racing
+	  * Top members racing by year
