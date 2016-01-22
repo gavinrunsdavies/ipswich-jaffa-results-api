@@ -636,7 +636,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		}
 		
 		public function getPersonalBestTotals() {
-			$sql = "SELECT p.name, count(r.id) as count, MIN(r.racedate) AS firstPB, MAX(r.racedate) AS lastPB FROM `results` r inner join runners p on r.runner_id = p.id where r.personal_best = 1 group by p.name order by count DESC limit 10";
+			$sql = "SELECT p.id as runnerId, p.name, count(r.id) as count, MIN(r.racedate) AS firstPB, MAX(r.racedate) AS lastPB FROM `results` r inner join runners p on r.runner_id = p.id where r.personal_best = 1 group by runnerId, p.name order by count DESC limit 10";
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 
@@ -662,7 +662,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		}
 		
 		public function getTopAttendedRaces() {
-			$sql = "SELECT e.name, r.racedate, count(r.id) as count FROM `results` r inner join events e on r.event_id = e.id group by e.name, r.racedate order by count desc limit 10";
+			$sql = "SELECT e.id as eventId, e.name, r.racedate, count(r.id) as count FROM `results` r inner join events e on r.event_id = e.id group by eventId, e.name, r.racedate order by count desc limit 10";
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 
@@ -675,7 +675,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		}
 		
 		public function getTopMembersRacing() {
-			$sql = "SELECT p.name, count(r.id) as count FROM `results` r inner join runners p on r.runner_id = p.id group by p.name order by count desc limit 10";
+			$sql = "SELECT p.id as runnerId, p.name, count(r.id) as count FROM `results` r inner join runners p on r.runner_id = p.id group by runnerId, p.name order by count desc limit 10";
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 
@@ -688,7 +688,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		}
 		
 		public function getTopMembersRacingByYear() {
-			$sql = "select YEAR(r.racedate) AS year, count(r.id) AS count, p.name from results r inner join runners p on p.id = r.runner_id group by year, p.name order by count DESC, year ASC LIMIT 10";
+			$sql = "select YEAR(r.racedate) AS year, count(r.id) AS count, p.id as runnerId, p.name from results r inner join runners p on p.id = r.runner_id group by year, runnerId, p.name order by count DESC, year ASC LIMIT 10";
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 
