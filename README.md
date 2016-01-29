@@ -23,6 +23,9 @@ This functionality is only accessible to valid Ipswich JAFFA Wordpress users wit
 	  * Name
 	  * Website URL	  
 	* Merge
+  * Races
+    * Read - By Id or by EventId
+    * Create
   * Event Courses
     * Read
     * Create
