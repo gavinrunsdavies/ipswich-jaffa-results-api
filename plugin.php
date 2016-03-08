@@ -14,8 +14,8 @@ $api_controller_V1 = new Ipswich_JAFFA_Results_WP_REST_API_Controller_V1();
 add_action( 'rest_api_init', array( $api_controller_V1, 'rest_api_init') );
 add_action( 'plugins_loaded', array( $api_controller_V1, 'plugins_loaded') );
 
-// $api_controller_V2 = new Ipswich_JAFFA_Results_WP_REST_API_Controller_V2();
-// add_action( 'rest_api_init', array( $api_controller_V2, 'rest_api_init') );
-// add_action( 'plugins_loaded', array( $api_controller_V2, 'plugins_loaded') );
+$api_controller_V2 = new IpswichJAFFARunningClubAPI\V2\Ipswich_JAFFA_Results_WP_REST_API_Controller_V2();
+add_action( 'rest_api_init', array( $api_controller_V2, 'rest_api_init') );
+add_action( 'plugins_loaded', array( $api_controller_V2, 'plugins_loaded') );
 
 ?>
