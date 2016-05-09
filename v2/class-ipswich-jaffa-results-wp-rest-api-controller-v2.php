@@ -20,6 +20,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 		$this->register_routes_authentication($namespace);
 		$this->register_routes_distances($namespace);
 		$this->register_routes_events($namespace);		
+		$this->register_routes_meetings($namespace);		
 		$this->register_routes_runners($namespace);
 		$this->register_routes_results($namespace);						
 		$this->register_routes_runner_of_the_month($namespace);		
@@ -65,7 +66,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 	
 	private function register_routes_statistics($namespace) {			
 					
-		register_rest_route( $namespace, '/statistics', array(
+		register_rest_route( $namespace, '/statistics/type/(?P<typeId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array( $this, 'get_statistics' ),
 			'args'                => array(
@@ -102,7 +103,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 					),
 				)
 		) );
-		register_rest_route( $namespace, '/coursetype', array(
+		register_rest_route( $namespace, '/coursetypes', array(
 				'methods'             => \WP_REST_Server::READABLE,
 				'permission_callback' => array( $this, 'permission_check' ),
 				'callback'            => array( $this, 'get_coursetypes' )
@@ -167,50 +168,105 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 					)
 				)
 		) );
-		
-		register_rest_route( $namespace, '/events/(?P<id>[\d]+)/courses', array(
+	}
+	
+	private function register_routes_meetings($namespace) {										
+		register_rest_route( $namespace, '/events/(?P<eventId>[\d]+)/meetings', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array( $this, 'get_courses' ),				
-			'permission_callback' => array( $this, 'permission_check' ),
-			'args'                 => array(
-				'id'           => array(
-					'required'          => true,	
-					'validate_callback' => array( $this, 'is_valid_id' )
-					)
-				)
-		) );
-		
-		register_rest_route( $namespace, '/events/(?P<eventId>[\d]+)/courses/(?P<courseId>[\d]+)', array(
-			'methods'             => \WP_REST_Server::DELETABLE,
-			'callback'            => array( $this, 'delete_course' ),		
-			'permission_callback' => array( $this, 'permission_check' ),				
-			'args'                 => array(
-				'eventId'           => array(
-					'required'          => true,	
-					'validate_callback' => array( $this, 'is_valid_id' )
-					),					
-				'courseId'           => array(
-					'required'          => true,	
-					'validate_callback' => array( $this, 'is_valid_id' )
-					)
-				)
-		) );
-		
-		register_rest_route( $namespace, '/events/(?P<eventId>[\d]+)/courses', array(
-			'methods'             => \WP_REST_Server::CREATABLE,
-			'permission_callback' => array( $this, 'permission_check' ),
-			'callback'            => array( $this, 'save_course' ),				
+			'callback'            => array( $this, 'get_meetings' ),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,												
+					'validate_callback' => array( $this, 'is_valid_id' ),
+					)
+			)
+		) );
+		
+		register_rest_route( $namespace, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array( $this, 'get_meeting' ),
+			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'is_valid_id' ),
+					),
+				'meetingId'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'is_valid_id' ),
+					)
+				)
+		) );
+			
+		register_rest_route( $namespace, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)/races', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array( $this, 'get_meetingRaces' ),
+			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'is_valid_id' ),
+					),
+				'meetingId'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'is_valid_id' ),
+					)
+				)
+		) );
+			
+		register_rest_route( $namespace, '/events/(?P<eventId>[\d]+)/meetings', array(
+			'methods'             => \WP_REST_Server::CREATABLE,
+			'permission_callback' => array( $this, 'permission_check' ),
+			'callback'            => array( $this, 'save_meeting' ),				
+			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'is_valid_id' ),
+					),
+				'meeting'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'validate_meeting' ),
+					),
+				)
+		) );
+		
+		// Patch - updates
+		register_rest_route( $namespace, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
+			'methods'             => \WP_REST_Server::EDITABLE,
+			'permission_callback' => array( $this, 'permission_check' ),
+			'callback'            => array( $this, 'update_meeting' ),
+			'args'                => array(
+				'meetingId'           => array(
+					'required'          => true,						
 					'validate_callback' => array( $this, 'is_valid_id' )
+					),
+				'field'           => array(
+					'required'          => true,
+					'validate_callback' => array( $this, 'is_valid_meeting_update_field' )
+					),
+				'value'           => array(
+					'required'          => true
+					)
+				)	
+		) );
+		
+		register_rest_route( $namespace, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
+			'methods'             => \WP_REST_Server::DELETABLE,
+			'callback'            => array( $this, 'delete_meeting' ),
+			'permission_callback' => array( $this, 'permission_check' ),
+			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,						
+					'validate_callback' => array( $this, 'is_valid_id' )
+					),
+				'meetingId'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'is_valid_id' ),
 					),
 				)
 		) );
 	}
 	
 	private function register_routes_races($namespace) {										
-		register_rest_route( $namespace, '/races', array(
+		register_rest_route( $namespace, '/events/(?P<eventId>[\d]+)/races', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array( $this, 'get_races' ),
 			'args'                => array(
@@ -261,7 +317,23 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 					'required'          => true
 					)
 				)				
-		) );			
+		) );
+
+		register_rest_route( $namespace, '/events/(?P<eventId>[\d]+)/race/(?P<raceId>[\d]+)', array(
+			'methods'             => \WP_REST_Server::DELETABLE,
+			'callback'            => array( $this, 'delete_race' ),
+			'permission_callback' => array( $this, 'permission_check' ),
+			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,						
+					'validate_callback' => array( $this, 'is_valid_id' )
+					),
+				'raceId'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'is_valid_id' ),
+					),
+				)
+		) );		
 	}
 	
 	private function register_routes_runners($namespace) {
@@ -415,6 +487,27 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 				)		
 		) );
 		
+		register_rest_route( $namespace, '/results/runner/(?P<runnerId>[\d]+)/personalbests', array(
+			'methods'             => \WP_REST_Server::READABLE,				
+			'callback'            => array( $this, 'get_memberPBResults' ),
+			'args'                => array(
+				'runnerId'           => array(
+					'required'          => true,						
+					'validate_callback' => array( $this, 'is_valid_id' )
+					)
+				)		
+		) );
+		
+		register_rest_route( $namespace, '/results/runner/compare', array(
+			'methods'             => \WP_REST_Server::CREATABLE,				
+			'callback'            => array( $this, 'get_compareMemberRaces' ),
+			'args'                => array(
+				'runnerIds'           => array(
+					'required'          => true
+					)
+				)		
+		) );
+		
 		register_rest_route( $namespace, '/certificates/(?P<runnerId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this, 'get_standardCertificates' ),
@@ -549,6 +642,18 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			return rest_ensure_response( $response );
 		}
 		
+		public function get_memberPBResults( \WP_REST_Request $request ) {
+		    $response = $this->data_access->getMemberPBResults($request['runnerId']);
+
+			return rest_ensure_response( $response );
+		}		
+		
+		public function get_compareMemberRaces( \WP_REST_Request $request ) {
+		    $response = $this->data_access->getHeadToHeadResults($request['runnerIds']);
+
+			return rest_ensure_response( $response );
+		}
+		
 		public function get_standardCertificates( \WP_REST_Request $request ) {
 		    $response = $this->data_access->getStandardCertificates($request['runnerId']);
 
@@ -623,13 +728,6 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			return rest_ensure_response( $response );
 		}
 		
-		public function save_course( \WP_REST_Request $request ) {
-
-			$response = $this->data_access->insertCourse($request['course']);
-			
-			return rest_ensure_response( $response );
-		}
-		
 		public function update_event( \WP_REST_Request $request ) {
 
 			$response = $this->data_access->updateEvent($request['eventId'], $request['field'], $request['value']);
@@ -643,17 +741,17 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			
 			return rest_ensure_response( $response );
 		}
+		
+		public function delete_race( \WP_REST_Request $request ) {
+			
+			$response = $this->data_access->deleteRace($request['raceId'], false);
+			
+			return rest_ensure_response( $response );
+		}
 				
 		public function delete_event( \WP_REST_Request $request ) {
 			// TODO deleteResults parameter.
 			$response = $this->data_access->deleteEvent($request['eventId'], false);
-			
-			return rest_ensure_response( $response );
-		}
-		
-		public function delete_course( \WP_REST_Request $request ) {
-			// TODO deleteResults parameter.
-			$response = $this->data_access->deleteCourse($request['courseId'], false);
 			
 			return rest_ensure_response( $response );
 		}
@@ -730,10 +828,45 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			return rest_ensure_response( $response );
 		}
 		
-		public function get_courses( \WP_REST_Request $request ) {
+		public function get_meetings( \WP_REST_Request $request ) {
 
-			$response = $this->data_access->getCourses($request['id']);
+			$response = $this->data_access->getMeetings($request['eventId']);
+			
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_meeting( \WP_REST_Request $request ) {
 
+			$response = $this->data_access->getMeeting($request['meetingId']);
+			
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_meetingRaces( \WP_REST_Request $request ) {
+
+			$response = $this->data_access->getMeetingRaces($request['meetingId']);
+			
+			return rest_ensure_response( $response );
+		}
+		
+		public function save_meeting( \WP_REST_Request $request ) {
+
+			$response = $this->data_access->insertMeeting($request['meeting'], $request['eventId']);
+			
+			return rest_ensure_response( $response );
+		}
+		
+		public function update_meeting( \WP_REST_Request $request ) {
+
+			$response = $this->data_access->updateMeeting($request['meetingId'], $request['field'], $request['value']);
+			
+			return rest_ensure_response( $response );
+		}
+		
+		public function delete_meeting( \WP_REST_Request $request ) {
+			
+			$response = $this->data_access->deleteMeeting($request['meetingId']);
+			
 			return rest_ensure_response( $response );
 		}
 		
@@ -759,16 +892,26 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			} 			
 		}
 		
+		public function is_valid_meeting_update_field($value, $request, $key){
+			if ( $value == 'from_date' || $value == 'to_date' || $value == 'name' ) {
+				return true;
+			} else {
+				return new \WP_Error( 'rest_invalid_param',
+					sprintf( '%s %d must be name or fromDate or toDate only.', $key, $value ), array( 'status' => 400 ) );
+			} 			
+		}
+		
 		public function is_valid_race_update_field($value, $request, $key){
 			if ( $value == 'event_id' || 
 			    $value == 'description' || 
 				$value == 'course_type_id' || 
-				$value == 'course_id' || 
+				$value == 'course_number' || 
 				$value == 'area' || 
 				$value == 'county' ||
 				$value == 'country_code' || 
 				$value == 'venue' || 
 				$value == 'conditions' || 
+				$value == 'meeting_id' || 
 				$value == 'grand_prix' ) {
 				return true;
 			} else {
@@ -787,7 +930,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 		}
 		
 		public function is_valid_result_update_field($value, $request, $key){
-			if ( $value == 'info' || $value == 'position' || $value == 'result' || $value == 'grandprix' || $value == 'scoring_team') {
+			if ( $value == 'info' || $value == 'position' || $value == 'result' || $value == 'grandprix' || $value == 'scoring_team' || $value == 'race_id') {
 				return true;
 			} else {
 				return new \WP_Error( 'rest_invalid_param',
@@ -799,17 +942,26 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			if (intval($race['eventId']) < 1) {				
 				return new \WP_Error( 'rest_invalid_param',
 					sprintf( '%s %s has invalid eventId value', $key, json_encode($race)), array( 'status' => 400 ) );
-			}
-						
-			if (intval($race['courseId']) < 0) {				
-				return new \WP_Error( 'rest_invalid_param',
-					sprintf( '%s %s has invalid courseId value', $key, json_encode($race)), array( 'status' => 400 ) );
-			}							
+			}					
 				
 			$date=date_parse($race['date']);
 			if (checkdate($date['month'], $date['day'], $date['year']) === FALSE) {				
 				return new \WP_Error( 'rest_invalid_param',
 					sprintf( '%s %s has invalid date value', $key, json_encode($race)), array( 'status' => 400 ) );
+			} 
+		}
+		
+		public function validate_meeting($meeting, $request, $key) {
+			$date=date_parse($meeting['fromDate']);
+			if (checkdate($date['month'], $date['day'], $date['year']) === FALSE) {				
+				return new \WP_Error( 'rest_invalid_param',
+					sprintf( '%s %s has invalid from date value', $key, json_encode($meeting)), array( 'status' => 400 ) );
+			} 
+			
+			$date=date_parse($meeting['toDate']);
+			if (checkdate($date['month'], $date['day'], $date['year']) === FALSE) {				
+				return new \WP_Error( 'rest_invalid_param',
+					sprintf( '%s %s has invalid to date value', $key, json_encode($meeting)), array( 'status' => 400 ) );
 			} 
 		}
 
@@ -859,12 +1011,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			if (intval($result['runnerId']) < 1) {				
 				return new \WP_Error( 'rest_invalid_param',
 					sprintf( '%s %s has invalid runnerId value', $key, json_encode($result)), array( 'status' => 400 ) );
-			}
-			
-			if (intval($result['courseId']) < 0) {				
-				return new \WP_Error( 'rest_invalid_param',
-					sprintf( '%s %s has invalid courseId value', $key, json_encode($result)), array( 'status' => 400 ) );
-			}			
+			}		
 			
 			if (intval($result['position']) < 0) {				
 				return new \WP_Error( 'rest_invalid_param',
