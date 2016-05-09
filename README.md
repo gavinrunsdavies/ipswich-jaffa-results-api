@@ -10,11 +10,12 @@ This functionality is only accessible to valid Ipswich JAFFA Wordpress users wit
     * Create
     * Delete
 	* Update -
-	  * Grand Prix status
 	  * Finish Position
 	  * Race Time
 	  * Additional Information
-	  * Race Date	
+	  * Associated Race	
+	  * Associated Event
+	  * Team Information
   * Events
     * Read
     * Create
@@ -26,24 +27,25 @@ This functionality is only accessible to valid Ipswich JAFFA Wordpress users wit
   * Races
     * Read - By Id or by EventId
     * Create
-  * Event Courses
-    * Read
-    * Create
+    * Update - 
+    	* Event
+    	* Description 
+    	* Course Type
+    	* Couse Number
+    	* County
+    	* Country
+    	* Area
+    	* Conditions
+    	* Venue
+    	* Grand Prix Status
     * Delete (only those with out results)
-	* Update -
-	  * Course Number
-	  * County
-      * Area
-      * Registered Distance	  
-	  * Certified Accurate
-	  * Type
   * Runners
     * Read
     * Create
     * Delete (only those with out results)
-	* Update -
-	  * Name
-	  * Current Member Status  	
+    * Update -
+    	* Name
+		* Current Member Status  	
   * Runner of the Month   
     * Create 
   * Distances
@@ -52,6 +54,7 @@ This functionality is only accessible to valid Ipswich JAFFA Wordpress users wit
     * Read 
   * Course Type
     * Read 
+  * Meetings
   * Statistics
     * Read
       * Count of results by year
