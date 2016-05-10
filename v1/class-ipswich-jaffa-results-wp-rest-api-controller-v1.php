@@ -69,8 +69,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller_V1' ) ) {
 						
 			register_rest_route( $namespace, '/statistics', array(
 				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_statistics' ),
-				'permission_callback' => array( $this, 'permission_check' ),
+			    'callback'            => array( $this, 'get_statistics' ),
 				'args'                => array(
 					'typeId'           => array(
 						'required'          => true,												
@@ -206,8 +205,13 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller_V1' ) ) {
 		private function register_routes_races($namespace) {										
 			register_rest_route( $namespace, '/races', array(
 				'methods'             => WP_REST_Server::READABLE,
-				'permission_callback' => array( $this, 'permission_check' ),
-				'callback'            => array( $this, 'get_races' )
+				'callback'            => array( $this, 'get_races' ),
+				'args'                => array(
+					'eventId'           => array(
+						'required'          => true,												
+						'validate_callback' => array( $this, 'is_valid_id' ),
+						),
+					)
 			) );			
 			
 			register_rest_route( $namespace, '/races', array(
@@ -225,13 +229,31 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller_V1' ) ) {
 			register_rest_route( $namespace, '/races/(?P<id>[\d]+)', array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_race' ),				
-				'permission_callback' => array( $this, 'permission_check' ),
 				'args'                 => array(
 					'id'           => array(
 						'required'          => true,	
 						'validate_callback' => array( $this, 'is_valid_id' )
 						)
 					)
+			) );	
+
+			register_rest_route( $namespace, '/races/(?P<id>[\d]+)', array(
+				'methods'             => WP_REST_Server::EDITABLE,
+				'permission_callback' => array( $this, 'permission_check' ),
+				'callback'            => array( $this, 'update_race' ),
+				'args'                => array(
+					'id'           => array(
+						'required'          => true,						
+						'validate_callback' => array( $this, 'is_valid_id' )
+						),
+					'field'           => array(
+						'required'          => true,
+						'validate_callback' => array( $this, 'is_valid_race_update_field' )
+						),
+					'value'           => array(
+						'required'          => true
+						)
+					)				
 			) );			
 		}
 		
@@ -343,6 +365,85 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller_V1' ) ) {
 						)
 					)				
 			) );
+			
+			register_rest_route( $namespace, '/results/records/distance/(?P<distanceId>[\d]+)', array(
+				'methods'             => WP_REST_Server::READABLE,				
+				'callback'            => array( $this, 'get_clubRecords' ),
+				'args'                => array(
+					'distanceId'           => array(
+						'required'          => true,						
+						'validate_callback' => array( $this, 'is_valid_id' )
+						)
+					)		
+			) );
+			
+			register_rest_route( $namespace, '/results/ranking/distance/(?P<distanceId>[\d]+)', array(
+				'methods'             => WP_REST_Server::READABLE,				
+				'callback'            => array( $this, 'get_resultRankings' ),
+				'args'                => array(
+					'distanceId'           => array(
+						'required'          => true,						
+						'validate_callback' => array( $this, 'is_valid_id' )
+						)
+					)		
+			) );
+			
+			register_rest_route( $namespace, '/results/ranking/averageWMA', array(
+				'methods'             => WP_REST_Server::READABLE,				
+				'callback'            => array( $this, 'get_averagePercentageRankings' )
+			) );
+			
+			register_rest_route( $namespace, '/results/ranking/wma', array(
+				'methods'             => WP_REST_Server::READABLE,				
+				'callback'            => array( $this, 'get_WMAPercentageRankings' )				
+			) );
+			
+			register_rest_route( $namespace, '/results/runner/(?P<runnerId>[\d]+)', array(
+				'methods'             => WP_REST_Server::READABLE,				
+				'callback'            => array( $this, 'get_memberResults' ),
+				'args'                => array(
+					'runnerId'           => array(
+						'required'          => true,						
+						'validate_callback' => array( $this, 'is_valid_id' )
+						)
+					)		
+			) );
+			
+			register_rest_route( $namespace, '/certificates/(?P<runnerId>[\d]+)', array(
+				'methods'             => WP_REST_Server::READABLE,				
+				'callback'            => array( $this, 'get_standardCertificates' ),
+				'args'                => array(
+					'runnerId'           => array(
+						'required'          => true,						
+						'validate_callback' => array( $this, 'is_valid_id' )
+						)
+					)		
+			) );
+			
+			register_rest_route( $namespace, '/results/grandPrix/(?P<year>[\d]{4})/(?P<sexId>[\d]+)', array(
+				'methods'             => WP_REST_Server::READABLE,				
+				'callback'            => array( $this, 'get_grandPrixPoints' ),
+				'args'                => array(
+					'sexId'           => array(
+						'required'          => true,						
+						'validate_callback' => array( $this, 'is_valid_id' )
+						)
+					),
+					'year'           => array(
+						'required'          => true
+					)
+			) );
+			
+			register_rest_route( $namespace, '/results/race/(?P<raceId>[\d]+)', array(
+				'methods'             => WP_REST_Server::READABLE,				
+				'callback'            => array( $this, 'get_raceResults' ),
+				'args'                => array(
+					'raceId'           => array(
+						'required'          => true,						
+						'validate_callback' => array( $this, 'is_valid_id' )
+						)
+					)
+			) );			
 		}
 
 		public function save_winners( WP_REST_Request $request ) {
@@ -417,6 +518,57 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller_V1' ) ) {
 			return rest_ensure_response( $response );
 		}
 		
+		public function get_clubRecords( WP_REST_Request $request ) {
+		    $response = $this->data_access->getClubRecords($request['distanceId']);
+
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_raceResults( WP_REST_Request $request ) {
+		    $response = $this->data_access->getRaceResults($request['raceId']);
+
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_memberResults( WP_REST_Request $request ) {
+		    $response = $this->data_access->getMemberResults($request['runnerId']);
+
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_standardCertificates( WP_REST_Request $request ) {
+		    $response = $this->data_access->getStandardCertificates($request['runnerId']);
+
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_resultRankings( WP_REST_Request $request ) {
+			$parameters = $request->get_query_params();			
+		    $response = $this->data_access->getResultRankings($request['distanceId'], $parameters['year'], $parameters['sexId']);
+
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_WMAPercentageRankings( WP_REST_Request $request ) {
+			$parameters = $request->get_query_params();			
+		    $response = $this->data_access->getWMAPercentageRankings($parameters['sexId'], $parameters['distanceId'], $parameters['year'], $parameters['distinct']);
+
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_averagePercentageRankings( WP_REST_Request $request ) {
+			$parameters = $request->get_query_params();			
+		    $response = $this->data_access->getAveragePercentageRankings($parameters['sexId'], $parameters['year'], $parameters['numberOfRaces']);
+
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_grandPrixPoints( WP_REST_Request $request ) {
+		    $response = $this->data_access->getGrandPrixPoints($request['year'], $request['sexId']);
+
+			return rest_ensure_response( $response );
+		}
+		
 		public function get_resultsByYearAndCountry( WP_REST_Request $request ) {
 		    $response = $this->data_access->getResultsByYearAndCountry();
 
@@ -476,6 +628,13 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller_V1' ) ) {
 		public function update_event( WP_REST_Request $request ) {
 
 			$response = $this->data_access->updateEvent($request['eventId'], $request['field'], $request['value']);
+			
+			return rest_ensure_response( $response );
+		}
+		
+		public function update_race( WP_REST_Request $request ) {
+
+			$response = $this->data_access->updateRace($request['id'], $request['field'], $request['value']);
 			
 			return rest_ensure_response( $response );
 		}
@@ -592,6 +751,24 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller_V1' ) ) {
 			} else {
 				return new WP_Error( 'rest_invalid_param',
 					sprintf( '%s %d must be name or website only.', $key, $value ), array( 'status' => 400 ) );
+			} 			
+		}
+		
+		public function is_valid_race_update_field($value, $request, $key){
+			if ( $value == 'event_id' || 
+			    $value == 'description' || 
+				$value == 'course_type_id' || 
+				$value == 'course_id' || 
+				$value == 'area' || 
+				$value == 'county' ||
+				$value == 'country_code' || 
+				$value == 'venue' || 
+				$value == 'conditions' || 
+				$value == 'grand_prix' ) {
+				return true;
+			} else {
+				return new WP_Error( 'rest_invalid_param',
+					sprintf( '%s %d invalid value.', $key, $value ), array( 'status' => 400) );
 			} 			
 		}
 		

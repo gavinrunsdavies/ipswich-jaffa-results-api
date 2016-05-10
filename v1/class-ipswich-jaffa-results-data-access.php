@@ -94,9 +94,9 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		public function getRaces($eventId) {
 
 			$sql = $this->jdb->prepare(
-					'SELECT ra.id, e.id AS eventId, e.Name as name, ra.date, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.distance
+					'SELECT ra.id, e.id AS eventId, e.Name as name, ra.date, ra.description, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.distance, ra.grand_prix as isGrandPrixRace
 					FROM `events` e
-					INNER JOIN `race` ra ON ra.event_id = e.id
+					LEFT JOIN `race` ra ON ra.event_id = e.id
 					LEFT JOIN `distance` d ON ra.distance_id = d.id
 					LEFT JOIN `course_type` c ON ra.course_type_id = c.id
 					WHERE e.id = %d
@@ -115,14 +115,14 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		public function getRace($raceId) {
 
 			$sql = $this->jdb->prepare(
-					'SELECT ra.id, e.id AS eventId, e.Name as name, ra.date, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.distance
+					'SELECT ra.id, e.id AS eventId, e.Name as eventName, ra.description as description, ra.date, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.distance, ra.grand_prix as isGrandPrixRace
 					FROM `events` e
 					INNER JOIN `race` ra ON ra.event_id = e.id
 					LEFT JOIN `distance` d ON ra.distance_id = d.id
 					LEFT JOIN `course_type` c ON ra.course_type_id = c.id
 					WHERE ra.id = %d', $raceId);
 
-			$results = $this->jdb->get_results($sql, OBJECT);
+			$results = $this->jdb->get_row($sql, OBJECT);
 
 			if (!$results)	{			
 				return new WP_Error( 'ipswich_jaffa_api_getRaces',
@@ -134,7 +134,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 		
 		public function insertRace($race)
 		{			
-			$sql = $this->jdb->prepare('INSERT INTO `race`(`event_id`, `date`, `course_id`, `venue`, `description`, `conditions`, `distance_id`, `course_type_id`, `county`, `country_code`, `area`) VALUES(%d, %s, %d, %s, %s, %s, %d, %d, %s, %s, %s)', $race['eventId'], $race['date'], $race['courseId'], $race['venue'], $race['description'], $race['conditions'], $race['distanceId'], $race['courseTypeId'], $race['county'], $race['countryCode'], $race['area']);
+			$sql = $this->jdb->prepare('INSERT INTO `race`(`event_id`, `date`, `course_id`, `venue`, `description`, `conditions`, `distance_id`, `course_type_id`, `county`, `country_code`, `area`, `grand_prix`) VALUES(%d, %s, %d, %s, %s, %s, %d, %d, %s, %s, %s, %d)', $race['eventId'], $race['date'], $race['courseId'], $race['venue'], $race['description'], $race['conditions'], $race['distanceId'], $race['courseTypeId'], $race['county'], $race['countryCode'], $race['area'], $race['isGrandPrixRace']);
 
 			$result = $this->jdb->query($sql);
 
@@ -214,9 +214,48 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 			}
 
 			return new WP_Error( 'ipswich_jaffa_api_updateEvent',
-						'Field in event may not be updated', array( 'status' => 500 ) );
+						'Field in event may not be updated', array( 'status' => 500 , 'Field' => $field, 'Value' => $value) );
 		}
 		
+		public function updateRace($raceId, $field, $value) {		
+			// Race date and distance can not be changed - affected PBs etc
+			if ($field == 'event_id' || 
+			    $field == 'description' || 
+				$field == 'course_type_id' || 
+				$field == 'course_id' || 
+				$field == 'area' || 
+				$field == 'county' ||
+				$field == 'country_code' || 
+				$field == 'venue' || 
+				$field == 'conditions' || 
+				$field == 'grand_prix') 
+			{
+				$result = $this->jdb->update( 
+					'race', 
+					array( 
+						$field => $value
+					), 
+					array( 'id' => $raceId ), 
+					array( 
+						'%s'
+					), 
+					array( '%d' ) 
+				);
+
+				if ($result)
+				{
+					// Get updated race
+					return $this->getRace($raceId);
+				}
+				
+				return new WP_Error( 'ipswich_jaffa_api_updateRace',
+						'Unknown error in updating event in to the database'.$sql, array( 'status' => 500 ) );
+			}
+
+			return new WP_Error( 'ipswich_jaffa_api_updateRace',
+						'Field in event may not be updated', array( 'status' => 500 , 'Field' => $field, 'Value' => $value) );
+		}
+				
 		public function updateRunner($runnerId, $field, $value) {		
 
 			// Only name and website may be changed.
@@ -244,7 +283,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 			}
 
 			return new WP_Error( 'ipswich_jaffa_api_updateRunner',
-						'Field in runner may not be updated', array( 'status' => 500 ) );
+						'Field in event may not be updated', array( 'status' => 500 , 'Field' => $field, 'Value' => $value) );
 		}
 		
 		public function updateResult($resultId, $field, $value) {		
@@ -553,7 +592,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 				$standardType = $this->getStandardTypeId($categoryId, $result['time'], $result['eventId']);				
 			}
 			
-			$sql = $this->jdb->prepare('INSERT INTO results (`result`, `event_id`, `course_id`, `racedate`, `info`, `runner_id`, `club_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `grandprix`, `scoring_team`, `club_id`) VALUES(%s, %d, %d, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d);', $result['time'], $result['eventId'], $result['courseId'], $result['date'], $result['info'], $result['runnerId'], 439, $result['position'], $categoryId, $pb, $seasonBest, $standardType, $result['isGrandPrixResult'], $result['team'], $result['clubId']);
+			$sql = $this->jdb->prepare('INSERT INTO results (`result`, `event_id`, `course_id`, `racedate`, `info`, `runner_id`, `club_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `grandprix`, `scoring_team`, `race_id`) VALUES(%s, %d, %d, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d);', $result['time'], $result['eventId'], $result['courseId'], $result['date'], $result['info'], $result['runnerId'], 439, $result['position'], $categoryId, $pb, $seasonBest, $standardType, $result['isGrandPrixResult'], $result['team'], $result['raceId']);
 			
 			$success = $this->jdb->query($sql);
 
@@ -624,6 +663,32 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_Data_Access' ) ) {
 			return $results;
 		}
 		
+		public function getRaceResults($raceId) {
+			
+			$sql = "SELECT r.id, r.runner_id as 'runnerId', r.position, r.result as 'time', r.info, s.name as standardType, c.code as categoryCode, r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', r.course_id as 'courseId', p.name as 'runnerName', r.race_id as raceId
+			FROM results r, 
+				runners p,
+				standard_type s,
+				category c
+			WHERE r.runner_id = p.id 
+			AND r.race_id = $raceId 
+			AND c.id = r.category_id
+			AND s.id = r.standard_type_id
+			ORDER BY r.position ASC, r.result ASC";
+							
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if ($this->jdb->num_rows == 0)
+				return null;
+			
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getRaceResults',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
+				
 		public function getResult($resultId) {
 						
 			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', r.course_id as 'courseId', p.name as 'runnerName', e.name as 'eventName', d.distance FROM results r, runners p, events e LEFT JOIN distance d ON e.distance_id = d.id WHERE r.runner_id = p.id AND r.event_id = e.id AND r.id = $resultId";
@@ -946,6 +1011,372 @@ and r.id = %d", $runnerId, $date, $eventId, $resultId);
 			}
 			
 			return true;
+		}
+		
+		public function getClubRecords($distanceId) {
+			$sql = $this->jdb->prepare("           
+				SELECT r.runner_id as runnerId, p.Name as runnerName, e.id as eventId, e.Name as eventName, ra.date, r.result, c.code as categoryCode, ra.id as raceId, ra.description, ra.venue
+				FROM results AS r
+				JOIN (
+				  SELECT r1.runner_id, r1.result, MIN(r1.racedate) AS earliest
+				  FROM results AS r1
+				  JOIN (
+					SELECT MIN(r2.result) AS quickest, r2.category_id
+					FROM results r2
+					INNER JOIN race ra
+					ON r2.race_id = ra.id
+					INNER JOIN events e
+					ON ra.event_id = e.id
+					INNER JOIN `distance` d
+					ON ra.distance_id = d.id
+					INNER JOIN `runners` p2
+					ON r2.runner_id = p2.id
+					WHERE r2.result != '00:00:00' and d.id = %d and r2.category_id <> 0
+					GROUP BY r2.category_id
+				   ) AS rt
+				   ON r1.result = rt.quickest and r1.category_id = rt.category_id
+				   GROUP BY r1.runner_id, r1.result, r1.category_id
+				   ORDER BY r1.result asc
+				) as rd
+				ON r.runner_id = rd.runner_id AND r.result = rd.result AND r.racedate = rd.earliest
+				INNER JOIN race ra ON r.race_id = ra.id
+				INNER JOIN events e ON ra.event_id = e.id
+				INNER JOIN runners p ON r.runner_id = p.id
+				INNER JOIN category c ON r.category_id = c.id      
+				WHERE c.age_less_than is NOT NULL and ra.distance_id = %d             
+				ORDER BY c.age_less_than, c.sex_id", $distanceId, $distanceId);
+				
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getClubRecords',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
+		
+		public function getResultRankings($distanceId, $year = 0, $sexId = 0)	{		
+
+			// Get the results
+			if ($year != 0)
+			{
+				$dateQuery1 = "  WHERE ra1.date >= '$year-01-01' and ra1.date <= '$year-12-31'";
+				$dateQuery2 = "  AND ra2.date >= '$year-01-01' and ra2.date <= '$year-12-31'";
+			}
+			else
+			{
+				$dateQuery1 = "";
+				$dateQuery2 = "";
+			}
+
+			if ($sexId != 0)
+			{
+				$sexQuery = " AND p2.sex_id = $sexId";
+			}
+			else
+			{
+				$sexQuery = "";
+			}
+		
+			$sql = "SET @cnt := 0;";
+			
+			$this->jdb->query($sql);		
+
+			$sql = "
+				SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
+					SELECT r.runner_id, p.Name, e.id, e.Name as Event, ra3.date, r.result
+					FROM results AS r
+					JOIN (
+					  SELECT r1.runner_id, r1.result, MIN(ra1.date) AS earliest
+					  FROM results AS r1
+					  INNER JOIN race ra1 ON r1.race_id = ra1.id
+					  JOIN (
+						SELECT r2.runner_id, MIN(r2.result) AS quickest
+						FROM results r2					
+						INNER JOIN `race` ra2
+						ON ra2.id = r2.race_id
+						INNER JOIN `runners` p2
+						ON r2.runner_id = p2.id
+						WHERE r2.result != '00:00:00' 
+						AND ra2.distance_id = $distanceId
+						$sexQuery
+						$dateQuery2
+						GROUP BY r2.runner_id
+					   ) AS rt
+					   ON r1.runner_id = rt.runner_id AND r1.result = rt.quickest
+					   $dateQuery1
+					   GROUP BY r1.runner_id, r1.result
+					   ORDER BY r1.result asc
+					   LIMIT 100
+					) as rd
+					ON r.runner_id = rd.runner_id AND r.result = rd.result 
+					INNER JOIN race ra3 ON r.race_id = ra3.id AND ra3.date = rd.earliest
+					INNER JOIN runners p ON r.runner_id = p.id
+					INNER JOIN events e ON r.event_id = e.id
+					ORDER BY r.result asc
+					LIMIT 100) Ranking";
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getResultRankings',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
+		
+		public function getMemberResults($runnerId) {
+
+			$sql = $this->jdb->prepare('select
+					  e.id as eventId,
+					  e.name as eventName,
+					  ra.distance_id as distanceId,
+					  r.id as id,
+					  ra.date as date,
+					  r.position as position,
+					  r.result as time,
+					  r.personal_best as isPersonalBest,
+					  r.season_best as isSeasonBest,
+					  st.name as standard,
+					  r.info as info,
+					  r.percentage_grading as percentageGrading
+					from
+					  runners p,
+					  results r 
+					LEFT JOIN standard_type st
+					  ON r.standard_type_id = st.id
+					LEFT JOIN race ra
+					  ON ra.id = r.race_id
+					LEFT JOIN events e
+					  ON ra.event_id = e.id
+					where
+					  r.runner_id = p.id AND
+					  r.runner_id = %d
+					ORDER BY date DESC', $runnerId);
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+			
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getMemberResults',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		} // end function GetMemberResults
+	
+		public function getStandardCertificates($runnerId) {
+
+			$sql = $this->jdb->prepare("SELECT st.name, e.name as 'event', d.distance, r.result, DATE_FORMAT( ra.date, '%%M %%e, %%Y' ) as 'date'
+								  FROM standard_certificates sc
+								  INNER JOIN results r ON sc.result_id = r.id
+								  INNER JOIN standard_type st ON r.standard_type_id = st.id
+								  INNER JOIN race ra ON ra.id = r.race_id
+								  INNER JOIN events e ON e.id = ra.event_id
+								  INNER JOIN distance d ON d.id = ra.distance_id
+								  where r.runner_id = %d and ra.date > '2010-01-01'
+								  order by st.name desc", $runnerId);
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getStandardCertificates',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+			
+			return $results;
+		}
+		
+		public function getWMAPercentageRankings($sexId = 0, $distanceId = 0, $year = 0, $distinct = false) {	
+
+			// Get the results
+			if ($distanceId != 0)
+			{
+				$distanceQuery1 = " AND ra1.distance_id = $distanceId";
+				$distanceQuery2 = " AND ra2.distance_id = $distanceId";
+			}
+			else
+			{
+				$distanceQuery2 = "";
+				$distanceQuery1 = "";
+			}
+
+			if ($sexId != 0)
+			{
+				$sexQuery0 = " AND p.sex_id = $sexId";
+				$sexQuery1 = " AND p2.sex_id = $sexId";
+			}
+			else
+			{
+				$sexQuery0 = "";
+				$sexQuery1 = "";
+			}
+			
+			if ($year != 0)
+			{
+				$yearQuery0 = " AND YEAR(ra.date) >= $year AND YEAR(ra.date) < ($year +1)";
+				$yearQuery1 = " AND YEAR(ra1.date) >= $year AND YEAR(ra1.date) < ($year +1)";
+				$yearQuery2 = " AND YEAR(ra2.date) >= $year AND YEAR(ra2.date) < ($year +1)";
+			}
+			else
+			{
+				$yearQuery0 = "";
+				$yearQuery1 = "";
+				$yearQuery2 = "";
+			}
+			
+			$sql = "SET @cnt := 0;";
+			
+			$this->jdb->query($sql);		
+			
+			if ($distinct == false || $distinct == "false")
+			{
+				$sql = "
+					select @cnt := @cnt + 1 as rank, ranking.* from (
+						select r.runner_id as runnerId, p.name, e.id as eventId, e.name as event, ra2.date, r.result, r.percentage_grading as percentageGrading
+						from results as r
+						inner join runners p on p.id = r.runner_id
+						inner join race ra2 on ra2.id = r.race_id
+						inner join events e on e.id = ra2.event_id
+						where r.percentage_grading > 0
+						$sexQuery0
+						$distanceQuery2
+						$yearQuery2
+						order by r.percentage_grading desc
+						limit 500) ranking";
+			} 
+			else
+			{
+				$sql = "
+					SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
+						SELECT r.runner_id as runnerId, p.Name, e.id as eventId, e.Name as event, ra.date, r.result, r.percentage_grading AS percentageGrading
+						FROM results AS r
+						JOIN (
+						  SELECT r1.runner_id, r1.result, MIN(ra1.date) AS earliest
+						  FROM results AS r1
+						  JOIN (
+							SELECT r2.runner_id, MAX(r2.percentage_grading) AS highest
+							FROM results r2
+							INNER JOIN race ra2
+							ON r2.race_id = ra2.id						
+							INNER JOIN `runners` p2
+							ON r2.runner_id = p2.id
+							WHERE r2.percentage_grading > 0
+							$distanceQuery2
+							$sexQuery1
+							$yearQuery2
+							GROUP BY r2.runner_id
+						   ) AS rt
+						   ON r1.runner_id = rt.runner_id AND r1.percentage_grading = rt.highest
+						   INNER JOIN race ra1 ON r1.race_id = ra1.id 
+						   $distanceQuery1
+						   $yearQuery1
+						   GROUP BY r1.runner_id, r1.result
+						   ORDER BY r1.percentage_grading desc
+						   LIMIT 100
+						) as rd
+						ON r.runner_id = rd.runner_id AND r.result = rd.result
+						INNER JOIN race ra ON r.race_id = ra.id AND ra.date = rd.earliest
+						INNER JOIN events e ON ra.event_id = e.id
+						INNER JOIN runners p ON r.runner_id = p.id
+						ORDER BY r.percentage_grading desc
+						LIMIT 100) Ranking";
+			}
+						
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getWMAPercentageRankings',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+			
+			return $results;
+		}
+		
+		public function getAveragePercentageRankings($sexId, $year = 0, $numberOfRaces = 5) {
+
+			$yearQuery = "AND YEAR(ra.date) = $year";
+			if ($year == 0) {			
+				$yearQuery = "";
+			}
+			
+			$sql = "set @cnt := 0, @runnerId := 0, @rank := 0;";
+			
+			$this->jdb->query($sql);		
+			
+			$sql = "select @rank := @rank + 1 AS rank, Results.* FROM (
+					select runner_id as runnerId, name, ROUND(avg(ranktopX.percentage_grading),2) as topXAvg from (
+					select * from (
+					select @cnt := if (@runnerId = ranking.runner_id, @cnt + 1, 1) as rank, @runnerId := ranking.runner_id, ranking.* from (
+										
+										select r.runner_id, p.name, e.id, e.name as event, r.racedate, r.result, r.percentage_grading
+										from results as r
+										inner join runners p on p.id = r.runner_id
+										inner join race ra on ra.id = r.race_id
+										inner join events e on e.id = ra.event_id
+										where r.percentage_grading > 0
+										AND p.sex_id = $sexId					
+										$yearQuery
+										order by r.runner_id asc, r.percentage_grading desc) ranking			
+					) as rank2
+					where rank2.rank <= $numberOfRaces	
+					) ranktopX
+					group by ranktopX.runner_id
+					having count(*) = $numberOfRaces
+					order by topXAvg desc
+					LIMIT 50) Results";
+			
+						
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getAveragePerformanceRankings',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+			
+			return $results;
+		}
+		
+		public function getGrandPrixPoints($year, $sexId) {
+			$nextYear = $year + 1;
+			$sql = "set @raceId := 0, @rank := 101;";
+			
+			$this->jdb->query($sql);		
+			
+			$sql = "select @rank := if (@raceId = gpResults.raceId, @rank - 1, 100) AS rank, @raceId := gpResults.raceId as raceId, gpResults.runnerId, gpResults.name, gpResults.eventName, gpResults.description
+				FROM (
+				  SELECT
+                  p.id as runnerId,
+                  p.name,
+                  ra.id as raceId,
+				  e.name as eventName,
+				  ra.description
+                FROM
+                  results r,
+                  race ra,
+                  runners p,
+				  events e
+                WHERE                  
+                  ra.date >= '$year-03-01' and ra.date < '$nextYear-03-01'
+                  AND r.runner_id = p.id                  
+                  AND $sexId = p.sex_id
+                  AND ra.id = r.race_id
+                  AND ra.grand_prix = 1
+				  AND e.id = ra.event_id
+                  AND year(FROM_DAYS(TO_DAYS(ra.date) - TO_DAYS(p.dob))) >= 16
+                ORDER BY ra.date, ra.id, r.position asc, r.result asc) gpResults";
+			
+						
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new WP_Error( 'ipswich_jaffa_api_getGrandPrixPoints',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+			
+			return $results;
 		}
 	}
 }
