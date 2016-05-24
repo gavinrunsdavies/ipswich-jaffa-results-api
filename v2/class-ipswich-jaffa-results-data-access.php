@@ -579,8 +579,8 @@ class Ipswich_JAFFA_Results_Data_Access {
 			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', p.name as 'runnerName', e.name as 'eventName', ra.description as 'raceDescription' 
 			FROM results r
 			INNER JOIN runners p on p.id = r.runner_id
-			INNER JOIN race ra ON r.race_id = ra.id
-			INNER JOIN events e ON ra.event_id = e.id
+			LEFT OUTER JOIN race ra ON r.race_id = ra.id
+			INNER JOIN events e ON r.event_id = e.id
 			WHERE 1=1 $whereEvent $whereFrom $whereTo
 			ORDER BY ra.date DESC, ra.id, r.position ASC, r.result ASC LIMIT $limit";
 							
@@ -599,15 +599,12 @@ class Ipswich_JAFFA_Results_Data_Access {
 		
 		public function getRaceResults($raceId) {
 			
-			$sql = "SELECT r.id, r.runner_id as 'runnerId', r.position, r.result as 'time', r.info, s.name as standardType, c.code as categoryCode, r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', r.course_number as 'courseNumber', p.name as 'runnerName', r.race_id as raceId
-			FROM results r, 
-				runners p,
-				standard_type s,
-				category c
-			WHERE r.runner_id = p.id 
-			AND r.race_id = $raceId 
-			AND c.id = r.category_id
-			AND s.id = r.standard_type_id
+			$sql = "SELECT r.id, r.runner_id as 'runnerId', r.position, r.result as 'time', r.info, s.name as standardType, c.code as categoryCode, r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', p.name as 'runnerName', r.race_id as raceId
+			FROM results r
+			INNER JOIN runners p on r.runner_id = p.id 
+			LEFT JOIN standard_type s on s.id = r.standard_type_id
+			LEFT JOIN category c ON c.id = r.category_id
+			WHERE r.race_id = $raceId 
 			ORDER BY r.position ASC, r.result ASC";
 							
 			$results = $this->jdb->get_results($sql, OBJECT);
@@ -1487,11 +1484,12 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		public function getMeeting($meetingId) {
 
 			$sql = $this->jdb->prepare(
-					'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate
-					FROM `meeting` m
+					'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate, r.id, r.description 
+					FROM `meeting` m 
+					LEFT JOIN `race` r on r.meeting_id = m.id
 					WHERE m.id = %d', $meetingId);
 
-			$results = $this->jdb->get_row($sql, OBJECT);
+			$results = $this->jdb->get_results($sql, OBJECT);
 
 			if (!$results)	{			
 				return new \WP_Error( 'ipswich_jaffa_api_getMeeting',
