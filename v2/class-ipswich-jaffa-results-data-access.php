@@ -183,6 +183,81 @@ class Ipswich_JAFFA_Results_Data_Access {
 		
 		return $results;
 	}
+	
+	public function updateRaceDistance($raceId, $distanceId) {
+		$results = $this->getRaceResults($raceId);
+		
+		// Update race distance
+		$success = $this->jdb->update( 
+						'race', 
+						array( 
+							'distance_id' => $distanceId
+						), 
+						array( 'id' => $raceId ), 
+						array( 
+							'%s'
+						), 
+						array( '%d' ) 
+					);
+		
+		// For each race result
+		for ($i = 0; $i < count($results); $i++) {		
+			// Update result, percentage grading and standard
+			$existingResult = $results[$i]->time;
+			$pb = 0;
+			$seasonBest = 0;
+			$standardType = 0;
+	
+			if (!($existingResult == "00:00:00" || $existingResult == "" || $existingResult == null)) {
+				$pb = $this->isPersonalBest($raceId, $results[$i]->runnerId, $existingResult);
+				
+				$seasonBest = $this->isSeasonBest($raceId, $results[$i]->runnerId, $existingResult);
+
+				$standardType = $this->getStandardTypeId($results[$i]->categoryId, $existingResult, $raceId);				
+			}
+			
+			$success = $this->jdb->update( 
+				'results', 
+				array( 
+					'personal_best' => $pb,
+					'season_best' => $seasonBest,
+					'standard_type_id' => $standardType
+				), 
+				array( 'id' => $results[$i]->id ), 
+				array( 
+					'%d',
+					'%d',
+					'%d'
+				), 
+				array( '%d' ) 
+			);							
+
+			if ($success)
+			{
+				$this->updateAgeGrading($results[$i]->id, $raceId, $results[$i]->runnerId);
+			
+				// If a PB query to see whether a new certificate is required.
+				if ($pb == true)
+				{
+					$isNewStandard = $this->isNewStandard($results[$i]->id);
+
+					if ($isNewStandard == true)
+					{
+						$this->saveStandardCertificate($results[$i]->id);
+					}
+				}					
+			}
+		}
+		
+		if ($success)
+		{
+			// Get updated race
+			return $this->getRace($raceId);
+		}
+		
+		return new \WP_Error( 'ipswich_jaffa_api_updateRaceDistance',
+				'Unknown error in updating race in to the database', array( 'status' => 500 ) );
+	}
 
 	public function updateRace($raceId, $field, $value) {		
 			// Race date and distance can not be changed - affected PBs etc
@@ -599,7 +674,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 		
 		public function getRaceResults($raceId) {
 			
-			$sql = "SELECT r.id, r.runner_id as 'runnerId', r.position, r.result as 'time', r.info, s.name as standardType, c.code as categoryCode, r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', p.name as 'runnerName', r.race_id as raceId
+			$sql = "SELECT r.id, r.runner_id as 'runnerId', r.position, r.result as 'time', r.info, s.name as standardType, c.code as categoryCode, r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', p.name as 'runnerName', r.race_id as raceId, c.id as categoryId
 			FROM results r
 			INNER JOIN runners p on r.runner_id = p.id 
 			LEFT JOIN standard_type s on s.id = r.standard_type_id
@@ -850,9 +925,10 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								r.runner_id = p.id AND
 								r.result != '00:00:00' AND
 								r.result <= %s AND
-								r.runner_id = %d
+								r.runner_id = %d AND
+								r.race_id <> %d
 								ORDER BY result
-								LIMIT 1", $raceId, $result, $runnerId);
+								LIMIT 1", $raceId, $result, $runnerId, $raceId);
 
 			$count = $this->jdb->get_var($sql);
 
@@ -876,9 +952,10 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								r.result != '00:00:00' AND
 								r.result <= %s AND
 								r.runner_id = %d AND
-								YEAR(ra.date) = YEAR(NOW())
+								YEAR(ra.date) = YEAR(NOW()) AND
+								r.race_id <> %d
 								ORDER BY result
-								LIMIT 1", $raceId, $result, $runnerId);
+								LIMIT 1", $raceId, $result, $runnerId, $raceId);
 
 			$count = $this->jdb->get_var($sql);
 

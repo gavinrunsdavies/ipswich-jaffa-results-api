@@ -737,7 +737,11 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 		
 		public function update_race( \WP_REST_Request $request ) {
 
-			$response = $this->data_access->updateRace($request['id'], $request['field'], $request['value']);
+			if ($request['field'] == "distance_id") {
+				$response = $this->data_access->updateRaceDistance($request['id'], $request['value']);
+			} else {
+				$response = $this->data_access->updateRace($request['id'], $request['field'], $request['value']);
+			}
 			
 			return rest_ensure_response( $response );
 		}
@@ -910,6 +914,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 				$value == 'county' ||
 				$value == 'country_code' || 
 				$value == 'venue' || 
+				$value == 'distance_id' || 
 				$value == 'conditions' || 
 				$value == 'meeting_id' || 
 				$value == 'grand_prix' ) {
