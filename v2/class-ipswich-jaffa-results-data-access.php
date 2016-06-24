@@ -1375,10 +1375,10 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 				$nextYear = $year + 1;
 				$yearQuery = "AND ra.date >= '$year-03-01' AND ra.date < '$nextYear-03-01'";						
 			} else {					
-			if ($year == 0) {			
-				$yearQuery = "";
+				if ($year == 0) {			
+					$yearQuery = "";
 				} else {
-					$yearQuery = "AND YEAR(ra.date) >= $year";
+					$yearQuery = "AND YEAR(ra.date) = $year";
 				}
 			}
 			
