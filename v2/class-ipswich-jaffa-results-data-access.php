@@ -1391,7 +1391,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			{
 				$sql = "
 					SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
-						SELECT r.runner_id as runnerId, p.Name, e.id as eventId, e.Name as event, ra.date, r.result, r.percentage_grading AS percentageGrading
+						SELECT r.runner_id as runnerId, p.Name as name, e.id as eventId, e.Name as event, ra.date, r.result, r.percentage_grading AS percentageGrading
 						FROM results AS r
 						JOIN (
 						  SELECT r1.runner_id, r1.result, MIN(ra1.date) AS earliest
@@ -1501,11 +1501,12 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			
 			$this->jdb->query($sql);		
 			
-			$sql = "select @rank := if (@raceId = gpResults.raceId, @rank - 1, 100) AS rank, @raceId := gpResults.raceId as raceId, gpResults.runnerId, gpResults.name, gpResults.eventName, gpResults.description
+			$sql = "select @rank := if (@raceId = gpResults.raceId, @rank - 1, 100) AS rank, @raceId := gpResults.raceId as raceId, gpResults.runnerId, gpResults.name, gpResults.dateOfBirth, gpResults.eventName, gpResults.description
 				FROM (
 				  SELECT
                   p.id as runnerId,
                   p.name,
+				  p.dob as dateOfBirth,
                   ra.id as raceId,
 				  e.name as eventName,
 				  ra.description
@@ -1650,6 +1651,52 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 						'Unknown error in getting meeting races from the database', array( 'status' => 500 ) );			
 			}
 			
+			return $results;
+		}
+		
+		public function getAllRaceResults($distanceId) {
+			$sql = $this->jdb->prepare(
+					"SELECT p.name, p.id, ra.date, ra.id as 'raceId', ra.description as 'raceDescription', e.name as 'eventName', c.id as 'categoryId', c.code as 'categoryCode', r.result, r.position 
+					FROM `results` r 
+					inner join race ra on ra.id = r.race_id 
+					INNER JOIN runners p ON p.id = r.runner_id 
+					INNER JOIN events e ON e.id = ra.event_id 
+					INNER JOIN category c ON c.id = r.category_id 
+					WHERE ra.distance_id = %d AND c.id > 0 AND r.result <> '00:00:00'
+					order by category_id asc, ra.date asc, r.result asc", $distanceId);	
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+			
+			if ($this->jdb->num_rows == 0)
+				return null;	
+			
+			if (!$results) {			
+				return new \WP_Error( 'ipswich_jaffa_api_getAllRaceResults',
+						'Unknown error in getting all race results from the database', array( 'status' => 500 ) );			
+			}
+			
+			return $results;
+		}
+		
+		public function getRaceDetails($raceIds) {
+
+			$raceIdString = join(",",$raceIds);
+			
+			$sql = "SELECT ra.id, e.id AS eventId, e.Name as eventName, ra.description as description, ra.date, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.distance, ra.grand_prix as isGrandPrixRace, ra.course_number as courseNumber, ra.meeting_id as meetingId
+			FROM `events` e
+			INNER JOIN `race` ra ON ra.event_id = e.id
+			LEFT JOIN `distance` d ON ra.distance_id = d.id
+			LEFT JOIN `course_type` c ON ra.course_type_id = c.id
+			WHERE ra.id in ($raceIdString)
+			ORDER BY ra.date";
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new \WP_Error( 'ipswich_jaffa_api_getRaceDetails',
+						'Unknown error in reading race from the database', array( 'status' => 500 ) );			
+			}
+
 			return $results;
 		}
 	}
