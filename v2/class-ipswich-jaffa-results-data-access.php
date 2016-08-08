@@ -31,7 +31,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 	}
 	
 	public function getDistances() {		
-			 $sql = 'SELECT id, distance as text FROM distance';
+			 $sql = 'SELECT id, distance as text, result_measurement_unit_type_id as resultMeasurementUnitTypeId FROM distance';
 
 			 $results = $this->jdb->get_results($sql, OBJECT);
 
@@ -93,7 +93,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 	public function getRace($raceId) {
 
 			$sql = $this->jdb->prepare(
-					'SELECT ra.id, e.id AS eventId, e.Name as eventName, ra.description as description, ra.date, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.distance, ra.grand_prix as isGrandPrixRace, ra.course_number as courseNumber, ra.meeting_id as meetingId
+					'SELECT ra.id, e.id AS eventId, e.Name as eventName, ra.description as description, ra.date, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.distance, ra.grand_prix as isGrandPrixRace, ra.course_number as courseNumber, ra.meeting_id as meetingId, d.result_measurement_unit_type_id as resultMeasurementUnitTypeId
 					FROM `events` e
 					INNER JOIN `race` ra ON ra.event_id = e.id
 					LEFT JOIN `distance` d ON ra.distance_id = d.id
@@ -169,7 +169,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 		
 	public function getRaces($eventId) {
 		$sql = $this->jdb->prepare(
-				'SELECT ra.id, e.id AS eventId, e.Name as name, ra.date, ra.description, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.distance, ra.grand_prix as isGrandPrixRace, ra.course_number as courseNumber, ra.meeting_id as meetingId, count(r.id) as count
+				'SELECT ra.id, e.id AS eventId, e.Name as name, ra.date, ra.description, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.distance, ra.grand_prix as isGrandPrixRace, ra.course_number as courseNumber, ra.meeting_id as meetingId, d.result_measurement_unit_type_id as resultMeasurementUnitTypeId, count(r.id) as count
 				FROM `events` e
 				INNER JOIN `race` ra ON ra.event_id = e.id
                 LEFT JOIN `results` r ON ra.id = r.race_id
@@ -183,7 +183,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 		
 		return $results;
 	}
-	
+
 	public function updateRaceDistance($raceId, $distanceId) {
 		$results = $this->getRaceResults($raceId);
 		
@@ -191,11 +191,13 @@ class Ipswich_JAFFA_Results_Data_Access {
 		$success = $this->jdb->update( 
 						'race', 
 						array( 
-							'distance_id' => $distanceId
+							'distance_id' => $distanceId,
+							'result_measurement_unit_type_id' => $resultMeasurementUnitTypeId
 						), 
 						array( 'id' => $raceId ), 
 						array( 
-							'%s'
+							'%s',
+							'%d'
 						), 
 						array( '%d' ) 
 					);
@@ -203,7 +205,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 		// For each race result
 		for ($i = 0; $i < count($results); $i++) {		
 			// Update result, percentage grading and standard
-			$existingResult = $results[$i]->time;
+			$existingResult = $results[$i]->result;
 			$pb = 0;
 			$seasonBest = 0;
 			$standardType = 0;
@@ -586,15 +588,15 @@ class Ipswich_JAFFA_Results_Data_Access {
 			$seasonBest = 0;
 			$standardType = 0;
 			
-			if ($this->isCertificatedCourseAndResult($result['raceId'], $result['courseId'], $result['time'])) {
-				$pb = $this->isPersonalBest($result['raceId'], $result['runnerId'], $result['time']);
+			if ($this->isCertificatedCourseAndResult($result['raceId'], $result['courseId'], $result['result'])) {
+				$pb = $this->isPersonalBest($result['raceId'], $result['runnerId'], $result['result']);
 				
-				$seasonBest = $this->isSeasonBest($result['raceId'], $result['runnerId'], $result['time']);
+				$seasonBest = $this->isSeasonBest($result['raceId'], $result['runnerId'], $result['result']);
 
-				$standardType = $this->getStandardTypeId($categoryId, $result['time'], $result['raceId']);				
+				$standardType = $this->getStandardTypeId($categoryId, $result['result'], $result['raceId']);				
 			}
 			
-			$sql = $this->jdb->prepare('INSERT INTO results (`result`, `event_id`, `racedate`, `info`, `runner_id`, `club_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `grandprix`, `scoring_team`, `race_id`) VALUES(%s, %d, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)', $result['time'], $result['eventId'], $result['date'], $result['info'], $result['runnerId'], 439, $result['position'], $categoryId, $pb, $seasonBest, $standardType, $result['isGrandPrixResult'], $result['team'] != null ? $result['team'] : 0, $result['raceId']);
+			$sql = $this->jdb->prepare('INSERT INTO results (`result`, `event_id`, `racedate`, `info`, `runner_id`, `club_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `grandprix`, `scoring_team`, `race_id`) VALUES(%s, %d, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)', $result['result'], $result['eventId'], $result['date'], $result['info'], $result['runnerId'], 439, $result['position'], $categoryId, $pb, $seasonBest, $standardType, $result['isGrandPrixResult'], $result['team'] != null ? $result['team'] : 0, $result['raceId']);
 					
 			$success = $this->jdb->query($sql);
 
@@ -651,7 +653,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 			if ($limit <= 0)
 				$limit = 100;
 
-			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', p.name as 'runnerName', e.name as 'eventName', ra.description as 'raceDescription' 
+			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.result as 'result', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', p.name as 'runnerName', e.name as 'eventName', ra.description as 'raceDescription' 
 			FROM results r
 			INNER JOIN runners p on p.id = r.runner_id
 			LEFT OUTER JOIN race ra ON r.race_id = ra.id
@@ -674,7 +676,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 		
 		public function getRaceResults($raceId) {
 			
-			$sql = "SELECT r.id, r.runner_id as 'runnerId', r.position, r.result as 'time', r.info, s.name as standardType, c.code as categoryCode, r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', p.name as 'runnerName', r.race_id as raceId, c.id as categoryId
+			$sql = "SELECT r.id, r.runner_id as 'runnerId', r.position, r.result as 'time', r.result as 'result', r.info, s.name as standardType, c.code as categoryCode, r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', p.name as 'runnerName', r.race_id as raceId, c.id as categoryId
 			FROM results r
 			INNER JOIN runners p on r.runner_id = p.id 
 			LEFT JOIN standard_type s on s.id = r.standard_type_id
@@ -697,7 +699,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 				
 		public function getResult($resultId) {
 						
-			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', ra.course_number as 'courseNumber', p.name as 'runnerName', e.name as 'eventName', ra.description as 'raceDescription' 
+			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.result as 'result', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', r.scoring_team as 'team', r.percentage_grading as 'percentageGrading', ra.course_number as 'courseNumber', p.name as 'runnerName', e.name as 'eventName', ra.description as 'raceDescription' 
 			FROM results r
 			INNER JOIN runners p on p.id = r.runner_id
 			INNER JOIN race ra ON r.race_id = ra.id
@@ -962,7 +964,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			return ($count == 0);
 		}
 
-		private function getStandardTypeId($catgeoryId, $time, $raceId) {
+		private function getStandardTypeId($catgeoryId, $result, $raceId) {
 			$sql = $this->jdb->prepare("SELECT
 									s.standard_type_id
 								  FROM
@@ -978,7 +980,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 									st.obsolete = 0
 								  ORDER BY
 									s.standard
-								   LIMIT 1", $catgeoryId, $raceId, $time);
+								   LIMIT 1", $catgeoryId, $raceId, $result);
 
 			$standard = $this->jdb->get_var($sql);
 
@@ -1165,6 +1167,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 					  ra.id as raceId,
 					  r.position as position,
 					  r.result as time,
+					  r.result as result,
 					  r.personal_best as isPersonalBest,
 					  r.season_best as isSeasonBest,
 					  st.name as standard,
@@ -1210,6 +1213,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 					  ra.id as raceId,
 					  r.position as position,
 					  r.result as time,		
+					  r.result as result,	
 					  r.info as info,
 					  r.percentage_grading as percentageGrading
 					from
@@ -1391,7 +1395,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			{
 				$sql = "
 					SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
-						SELECT r.runner_id as runnerId, p.Name, e.id as eventId, e.Name as event, ra.date, r.result, r.percentage_grading AS percentageGrading
+						SELECT r.runner_id as runnerId, p.Name as name, e.id as eventId, e.Name as event, ra.date, r.result, r.percentage_grading AS percentageGrading
 						FROM results AS r
 						JOIN (
 						  SELECT r1.runner_id, r1.result, MIN(ra1.date) AS earliest
@@ -1452,10 +1456,10 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 				$nextYear = $year + 1;
 				$yearQuery = "AND ra.date >= '$year-03-01' AND ra.date < '$nextYear-03-01'";						
 			} else {					
-			if ($year == 0) {			
-				$yearQuery = "";
+				if ($year == 0) {			
+					$yearQuery = "";
 				} else {
-					$yearQuery = "AND YEAR(ra.date) >= $year";
+					$yearQuery = "AND YEAR(ra.date) = $year";
 				}
 			}
 			
@@ -1501,11 +1505,12 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			
 			$this->jdb->query($sql);		
 			
-			$sql = "select @rank := if (@raceId = gpResults.raceId, @rank - 1, 100) AS rank, @raceId := gpResults.raceId as raceId, gpResults.runnerId, gpResults.name, gpResults.eventName, gpResults.description
+			$sql = "select @rank := if (@raceId = gpResults.raceId, @rank - 1, 100) AS rank, @raceId := gpResults.raceId as raceId, gpResults.runnerId, gpResults.name, gpResults.dateOfBirth, gpResults.eventName, gpResults.description
 				FROM (
 				  SELECT
                   p.id as runnerId,
                   p.name,
+				  p.dob as dateOfBirth,
                   ra.id as raceId,
 				  e.name as eventName,
 				  ra.description
@@ -1650,6 +1655,52 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 						'Unknown error in getting meeting races from the database', array( 'status' => 500 ) );			
 			}
 			
+			return $results;
+		}
+		
+		public function getAllRaceResults($distanceId) {
+			$sql = $this->jdb->prepare(
+					"SELECT p.name, p.id, ra.date, ra.id as 'raceId', ra.description as 'raceDescription', e.name as 'eventName', c.id as 'categoryId', c.code as 'categoryCode', r.result, r.position 
+					FROM `results` r 
+					inner join race ra on ra.id = r.race_id 
+					INNER JOIN runners p ON p.id = r.runner_id 
+					INNER JOIN events e ON e.id = ra.event_id 
+					INNER JOIN category c ON c.id = r.category_id 
+					WHERE ra.distance_id = %d AND c.id > 0 AND r.result <> '00:00:00'
+					order by category_id asc, ra.date asc, r.result asc", $distanceId);	
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+			
+			if ($this->jdb->num_rows == 0)
+				return null;	
+			
+			if (!$results) {			
+				return new \WP_Error( 'ipswich_jaffa_api_getAllRaceResults',
+						'Unknown error in getting all race results from the database', array( 'status' => 500 ) );			
+			}
+			
+			return $results;
+		}
+		
+		public function getRaceDetails($raceIds) {
+
+			$raceIdString = join(",",$raceIds);
+			
+			$sql = "SELECT ra.id, e.id AS eventId, e.Name as eventName, ra.description as description, ra.date, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.distance, ra.grand_prix as isGrandPrixRace, ra.course_number as courseNumber, ra.meeting_id as meetingId, d.result_measurement_unit_type_id as resultMeasurementUnitTypeId
+			FROM `events` e
+			INNER JOIN `race` ra ON ra.event_id = e.id
+			LEFT JOIN `distance` d ON ra.distance_id = d.id
+			LEFT JOIN `course_type` c ON ra.course_type_id = c.id
+			WHERE ra.id in ($raceIdString)
+			ORDER BY ra.date";
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new \WP_Error( 'ipswich_jaffa_api_getRaceDetails',
+						'Unknown error in reading race from the database', array( 'status' => 500 ) );			
+			}
+
 			return $results;
 		}
 	}

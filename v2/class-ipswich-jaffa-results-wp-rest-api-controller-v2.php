@@ -455,6 +455,17 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 				)		
 		) );
 		
+		register_rest_route( $namespace, '/results/historicrecords/distance/(?P<distanceId>[\d]+)', array(
+			'methods'             => \WP_REST_Server::READABLE,				
+			'callback'            => array( $this, 'get_historicClubRecords' ),
+			'args'                => array(
+				'distanceId'           => array(
+					'required'          => true,						
+					'validate_callback' => array( $this, 'is_valid_id' )
+					)
+				)		
+		) );
+		
 		register_rest_route( $namespace, '/results/ranking/distance/(?P<distanceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this, 'get_resultRankings' ),
@@ -674,6 +685,32 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			return rest_ensure_response( $response );
 		}
 		
+		public function get_historicClubRecords( \WP_REST_Request $request ) {			
+		    $response = $this->data_access->getAllRaceResults($request['distanceId']);
+			
+			// Group data in to catgeories and pick best times
+			$categoryId = 0;
+			$records = array();
+			foreach ($response as $item) {
+				$categoryId = $item->categoryId;
+				if (!array_key_exists($categoryId, $records)) {
+					$result = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "date" => $item->date);
+					$records[$categoryId] = array("id" => $categoryId, "code" => $item->categoryCode, "records" => array($result));
+					
+					continue;
+				}
+				
+				$currentResult = $item->result;
+				$count = count($records[$categoryId]['records']);
+				$previousRecord = $records[$categoryId]['records'][$count-1]['time'];
+				if ($currentResult < $previousRecord) {
+					$records[$categoryId]['records'][] = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "date" => $item->date);
+				}									
+			}
+
+			return rest_ensure_response( $records );
+		}
+		
 		public function get_averagePercentageRankings( \WP_REST_Request $request ) {
 			$parameters = $request->get_query_params();			
 		    $response = $this->data_access->getAveragePercentageRankings($parameters['sexId'], $parameters['year'], $parameters['numberOfRaces']);
@@ -684,7 +721,122 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 		public function get_grandPrixPoints( \WP_REST_Request $request ) {
 		    $response = $this->data_access->getGrandPrixPoints($request['year'], $request['sexId']);
 
-			return rest_ensure_response( $response );
+			// Group data in structure:
+			// {
+			  // "5": {
+				// "id": "5",
+				// "name": "Alan Jackson",
+				// "dateOfBirth": "1980-01-02",
+				// "races": [
+				  // {
+					// "id": "954",
+					// "points": "85"
+				  // },
+				  // {
+					// "id": "1512",
+					// "points": "79"
+				  // },
+				  // {
+					// "id": "729",
+					// "points": "90"
+				  // }
+				// ],
+				// "totalPoints": 254
+			  // },
+			  // "9": {
+				// "id": "9",
+				// "name": "Alistair Dick",
+				// "races": [
+				  // {
+					// "id": "954",
+					// "points": "88"
+				  // },
+				  // {
+					// "id": "549",
+					// "points": "96"
+				  // }
+				// ],
+				// "totalPoints": 184
+			  // },			
+			$results = array();
+			$races = array();
+			foreach ($response as $item) {
+				$runnerId = $item->runnerId;
+				if (!array_key_exists($runnerId, $results)) {
+					$gpCategory = $this->getGrandPrixCategory($item->dateOfBirth, $request['year']);
+					$results[$runnerId] = array("id" => $runnerId, "name" => $item->name, "categoryCode" => $gpCategory, "races" => array());
+				}
+				
+				$results[$runnerId]['races'][] = array("id" => $item->raceId, "points" => $item->rank);
+				$results[$runnerId]['totalPoints'] += $item->rank;				
+				
+				$raceId = $item->raceId;
+				if (!in_array($raceId, $races)) {
+					$races[] = $raceId;
+				}
+			}
+			
+			// Get race details
+			$raceDetails = $this->data_access->getRaceDetails($races);
+			
+			foreach ($results as $runner){
+				$results[$runner['id']]['best8Score'] = $this->getGrandPrixBest8Score($runner['races']);
+			}
+			
+			$getGrandPrixPointsResponse = array(
+				"races" => $raceDetails,
+				"results" => $results
+			);
+			
+			return rest_ensure_response( $getGrandPrixPointsResponse );
+		}
+		
+		private function getGrandPrixCategory($dateOfBirth, $year) 
+		{
+		//http://stackoverflow.com/questions/3776682/php-calculate-age		
+
+		  $dob = new \DateTime($dateOfBirth);
+          $gpDate = new \DateTime("$year-03-01");
+
+          $diff = $dob->diff($gpDate);
+		  		  
+		  if ($diff->y < 40) 
+			return "Open";
+		  if ($diff->y < 50) 
+			return "V40";
+		  if ($diff->y < 60) 
+			return "V50";
+		  
+		  return "V60";
+		}
+		
+		private function getGrandPrixBest8Score($races) 
+		{			
+			uasort($races, array($this, 'compareGrandPrixRaces'));
+
+			// Get best 8 scores 
+			$best8Score = 0;   
+
+			$count = 1;
+			foreach ($races as $race) 
+			{        
+				$best8Score += $race['points'];				
+				if ($count == 8) 
+				{
+				  break;
+				}
+				$count++;
+		    }		
+		  
+		    return $best8Score;
+		} // end function getGrandPrixBest8Score
+		
+		private function compareGrandPrixRaces($a, $b) {
+			if ($a['points'] == $b['points']) {
+				return 0;
+			}
+			
+			return ($a['points'] > $b['points']) ? -1 : 1;
 		}
 		
 		public function get_resultsByYearAndCountry( \WP_REST_Request $request ) {
@@ -740,7 +892,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			if ($request['field'] == "distance_id") {
 				$response = $this->data_access->updateRaceDistance($request['id'], $request['value']);
 			} else {
-				$response = $this->data_access->updateRace($request['id'], $request['field'], $request['value']);
+			$response = $this->data_access->updateRace($request['id'], $request['field'], $request['value']);
 			}
 			
 			return rest_ensure_response( $response );
@@ -1040,12 +1192,17 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 					sprintf( '%s %s has invalid date value', $key, json_encode($result)), array( 'status' => 400 ) );
 			} 
 			
-			$time = explode(":", $result['time']);			
-			if ($time[0] < 0 || $time[1] < 0 || $time[2] < 0 || $time[1] > 59 || $time[2] > 59){ 					
-				return new \WP_Error( 'rest_invalid_param',
-					sprintf( '%s %s has invalid time value', $key, json_encode($result)), array( 'status' => 400 ) );
+			if (strpos($result['result'], ':') !== false) {
+				$time = explode(":", $result['result']);	
+
+				if ($time[0] < 0 || $time[1] < 0 || $time[2] < 0 || $time[1] > 59 || $time[2] > 59){ 					
+					return new \WP_Error( 'rest_invalid_param',
+						sprintf( '%s %s has invalid time value', $key, json_encode($result)), array( 'status' => 400 ) );
+				} else {
+					return true;
+				}
 			} else {
-				return true;
+				// TODO validate distance (meters)
 			}
 		}
 
