@@ -343,6 +343,17 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			'callback'            => array( $this, 'get_runners' )
 		) );
 		
+		register_rest_route( $namespace, '/runners/(?P<runnerId>[\d]+)', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array( $this, 'get_runner' ),
+			'args'                => array(
+				'runnerId'           => array(
+					'required'          => true,						
+					'validate_callback' => array( $this, 'is_valid_id' ),
+					)
+				)
+		) );
+		
 		register_rest_route( $namespace, '/runners', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array( $this, 'permission_check' ),
@@ -665,12 +676,6 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			return rest_ensure_response( $response );
 		}
 		
-		public function get_standardCertificates( \WP_REST_Request $request ) {
-		    $response = $this->data_access->getStandardCertificates($request['runnerId']);
-
-			return rest_ensure_response( $response );
-		}
-		
 		public function get_resultRankings( \WP_REST_Request $request ) {
 			$parameters = $request->get_query_params();			
 		    $response = $this->data_access->getResultRankings($request['distanceId'], $parameters['year'], $parameters['sexId']);
@@ -933,6 +938,18 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			return rest_ensure_response( $response );
 		}
 		
+		public function get_runner( \WP_REST_Request $request ) {			
+			$response = $this->data_access->getRunner($request['runnerId']);
+			$certificates = $this->data_access->getStandardCertificates($request['runnerId']);
+			$distances = array(1,2,3,4,5,7,8);
+			$rankings = $this->data_access->getRunnerRankings($request['runnerId'], $response->sexId, $distances);
+			
+			$response->certificates = $certificates;
+			$response->rankings = $rankings;
+			
+			return rest_ensure_response( $response );
+		}
+		
 		public function save_runner( \WP_REST_Request $request ) {
 
 			$response = $this->data_access->insertRunner($request['runner']);
@@ -1192,12 +1209,17 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 					sprintf( '%s %s has invalid date value', $key, json_encode($result)), array( 'status' => 400 ) );
 			} 
 			
-			$time = explode(":", $result['time']);			
-			if ($time[0] < 0 || $time[1] < 0 || $time[2] < 0 || $time[1] > 59 || $time[2] > 59){ 					
-				return new \WP_Error( 'rest_invalid_param',
-					sprintf( '%s %s has invalid time value', $key, json_encode($result)), array( 'status' => 400 ) );
+			if (strpos($result['result'], ':') !== false) {
+				$time = explode(":", $result['result']);	
+
+				if ($time[0] < 0 || $time[1] < 0 || $time[2] < 0 || $time[1] > 59 || $time[2] > 59){ 					
+					return new \WP_Error( 'rest_invalid_param',
+						sprintf( '%s %s has invalid time value', $key, json_encode($result)), array( 'status' => 400 ) );
+				} else {
+					return true;
+				}
 			} else {
-				return true;
+				// TODO validate distance (meters)
 			}
 		}
 
