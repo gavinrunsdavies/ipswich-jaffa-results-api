@@ -786,7 +786,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 		}
 		
 		public function getPersonalBestTotals() {
-			$sql = "SELECT p.id as runnerId, p.name, count(r.id) as count, MIN(ra.date) AS firstPB, MAX(ra.date) AS lastPB FROM `results` r inner join runners p on r.runner_id = p.id INNER JOIN race ra ON ra.id = r.race_id where r.personal_best = 1 group by runnerId, p.name order by count DESC limit 10";
+			$sql = "SELECT p.id as runnerId, p.name, count(r.id) as count, MIN(ra.date) AS firstPB, MAX(ra.date) AS lastPB FROM `results` r inner join runners p on r.runner_id = p.id INNER JOIN race ra ON ra.id = r.race_id where r.personal_best = 1 group by runnerId, p.name order by count DESC limit 50";
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 
@@ -812,7 +812,12 @@ class Ipswich_JAFFA_Results_Data_Access {
 		}
 		
 		public function getTopAttendedRaces() {
-			$sql = "SELECT e.id as eventId, e.name, ra.date, count(r.id) as count FROM `results` r inner join events e on ra.event_id = e.id INNER JOIN race ra ON ra.id = r.race_id group by eventId, e.name, ra.date order by count desc limit 10";
+			$sql = "SELECT e.id as eventId, e.name, ra.date, count(r.id) as count 
+					FROM `results` r 					
+					INNER JOIN race ra ON ra.id = r.race_id 
+					inner join events e on ra.event_id = e.id 
+					group by eventId, e.name, ra.date 
+					order by count desc limit 50";
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 
@@ -825,7 +830,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 		}
 		
 		public function getTopMembersRacing() {
-			$sql = "SELECT p.id as runnerId, p.name, count(r.id) as count FROM `results` r inner join runners p on r.runner_id = p.id group by runnerId, p.name order by count desc limit 10";
+			$sql = "SELECT p.id as runnerId, p.name, count(r.id) as count FROM `results` r inner join runners p on r.runner_id = p.id group by runnerId, p.name order by count desc limit 50";
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 
