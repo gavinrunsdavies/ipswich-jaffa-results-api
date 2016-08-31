@@ -1821,5 +1821,30 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 
 			return $results;
 		}
+		
+		public function getRunnerOfTheMonthWinnners($year = 0, $month = 0) {
+			if ($year > 0 || $month > 0) {
+				$sql = "SELECT romw.category, romw.month, romw.year, r.name, r.id
+				from runners r, runner_of_the_month_winners romw
+				where r.id = romw.runner_id 
+				AND romw.year = $year 
+				AND romw.month = $month
+				order by romw.year desc , romw.month desc";
+			} else {
+				$sql = "SELECT romw.category, romw.month, romw.year, r.name, r.id
+				from runners r, runner_of_the_month_winners romw
+				where r.id = romw.runner_id
+				order by romw.year desc, romw.month desc";
+			}
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if (!$results)	{			
+				return new \WP_Error( 'ipswich_jaffa_api_getRunnerOfTheMonthWinnners',
+						'Unknown error in reading results from the database', array( 'status' => 500 , 'sql' => $sql) );			
+			}
+
+			return $results;
+		}
 	}
 ?>

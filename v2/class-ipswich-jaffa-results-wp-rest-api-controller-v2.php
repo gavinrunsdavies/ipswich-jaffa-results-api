@@ -73,8 +73,8 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 				'typeId'           => array(
 					'required'          => true,												
 					'validate_callback' => array( $this, 'is_valid_id' ),
-					)
 				)
+			)
 		) );			
 	}
 	
@@ -84,7 +84,25 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array( $this, 'permission_check' ),
 			'callback'            => array( $this, 'save_winners' )				
-		) );					
+		) );
+
+		register_rest_route( $namespace, '/runnerofthemonth/winners', array(
+			'methods'             => \WP_REST_Server::READABLE,			
+			'callback'            => array( $this, 'get_runnerofthemonthwinners' )				
+		) );	
+
+		register_rest_route( $namespace, '/runnerofthemonth/winners/year/(?P<year>[\d]+)/month/(?P<month>[\d]+)', array(
+			'methods'             => \WP_REST_Server::READABLE,			
+			'callback'            => array( $this, 'get_runnerofthemonthwinners' ),
+			'args'                => array(
+				'year'           => array(
+					'required'          => true				
+				),				
+				'month'           => array(
+					'required'          => true				
+				)
+			)				
+		) );			
 	}
 	
 	private function register_routes_events($namespace) {										
@@ -597,6 +615,14 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 				$request['winners']['month'],
 				$request['winners']['year']);
 			
+			return rest_ensure_response( $response );
+		}
+		
+		public function get_runnerofthemonthwinners( \WP_REST_Request $request ) {
+			$year = isset($request['year']) ? $request['year'] : 0;
+			$month = isset($request['month']) ? $request['month'] : 0;
+		    $response = $this->data_access->getRunnerOfTheMonthWinnners($year, $month);
+
 			return rest_ensure_response( $response );
 		}
 		
