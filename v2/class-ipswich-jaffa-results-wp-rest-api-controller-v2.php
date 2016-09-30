@@ -85,6 +85,17 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			'permission_callback' => array( $this, 'permission_check' ),
 			'callback'            => array( $this, 'save_winners' )				
 		) );
+		
+		register_rest_route( $namespace, '/runnerofthemonth/vote', array(
+			'methods'             => \WP_REST_Server::CREATABLE,			
+			'callback'            => array( $this, 'save_runnerofthemonthvote' )
+			/*'args'                => array(
+				'votes'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'validate_votes' ),
+					),
+				)	*/		
+		) );
 
 		register_rest_route( $namespace, '/runnerofthemonth/winners', array(
 			'methods'             => \WP_REST_Server::READABLE,			
@@ -594,28 +605,81 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 	
 		public function save_winners( \WP_REST_Request $request ) {
 
-			if ($request['winners']['men'] > 0)
+			$result = true;
+			if ($request['winners']['men'] > 0) {
 			$response = $this->data_access->insertRunnerOfTheMonthWinners(
 				$request['winners']['men'],
 				'Men',
 				$request['winners']['month'],
 				$request['winners']['year']);
+				$result = $result && $response;
+			}
 				
-			if ($response == true && $request['winners']['women'] > 0)
+			if ($request['winners']['women'] > 0) {
 				$response = $this->data_access->insertRunnerOfTheMonthWinners(
 				$request['winners']['women'],
 				'Ladies',
 				$request['winners']['month'],
 				$request['winners']['year']);
 				
-			if ($response == true && $request['winners']['junior'] > 0)
+				$result = $result && $response;
+			}
+				
+			if ($request['winners']['junior'] > 0) {
 				$response = $this->data_access->insertRunnerOfTheMonthWinners(
 				$request['winners']['junior'],
 				'Juniors',
 				$request['winners']['month'],
 				$request['winners']['year']);
+				
+				$result = $result && $response;
+			}
 			
-			return rest_ensure_response( $response );
+			return rest_ensure_response( $result );
+		}
+		
+		public function save_runnerofthemonthvote( \WP_REST_Request $request ) {
+			
+			// Validate user vote
+			$voter = $this->data_access->getRunner($request['voterId']);
+			if (get_class($voter) == 'WP_Error' || $voter->dateOfBirth != $request['voterDateOfBirth']) {
+				return rest_ensure_response(new \WP_Error(
+					'save_runnerofthemonthvote_invalid',
+					'Runner and date of birth do not match.',
+					array( 'status' => 401, "data" => $request, "voter" => json_encode($voter)  ) 
+				));		
+			}
+			$now = new \DateTime();
+			
+			if ($request['men'] != null) {
+				$vote = array();
+				$vote['runnerId'] = $request['men']['runnerId'];
+				$vote['reason'] = $request['men']['reason'];
+				$vote['category'] = 'Men';
+				$vote['month'] =  $now->format('m');
+				$vote['year'] =  $now->format('Y');
+				$vote['voterId'] = $request['voterId'];
+				$vote['ipAddress'] = $_SERVER['REMOTE_ADDR'];
+				$vote['created'] = $now->format('Y-m-d H:i:s');
+				
+				$response = $this->data_access->insertRunnerOfTheMonthVote($vote);
+			}
+			
+			if ($request['ladies'] != null) {
+				$vote = array();
+				$vote['runnerId'] = $request['ladies']['runnerId'];
+				$vote['reason'] = $request['ladies']['reason'];
+				$vote['category'] = 'Ladies';
+				$vote['month'] =  $now->format('m');
+				$vote['year'] =  $now->format('Y');
+				$vote['voterId'] = $request['voterId'];
+				$vote['ipAddress'] = $_SERVER['REMOTE_ADDR'];
+				$vote['created'] = $now->format('Y-m-d H:i:s');
+				
+				$response = $this->data_access->insertRunnerOfTheMonthVote($vote);
+			}
+			
+			return rest_ensure_response(true);
 		}
 		
 		public function get_runnerofthemonthwinners( \WP_REST_Request $request ) {
@@ -1136,6 +1200,21 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 				return new \WP_Error( 'rest_invalid_param',
 					sprintf( '%s %d must be info or position or result or grandprix or scoring_team only.', $key, $value ), array( 'status' => 400 ) );
 			} 			
+		}
+		
+		public function validate_votes($votes, $request, $key) {
+			if (intval($votes['voterId']) <= 0) {				
+				return new \WP_Error( 'rest_invalid_param',
+					sprintf( '%s %s has invalid voterId value', $key, json_encode($votes)), array( 'status' => 400 ) );
+			} 
+			
+			$date=date_parse($votes['voterDateOfBirth']);
+			if (checkdate($date['month'], $date['day'], $date['year']) === FALSE) {				
+				return new \WP_Error( 'rest_invalid_param',
+					sprintf( '%s %s has invalid voterDateOfBirth value', $key, json_encode($votes)), array( 'status' => 400 ) );
+			} else {
+				return true;
+			}
 		}
 		
 		public function validate_race($race, $request, $key) {
