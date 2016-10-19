@@ -18,6 +18,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 		$namespace = 'ipswich-jaffa-api/v3'; // base endpoint for our custom API
 									
 		$this->register_routes_runner_of_the_month($namespace);		
+		$this->register_routes_results($namespace);
 		
 		add_filter( 'rest_endpoints', array( $this, 'remove_wordpress_core_endpoints'), 10, 1 );			
 	}
@@ -28,6 +29,19 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 		add_action( 'wp_print_scripts', function() {
 			wp_enqueue_script( 'wp-api' );
 		} );					
+	}
+	
+	private function register_routes_results($namespace) {
+		register_rest_route( $namespace, '/results/autoload', array(
+			'methods'             => \WP_REST_Server::CREATABLE,
+			'permission_callback' => array( $this, 'permission_check' ),
+			'callback'            => array( $this, 'get_chipTimingResults' ),
+			'args'                => array(
+				'chipTimingResultsUrl' => array(
+					'required'    => true,					
+					)
+				)
+		) );
 	}
 	
 	private function register_routes_runner_of_the_month($namespace) {			
@@ -176,6 +190,29 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 		} else {
 			return true;
 		}
+	}
+	
+	public function get_chipTimingResults($request) {
+		$contents = file_get_contents($request['chipTimingResultsUrl']);
+		
+		$xml = simplexml_load_string($contents);
+		$results = array();
+		foreach ($xml->children() as $child)
+		{
+			$result = array();
+			foreach ($child->children() as $element) {			  
+			  if ($element['class'] == "grid_pos") {
+					$result['position'] = (string)$element;
+			  } else if ($element['class'] == "grid_chip") {
+					$result['chip'] = (string)$element;
+			  } else if ($element['class'] == "grid_name") {
+					$result['name'] = (string)$element;
+			  }
+			}
+			$results[] = $result;
+		}
+		
+		return rest_ensure_response( $results );
 	}
 	
 	public function sendRunnerOftheMonthVotesEmail(\WP_REST_Request $request) {
