@@ -90,7 +90,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 				array( '%d' ) 
 			);
 
-			if ($result)
+			if ( $result !== false ) 
 			{
 				return true;
 			}

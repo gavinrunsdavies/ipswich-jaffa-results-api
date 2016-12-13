@@ -813,63 +813,112 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			return rest_ensure_response( $response );
 		}
 		
+		// Group data in structure:
+		// {
+		  // "5": {
+			// "id": "5",
+			// "name": "Alan Jackson",
+			// "dateOfBirth": "1980-01-02",
+			// "races": [
+			  // {
+				// "id": "954",
+				// "points": "85"
+			  // },
+			  // {
+				// "id": "1512",
+				// "points": "79"
+			  // },
+			  // {
+				// "id": "729",
+				// "points": "90"
+			  // }
+			// ],
+			// "totalPoints": 254
+		  // },
+		  // "9": {
+			// "id": "9",
+			// "name": "Alistair Dick",
+			// "races": [
+			  // {
+				// "id": "954",
+				// "points": "88"
+			  // },
+			  // {
+				// "id": "549",
+				// "points": "96"
+			  // }
+			// ],
+			// "totalPoints": 184
+		  // }
 		public function get_grandPrixPoints( \WP_REST_Request $request ) {
 		    $response = $this->data_access->getGrandPrixPoints($request['year'], $request['sexId']);
 
-			// Group data in structure:
-			// {
-			  // "5": {
-				// "id": "5",
-				// "name": "Alan Jackson",
-				// "dateOfBirth": "1980-01-02",
-				// "races": [
-				  // {
-					// "id": "954",
-					// "points": "85"
-				  // },
-				  // {
-					// "id": "1512",
-					// "points": "79"
-				  // },
-				  // {
-					// "id": "729",
-					// "points": "90"
-				  // }
-				// ],
-				// "totalPoints": 254
-			  // },
-			  // "9": {
-				// "id": "9",
-				// "name": "Alistair Dick",
-				// "races": [
-				  // {
-					// "id": "954",
-					// "points": "88"
-				  // },
-				  // {
-					// "id": "549",
-					// "points": "96"
-				  // }
-				// ],
-				// "totalPoints": 184
-			  // },			
-			$results = array();
+			// Calculate GP points
+			// Handicap - base on position
+			// Ekiden - base on time for each race distance
+			// Others - base on time then position for event
+			
+			// Group data in to events
+			$events = array();
 			$races = array();
+			$results = array();
 			foreach ($response as $item) {
+				$eventId = $item->eventId;
+
+				if ($eventId == 203) {
+					$resultSetId = $eventId + '_' + $item->distanceId; // Change resultSetId to be eventId + distanceId to give a unique grouping.
+				} else {
+					$resultSetId = $eventId;
+				}
+				
+				if (!array_key_exists($resultSetId, $events)) {	
+					if ($eventId == 203) {
+						$sortOrder = 'RESULT'; 
+					} else if ($eventId == 89) {
+						$sortOrder = 'POSITION';
+					} else if ($item->result != '00:00:00' && $item->result != '') {
+						$sortOrder = 'RESULT';
+					} else {
+						$sortOrder = 'POSITION';
+					}
+					
+					$events[$resultSetId] = array("id" => $eventId, "name" => $item->eventName, "sortOrder" => $sortOrder, "results" => array());
+				}
+							
+				$events[$resultSetId]['results'][] = $item;	
+				
 				$runnerId = $item->runnerId;
 				if (!array_key_exists($runnerId, $results)) {
 					$gpCategory = $this->getGrandPrixCategory($item->dateOfBirth, $request['year']);
 					$results[$runnerId] = array("id" => $runnerId, "name" => $item->name, "categoryCode" => $gpCategory, "races" => array());
 				}
 				
-				$results[$runnerId]['races'][] = array("id" => $item->raceId, "points" => $item->rank);
-				$results[$runnerId]['totalPoints'] += $item->rank;				
-				
 				$raceId = $item->raceId;
 				if (!in_array($raceId, $races)) {
 					$races[] = $raceId;
 				}
 			}
+			
+			$events = $this->removeDuplicateEkidenRunnerResults($events);			
+			
+			foreach ($events as $event) {
+				if ($event['sortorder'] == 'POSITION') {
+					uasort($event['results'], array($this, 'compareGrandPrixEventByPosition'));
+				} else {
+					uasort($event['results'], array($this, 'compareGrandPrixEventByResult'));
+				}
+			}
+			
+			foreach ($events as $event) {
+				$points = 100;
+				foreach ($event['results'] as $result) {					
+					if (array_key_exists($result->runnerId, $results)) {
+						$results[$result->runnerId]['races'][] = array("id" => $result->raceId, "points" => $points);
+						$results[$result->runnerId]['totalPoints'] += $points;
+					}
+					$points--;
+				}
+			}		
 			
 			// Get race details
 			$raceDetails = $this->data_access->getRaceDetails($races);
@@ -880,7 +929,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			
 			$getGrandPrixPointsResponse = array(
 				"races" => $raceDetails,
-				"results" => $results
+				"results" => array_values($results)
 			);
 			
 			return rest_ensure_response( $getGrandPrixPointsResponse );
@@ -912,6 +961,9 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			// Get best 8 scores 
 			$best8Score = 0;   
 
+			if (count($races) < 8)
+				return 0;
+				
 			$count = 1;
 			foreach ($races as $race) 
 			{        
@@ -925,6 +977,49 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 		  
 		    return $best8Score;
 		} // end function getGrandPrixBest8Score
+		
+		private function removeDuplicateEkidenRunnerResults($events) {
+			foreach ($events as $key => $event) {
+				if ($event["id"] == 203) {				
+					$events[$key]["results"] = $this->unique_multidim_array($event["results"]); 					
+				}
+			}
+			
+			return $events;
+		}
+		
+		// From http://php.net/manual/en/function.array-unique.php
+		function unique_multidim_array($array) {
+			$temp_array = array();
+			$i = 0;
+			$key_array = array();
+		   
+			foreach($array as $val) {				
+				if (!in_array($val->runnerId, $key_array)) {
+					$key_array[$i] = $val->runnerId;
+					$temp_array[$i] = $val;
+					$i++;
+				}							
+			}
+			
+			return $temp_array;
+		} 
+		
+		private function compareGrandPrixEventByPosition($a, $b) {
+			if ($a->position == $b->position) {
+				return 0;
+			}
+			
+			return ($a->position > $b->position) ? 1 : -1;
+		}
+		
+		private function compareGrandPrixEventByResult($a, $b) {
+			if ($a->result == $b->result) {
+				return 0;
+			}
+			
+			return ($a->result > $b->result) ? 1 : -1;
+		}
 		
 		private function compareGrandPrixRaces($a, $b) {
 			if ($a['points'] == $b['points']) {

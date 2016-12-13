@@ -1661,19 +1661,18 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		
 		public function getGrandPrixPoints($year, $sexId) {
 			$nextYear = $year + 1;
-			$sql = "set @raceId := 0, @rank := 101;";
-			
-			$this->jdb->query($sql);		
-			
-			$sql = "select @rank := if (@raceId = gpResults.raceId, @rank - 1, 100) AS rank, @raceId := gpResults.raceId as raceId, gpResults.runnerId, gpResults.name, gpResults.dateOfBirth, gpResults.eventName, gpResults.description
-				FROM (
-				  SELECT
+
+			$sql = "SELECT
                   p.id as runnerId,
                   p.name,
 				  p.dob as dateOfBirth,
                   ra.id as raceId,
+				  e.id as eventId,
 				  e.name as eventName,
-				  ra.description
+				  ra.description,
+				  ra.distance_id as distanceId,
+				  r.position as position,
+				  r.result as result
                 FROM
                   results r,
                   race ra,
@@ -1687,7 +1686,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
                   AND ra.grand_prix = 1
 				  AND e.id = ra.event_id
                   AND year(FROM_DAYS(TO_DAYS(ra.date) - TO_DAYS(p.dob))) >= 16
-                ORDER BY ra.date, ra.id, r.position asc, r.result asc) gpResults";
+                ORDER BY ra.date, ra.id, r.position asc, r.result asc";
 			
 						
 			$results = $this->jdb->get_results($sql, OBJECT);
