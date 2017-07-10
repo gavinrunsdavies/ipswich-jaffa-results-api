@@ -191,12 +191,10 @@ class Ipswich_JAFFA_Results_Data_Access {
 		$success = $this->jdb->update( 
 						'race', 
 						array( 
-							'distance_id' => $distanceId,
-							'result_measurement_unit_type_id' => $resultMeasurementUnitTypeId
+							'distance_id' => $distanceId
 						), 
 						array( 'id' => $raceId ), 
 						array( 
-							'%s',
 							'%d'
 						), 
 						array( '%d' ) 
@@ -410,7 +408,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 				array( '%d' ) 
 			);							
 
-			if ($success)
+			if ($result !== false)
 			{
 				$this->updateAgeGrading($resultId, $existingResult->raceId, $existingResult->runnerId);
 			
@@ -748,7 +746,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 		public function getResult($resultId) {
 						
 			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.result as 'result', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', 
-			r.scoring_team as 'team',
+			r.scoring_team as 'team', ra.id as 'raceId',
 			CASE
 			   WHEN ra.date >= '2017-01-01' THEN r.percentage_grading_2015
 			   ELSE r.percentage_grading
@@ -956,12 +954,19 @@ class Ipswich_JAFFA_Results_Data_Access {
 
 			$sql = $this->jdb->prepare("update wma_age_grading g,
  results r,
+ distance d,
  wma_records a,
  runners p,
 race ra
 set r.percentage_grading = 
+CASE
+	WHEN d.result_measurement_unit_type_id >= 2 THEN
+	 (ROUND((a.record * 100) / (r.result * g.grading_percentage), 2))
+	ELSE
  (ROUND((a.record * 100) / (((substring(r.result, 1, 2) * 3600) +  (substring(r.result, 4, 2) * 60) + (substring(r.result, 7, 2))) * g.grading_percentage), 2))
+END
 WHERE g.distance_id = a.distance_id
+AND d.id = ra.distance_id
 AND a.distance_id = ra.distance_id
 AND r.race_id = ra.id
 AND g.age = (YEAR(ra.date) - YEAR(p.dob) - IF(DATE_FORMAT(p.dob, '%%j') > DATE_FORMAT(ra.date, '%%j'), 1, 0))
@@ -990,12 +995,19 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 
 			$sql = $this->jdb->prepare("update wma_age_grading_2015 g,
  results r,
+ distance d,
  wma_records_2015 a,
  runners p,
 race ra
 set r.percentage_grading_2015 = 
+CASE
+	WHEN d.result_measurement_unit_type_id >= 2 THEN
+	 (ROUND((a.record * 100) / (r.result * g.grading_percentage), 2))
+	ELSE
  (ROUND((a.record * 100) / (((substring(r.result, 1, 2) * 3600) +  (substring(r.result, 4, 2) * 60) + (substring(r.result, 7, 2))) * g.grading_percentage), 2))
+END
 WHERE g.distance_id = a.distance_id
+AND d.id = ra.distance_id
 AND a.distance_id = ra.distance_id
 AND r.race_id = ra.id
 AND g.age = (YEAR(ra.date) - YEAR(p.dob) - IF(DATE_FORMAT(p.dob, '%%j') > DATE_FORMAT(ra.date, '%%j'), 1, 0))
@@ -1050,19 +1062,19 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		private function isCertificatedCourseAndResult($raceId, $courseNumber = '', $result) {
 			// TODO
 			// First determine if a valid event and result to get a PB
-			if ($result == "00:00:00" || $result == "" || $result == null)
+			if ($result == "00:00:00" || $result == "00:00" || $result == "" || $result == null)
 				return false;
 				
 			$sql = $this->jdb->prepare("select
-								distance_id
+								distance_id, course_type_id
 								from							
 								race ra
 								where
 								ra.id = %d", $raceId);
 
-			$distanceId = $this->jdb->get_var($sql);
+			$race = $this->jdb->get_row($sql);
 			
-			return $distanceId > 0;
+			return $race->distance_id > 0 && ($race->course_type_id == 1 || $race->course_type_id == 3 || $race->course_type_id == 6) ;
 		}
 
 		private function isPersonalBest($raceId, $runnerId, $result) {				
@@ -1659,24 +1671,63 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 						inner join runners p on p.id = r.runner_id
 						inner join race ra2 on ra2.id = r.race_id
 						inner join events e on e.id = ra2.event_id
-						where ((r.percentage_grading_2015 > 0 AND (ra2.date > '2017-01-01' OR $year == 0)) OR r.percentage_grading > 0)
+						where ((r.percentage_grading_2015 > 0 AND (ra2.date > '2017-01-01' OR $year = 0)) OR r.percentage_grading > 0)
 						$sexQuery0
 						$distanceQuery2
 						$yearQuery2
-						order by percentage_grading desc
+						order by percentageGrading desc
 						limit 500) ranking";
 			} 
 			else
 			{
-				$sql = "
+				if ($year == 0 || $year >= 2017)
+				{
+					$sql = "
 					SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
 						SELECT r.runner_id as runnerId, p.Name as name, e.id as eventId, e.Name as event, 
 						ra.date,
 						r.result,
-						CASE
-						   WHEN ra.date >= '2017-01-01' OR $year = 0 THEN r.percentage_grading_2015
-						   ELSE r.percentage_grading
-						END as percentageGrading
+						r.percentage_grading_2015 as percentageGrading
+						FROM results AS r
+						JOIN (
+						  SELECT r1.runner_id, r1.result, MIN(ra1.date) AS earliest
+						  FROM results AS r1
+						  JOIN (
+							SELECT r2.runner_id, MAX(r2.percentage_grading_2015) AS highest
+							FROM results r2
+							INNER JOIN race ra2
+							ON r2.race_id = ra2.id						
+							INNER JOIN `runners` p2
+							ON r2.runner_id = p2.id
+							WHERE r2.percentage_grading_2015 > 0
+							$distanceQuery2
+							$sexQuery1
+							$yearQuery2
+							GROUP BY r2.runner_id
+						   ) AS rt
+						   ON r1.runner_id = rt.runner_id AND r1.percentage_grading_2015 = rt.highest
+						   INNER JOIN race ra1 ON r1.race_id = ra1.id 
+						   $distanceQuery1
+						   $yearQuery1
+						   GROUP BY r1.runner_id, r1.result
+						   ORDER BY r1.percentage_grading_2015 desc
+						   LIMIT 100
+						) as rd
+						ON r.runner_id = rd.runner_id AND r.result = rd.result
+						INNER JOIN race ra ON r.race_id = ra.id AND ra.date = rd.earliest
+						INNER JOIN events e ON ra.event_id = e.id
+						INNER JOIN runners p ON r.runner_id = p.id
+						ORDER BY percentageGrading desc
+						LIMIT 100) Ranking";
+				}
+				else
+				{
+					$sql = "
+					SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
+						SELECT r.runner_id as runnerId, p.Name as name, e.id as eventId, e.Name as event, 
+						ra.date,
+						r.result,
+						r.percentage_grading as percentageGrading
 						FROM results AS r
 						JOIN (
 						  SELECT r1.runner_id, r1.result, MIN(ra1.date) AS earliest
@@ -1706,8 +1757,9 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 						INNER JOIN race ra ON r.race_id = ra.id AND ra.date = rd.earliest
 						INNER JOIN events e ON ra.event_id = e.id
 						INNER JOIN runners p ON r.runner_id = p.id
-						ORDER BY percentage_grading desc
+						ORDER BY percentageGrading desc
 						LIMIT 100) Ranking";
+				}				
 			}
 						
 			$results = $this->jdb->get_results($sql, OBJECT);
@@ -1846,7 +1898,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		public function getMeeting($meetingId) {
 
 			$sql = $this->jdb->prepare(
-					'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate, r.id, r.description 
+					'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate, r.id as raceId, r.description as description
 					FROM `meeting` m 
 					LEFT JOIN `race` r on r.meeting_id = m.id
 					WHERE m.id = %d', $meetingId);

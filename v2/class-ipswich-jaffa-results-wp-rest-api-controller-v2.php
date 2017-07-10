@@ -901,17 +901,20 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			
 			$events = $this->removeDuplicateEkidenRunnerResults($events);			
 			
-			foreach ($events as $event) {
-				if ($event['sortorder'] == 'POSITION') {
+			foreach ($events as $key => $event) {
+				if ($event['sortOrder'] == 'POSITION') {
 					uasort($event['results'], array($this, 'compareGrandPrixEventByPosition'));
 				} else {
-					uasort($event['results'], array($this, 'compareGrandPrixEventByResult'));
+					uasort($event['results'], array($this, 'compareGrandPrixEventByResult'));					
 				}
-			}
+				// Re-index array.
+				$events[$key]['results'] = array_values($event['results']);				
+			}			
 			
 			foreach ($events as $event) {
 				$points = 100;
-				foreach ($event['results'] as $result) {					
+
+				foreach ($event['results'] as $result) {		
 					if (array_key_exists($result->runnerId, $results)) {
 						$results[$result->runnerId]['races'][] = array("id" => $result->raceId, "points" => $points);
 						$results[$result->runnerId]['totalPoints'] += $points;
@@ -1018,7 +1021,18 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 				return 0;
 			}
 			
-			return ($a->result > $b->result) ? 1 : -1;
+			// Add 00: prefix to compare hh:mm:ss to mm:ss
+			$aFullTime = $a->result;
+			if (strlen($a->result) < 8) {
+				$aFullTime = '00:'.$a->result;
+			}
+			
+			$bFullTime = $b->result;
+			if (strlen($b->result) < 8) {
+				$bFullTime = '00:'.$b->result;
+			}			
+						
+			return ($aFullTime > $bFullTime) ? 1 : -1;
 		}
 		
 		private function compareGrandPrixRaces($a, $b) {

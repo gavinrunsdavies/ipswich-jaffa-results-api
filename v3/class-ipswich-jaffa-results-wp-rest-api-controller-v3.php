@@ -6,17 +6,20 @@ require_once plugin_dir_path( __FILE__ ) .'class-ipswich-jaffa-results-data-acce
 class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 	
 	private $data_access;
+	private $data_access_v2;
 	
 	private $user;
 	
 	public function __construct() {
 		$this->data_access = new Ipswich_JAFFA_Results_Data_Access();
+		$this->data_access_v2 = new \IpswichJAFFARunningClubAPI\V2\Ipswich_JAFFA_Results_Data_Access();
 	}
 	
 	public function rest_api_init( ) {			
 		
 		$namespace = 'ipswich-jaffa-api/v3'; // base endpoint for our custom API
-									
+		
+		$this->register_routes_admin($namespace);				
 		$this->register_routes_runner_of_the_month($namespace);		
 		$this->register_routes_results($namespace);
 		
@@ -31,16 +34,37 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 		} );					
 	}
 	
-	private function register_routes_results($namespace) {
-		register_rest_route( $namespace, '/results/autoload', array(
+	private function register_routes_admin($namespace) {
+		register_rest_route( $namespace, '/admin/eventtoraces', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array( $this, 'permission_check' ),
-			'callback'            => array( $this, 'get_chipTimingResults' ),
+			'callback'            => array( $this, 'save_eventAsRaces' ),
 			'args'                => array(
-				'chipTimingResultsUrl' => array(
+				'sourceEventId' => array(
+					'required'    => true,				
+					'validate_callback' => array( $this, 'is_valid_id' )					
+					),
+				'destinationEventId' => array(
+					'required'    => true,		
+					'validate_callback' => array( $this, 'is_valid_id' )					
+					),
+				'raceName' => array(
 					'required'    => true,					
 					)
 				)
+		) );
+	}
+	
+	private function register_routes_results($namespace) {
+		register_rest_route( $namespace, '/results/load', array(
+			'methods'             => \WP_REST_Server::CREATABLE,
+			'permission_callback' => array( $this, 'permission_check' ),
+			'callback'            => array( $this, 'load_results' ),
+			// 'args'                => array(
+				// 'url' => array(
+					// 'required'    => true,					
+					// )
+				// )
 		) );
 	}
 	
@@ -99,6 +123,19 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 					)
 				)				
 		) );		
+	}
+	
+	public function save_eventAsRaces( \WP_REST_Request $request ) {
+		$sourceEventId = $request['sourceEventId'];
+		$destinationEventId = $request['destinationEventId'];
+		$raceName = $request['raceName'];
+		
+		$sourceEventRaces = $this->data_access_v2->getRaces($sourceEventId);
+		
+		foreach($sourceEventRaces as $race) {
+			$this->data_access_v2->updateRace($race->id, 'event_id', $sourceEventId);
+			$this->data_access_v2->updateRace($race->id, 'description', $raceName);
+		}
 	}
 	
 	public function save_winners( \WP_REST_Request $request ) {
@@ -192,28 +229,34 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 		}
 	}
 	
-	public function get_chipTimingResults($request) {
-		$contents = file_get_contents($request['chipTimingResultsUrl']);
+	public function load_results($request) {		
 		
-		$xml = simplexml_load_string($contents);
-		$results = array();
-		foreach ($xml->children() as $child)
-		{
-			$result = array();
-			foreach ($child->children() as $element) {			  
-			  if ($element['class'] == "grid_pos") {
-					$result['position'] = (string)$element;
-			  } else if ($element['class'] == "grid_chip") {
-					$result['chip'] = (string)$element;
-			  } else if ($element['class'] == "grid_name") {
-					$result['name'] = (string)$element;
-			  }
-			}
-			$results[] = $result;
-		}
+		$results = $this->csv_to_array($_FILES["file"]["tmp_name"], ',', $request['numberOfHeaderRows']);
 		
 		return rest_ensure_response( $results );
 	}
+	
+	function csv_to_array($filename='', $delimiter=',', $numberOfHeaderRows = 0)
+	{	
+		if(!file_exists($filename) || !is_readable($filename))
+			return FALSE;
+		
+		$header = NULL;
+		$data = array();
+		$rowCount = 0;
+		if (($handle = fopen($filename, 'r')) !== FALSE)
+		{
+			while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE)
+			{
+				$rowCount++;
+				if($rowCount > $numberOfHeaderRows)					
+					$data[] = $row;
+			}
+			fclose($handle);
+		}
+		return $data;
+	}
+	
 	
 	public function sendRunnerOftheMonthVotesEmail(\WP_REST_Request $request) {
 	
@@ -300,12 +343,14 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 		
 		$headingHtml .= '<ol>';
 		$i = 0;
-		foreach($sortedVotes as $name => $votes) {
-			if ($i == 3) {
+		$lastVoteCount = 0;
+		foreach($sortedVotes as $name => $votes) {			
+			if ($i >= 3 && $lastVoteCount != $votes) {
 				break;
 			}
 			$headingHtml .= '<li>'.$name.' - '.$votes.' votes</li>';
 			$i++;
+			$lastVoteCount = $votes;
 		}
 		$headingHtml .= '</ol>';
 		
