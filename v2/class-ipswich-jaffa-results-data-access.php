@@ -372,7 +372,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 			}
 			
 			return new \WP_Error( 'ipswich_jaffa_api_updateResult',
-					'Unknown error in updating result in to the database.', array( 'status' => 500 ) );
+					'Unknown error in updating result in to the database.', array( 'status' => 500 , 'code' => 001) );
 		} else if ($field == 'result') {
 			// Update result, percentage grading and standard
 			$existingResult = $this->getResult($resultId);
@@ -432,11 +432,11 @@ class Ipswich_JAFFA_Results_Data_Access {
 			}
 			
 			return new \WP_Error( 'ipswich_jaffa_api_updateResult',
-					'Unknown error in updating result in to the database', array( 'status' => 500 ) );
+					'Unknown error in updating result in to the database', array( 'status' => 500, 'code' => 002 ) );
 		}
 
 		return new \WP_Error( 'ipswich_jaffa_api_updateResult',
-					'Field in result may not be updated', array( 'status' => 500 ) );
+					'Field in result may not be updated', array( 'status' => 500, 'code' => 003 ) );
 	}
 
 		public function deleteEvent($eventId, $deleteResults) {		
@@ -1220,6 +1220,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 					INNER JOIN `runners` p2
 					ON r2.runner_id = p2.id
 					WHERE r2.result != '00:00:00' and d.id = %d and r2.category_id <> 0
+          AND ra.course_type_id NOT IN (2, 4, 5, 7)
 					GROUP BY r2.category_id
 				   ) AS rt
 				   ON r1.result = rt.quickest and r1.category_id = rt.category_id
@@ -1291,6 +1292,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 						ON r2.runner_id = p2.id
 						WHERE r2.result != '00:00:00' 
 						AND ra2.distance_id = $distanceId
+            AND ra2.course_type_id NOT IN (2, 4, 5, 7)
 						$sexQuery
 						$dateQuery2
 						GROUP BY r2.runner_id
