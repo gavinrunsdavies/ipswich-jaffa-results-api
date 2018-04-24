@@ -154,10 +154,17 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 			$request['winners']['month'],
 			$request['winners']['year']);
 			
-		if ($response == true && $request['winners']['junior'] > 0)
+		if ($response == true && $request['winners']['boys'] > 0)
 			$response = $this->data_access->insertRunnerOfTheMonthWinners(
-			$request['winners']['junior'],
-			'Juniors',
+			$request['winners']['boys'],
+			'Boys',
+			$request['winners']['month'],
+			$request['winners']['year']);
+
+		if ($response == true && $request['winners']['girls'] > 0)
+			$response = $this->data_access->insertRunnerOfTheMonthWinners(
+			$request['winners']['girls'],
+			'Girls',
 			$request['winners']['month'],
 			$request['winners']['year']);
 		
@@ -187,7 +194,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 			  // {
 				// "id": "118",
 				// "name": "Kingsley Davies"
-				// "category": "Junior"
+				// "category": "Boys"
 			  // },
 			// ],						
 		  // },	
