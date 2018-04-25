@@ -666,19 +666,19 @@ class Ipswich_JAFFA_Results_Data_Access {
 			if (empty($eventId)) {
 				$whereEvent = '';				
 			} else {
-				$whereEvent = ' AND r.event_id = '.$eventId;
+				$whereEvent = ' AND ra.event_id = '.$eventId;
 			}
 			
 			if (empty($fromDate)) {
 				$whereFrom = '';				
 			} else {
-				$whereFrom = " AND r.racedate >= '$fromDate'";
+				$whereFrom = " AND ra.date >= '$fromDate'";
 			}
 			
 			if (empty($toDate)) {
 				$whereTo = '';				
 			} else {
-				$whereTo = " AND r.racedate <= '$toDate'";
+				$whereTo = " AND ra.date <= '$toDate'";
 			}
 			
 			$limit = abs(intval($numberOfResults));
@@ -686,7 +686,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 			if ($limit <= 0)
 				$limit = 100;
 
-			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.result as 'result', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult',
+			$sql = "SELECT r.id, ra.event_id as 'eventId', r.runner_id as 'runnerId', r.position, ra.date as 'date', r.result as 'time', r.result as 'result', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult',
 			r.scoring_team as 'team',
 			CASE
 			   WHEN ra.date >= '2017-01-01' THEN r.percentage_grading_2015
@@ -696,8 +696,8 @@ class Ipswich_JAFFA_Results_Data_Access {
 			e.name as 'eventName', ra.description as 'raceDescription' 
 			FROM results r
 			INNER JOIN runners p on p.id = r.runner_id
-			LEFT OUTER JOIN race ra ON r.race_id = ra.id
-			INNER JOIN events e ON r.event_id = e.id
+			INNER JOIN race ra ON r.race_id = ra.id
+			INNER JOIN events e ON ra.event_id = e.id
 			WHERE 1=1 $whereEvent $whereFrom $whereTo
 			ORDER BY ra.date DESC, ra.id, r.position ASC, r.result ASC LIMIT $limit";
 							
@@ -1205,9 +1205,11 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			$sql = $this->jdb->prepare("           
 				SELECT r.runner_id as runnerId, p.Name as runnerName, e.id as eventId, e.Name as eventName, ra.date, r.result, c.code as categoryCode, ra.id as raceId, ra.description, ra.venue
 				FROM results AS r
+        INNER JOIN race ra ON r.race_id = ra.id
 				JOIN (
-				  SELECT r1.runner_id, r1.result, MIN(r1.racedate) AS earliest
-				  FROM results AS r1
+				  SELECT r1.runner_id, r1.result, MIN(ra1.date) AS earliest
+				  FROM results AS r1 
+          INNER JOIN race ra1 on r1.race_id = ra1.id
 				  JOIN (
 					SELECT MIN(r2.result) AS quickest, r2.category_id
 					FROM results r2
@@ -1220,15 +1222,15 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 					INNER JOIN `runners` p2
 					ON r2.runner_id = p2.id
 					WHERE r2.result != '00:00:00' and d.id = %d and r2.category_id <> 0
-          AND ra.course_type_id NOT IN (2, 4, 5, 7)
+          AND (ra.course_type_id NOT IN (2, 4, 5, 7) OR ra.course_type_id IS NULL)
 					GROUP BY r2.category_id
 				   ) AS rt
 				   ON r1.result = rt.quickest and r1.category_id = rt.category_id
 				   GROUP BY r1.runner_id, r1.result, r1.category_id
 				   ORDER BY r1.result asc
 				) as rd
-				ON r.runner_id = rd.runner_id AND r.result = rd.result AND r.racedate = rd.earliest
-				INNER JOIN race ra ON r.race_id = ra.id
+				ON r.runner_id = rd.runner_id AND r.result = rd.result AND ra.date = rd.earliest
+				
 				INNER JOIN events e ON ra.event_id = e.id
 				INNER JOIN runners p ON r.runner_id = p.id
 				INNER JOIN category c ON r.category_id = c.id      
@@ -1292,7 +1294,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 						ON r2.runner_id = p2.id
 						WHERE r2.result != '00:00:00' 
 						AND ra2.distance_id = $distanceId
-            AND ra2.course_type_id NOT IN (2, 4, 5, 7)
+            AND (ra2.course_type_id NOT IN (2, 4, 5, 7) OR ra2.course_type_id IS NULL)
 						$sexQuery
 						$dateQuery2
 						GROUP BY r2.runner_id
@@ -1306,7 +1308,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 					ON r.runner_id = rd.runner_id AND r.result = rd.result 
 					INNER JOIN race ra3 ON r.race_id = ra3.id AND ra3.date = rd.earliest
 					INNER JOIN runners p ON r.runner_id = p.id
-					INNER JOIN events e ON r.event_id = e.id
+					INNER JOIN events e ON ra3.event_id = e.id
 					ORDER BY r.result asc
 					LIMIT 100) Ranking";
 
@@ -1530,15 +1532,16 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								JOIN (
 									SELECT r2.runner_id, MIN(r2.result) AS quickest
 									FROM results r2
-									INNER JOIN events e
-									ON r2.event_id = e.id
-									INNER JOIN race ra2
+                  INNER JOIN race ra2
 									ON r2.race_id = ra2.id
+									INNER JOIN events e
+									ON ra2.event_id = e.id									
 									INNER JOIN `distance` d
 									ON ra2.distance_id = d.id
 									INNER JOIN `runners` p2
 									ON r2.runner_id = p2.id
 									WHERE r2.result != '00:00:00'
+                  AND r2.result != ''
 									AND d.id = %d
 									AND p2.sex_id = %d
 									GROUP BY r2.runner_id
@@ -1549,10 +1552,10 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								LIMIT 100
 							) as rd
 							ON r.runner_id = rd.runner_id AND r.result = rd.result AND r.racedate = rd.earliest
-							INNER JOIN events e ON r.event_id = e.id
-							INNER JOIN runners p ON r.runner_id = p.id
-							INNER JOIN category c ON r.category_id = c.id
 							INNER JOIN race ra ON ra.id = r.race_id
+              INNER JOIN events e ON ra.event_id = e.id              
+							INNER JOIN runners p ON r.runner_id = p.id
+							INNER JOIN category c ON r.category_id = c.id							
 							ORDER BY r.result asc
 							LIMIT 100) Ranking
 						) Results
@@ -1571,15 +1574,16 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								JOIN (
 									SELECT r2.runner_id, MIN(r2.result) AS quickest
 									FROM results r2
-									INNER JOIN events e
-									ON r2.event_id = e.id
-									INNER JOIN race ra2
+                  INNER JOIN race ra2
 									ON r2.race_id = ra2.id
+									INNER JOIN events e
+									ON ra2.event_id = e.id									
 									INNER JOIN `distance` d
 									ON ra2.distance_id = d.id
 									INNER JOIN `runners` p2
 									ON r2.runner_id = p2.id
 									WHERE r2.result != '00:00:00'
+                  AND r2.result != ''
 									AND d.id = %d
 									AND p2.sex_id = %d
 									AND year(r2.racedate) =%d
@@ -1591,10 +1595,10 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								LIMIT 100
 							) as rd
 							ON r.runner_id = rd.runner_id AND r.result = rd.result AND r.racedate = rd.earliest					
-							INNER JOIN events e ON r.event_id = e.id
+              INNER JOIN race ra ON ra.id = r.race_id
+							INNER JOIN events e ON ra.event_id = e.id
 							INNER JOIN runners p ON r.runner_id = p.id
-							INNER JOIN category c ON r.category_id = c.id
-							INNER JOIN race ra ON ra.id = r.race_id
+							INNER JOIN category c ON r.category_id = c.id							
 							WHERE year(ra.date) = %d
 							ORDER BY r.result asc
 							LIMIT 100) Ranking
@@ -1854,7 +1858,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
                   runners p,
 				  events e
                 WHERE                  
-                  ra.date >= '$year-03-01' and ra.date < '$nextYear-03-01'
+                  ra.date >= '$year-04-01' and ra.date < '$nextYear-04-01'
                   AND r.runner_id = p.id                  
                   AND $sexId = p.sex_id
                   AND ra.id = r.race_id
