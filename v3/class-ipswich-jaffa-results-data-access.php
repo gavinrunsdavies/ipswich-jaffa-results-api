@@ -81,9 +81,9 @@ class Ipswich_JAFFA_Results_Data_Access {
 			$result = $this->jdb->update( 
 				'runner_of_the_month_winners', 
 				array( 
-					$field => $value
+					'runner_id' => $value
 				), 
-				array( 'id' => $runnerOfTheMonthId ), 
+				array( 'Id' => $runnerOfTheMonthId ), 
 				array( 
 					'%d'
 				), 

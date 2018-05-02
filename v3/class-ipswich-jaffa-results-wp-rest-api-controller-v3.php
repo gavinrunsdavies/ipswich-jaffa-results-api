@@ -140,35 +140,39 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 	
 	public function save_winners( \WP_REST_Request $request ) {
 
+    $response1 = true;
+    $response2 = true;
+    $response3 = true;
+    $response4 = true;
 		if ($request['winners']['men'] > 0)
-		$response = $this->data_access->insertRunnerOfTheMonthWinners(
+		$response1 = $this->data_access->insertRunnerOfTheMonthWinners(
 			$request['winners']['men'],
 			'Men',
 			$request['winners']['month'],
 			$request['winners']['year']);
 			
-		if ($response == true && $request['winners']['women'] > 0)
-			$response = $this->data_access->insertRunnerOfTheMonthWinners(
+		if ($request['winners']['women'] > 0)
+			$response2 = $this->data_access->insertRunnerOfTheMonthWinners(
 			$request['winners']['women'],
 			'Ladies',
 			$request['winners']['month'],
 			$request['winners']['year']);
 			
-		if ($response == true && $request['winners']['boys'] > 0)
-			$response = $this->data_access->insertRunnerOfTheMonthWinners(
+		if ($request['winners']['boys'] > 0)
+			$response3 = $this->data_access->insertRunnerOfTheMonthWinners(
 			$request['winners']['boys'],
 			'Boys',
 			$request['winners']['month'],
 			$request['winners']['year']);
 
-		if ($response == true && $request['winners']['girls'] > 0)
-			$response = $this->data_access->insertRunnerOfTheMonthWinners(
+		if ($request['winners']['girls'] > 0)
+			$response4 = $this->data_access->insertRunnerOfTheMonthWinners(
 			$request['winners']['girls'],
 			'Girls',
 			$request['winners']['month'],
 			$request['winners']['year']);
 		
-		return rest_ensure_response( $response );
+		return rest_ensure_response( $response1 && $response2 && $response3 && $response4);
 	}
 	
 	public function get_runnerofthemonthwinners( \WP_REST_Request $request ) {
