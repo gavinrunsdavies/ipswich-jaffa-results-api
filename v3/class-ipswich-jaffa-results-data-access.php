@@ -32,14 +32,14 @@ class Ipswich_JAFFA_Results_Data_Access {
 		
 	public function getRunnerOfTheMonthWinnners($year = 0, $month = 0) {
 		if ($year > 0 || $month > 0) {
-			$sql = "SELECT romw.id, romw.category, romw.month, romw.year, r.name, r.id
+			$sql = "SELECT romw.id, romw.category, romw.month, romw.year, r.name, r.id as runner_id
 			from runners r, runner_of_the_month_winners romw
 			where r.id = romw.runner_id 
 			AND romw.year = $year 
 			AND romw.month = $month
 			order by romw.year desc , romw.month desc";
 		} else {
-			$sql = "SELECT romw.id, romw.category, romw.month, romw.year, r.name, r.id
+			$sql = "SELECT romw.id, romw.category, romw.month, romw.year, r.name, r.id as runner_id
 			from runners r, runner_of_the_month_winners romw
 			where r.id = romw.runner_id
 			order by romw.year desc, romw.month desc";

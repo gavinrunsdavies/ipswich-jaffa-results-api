@@ -605,37 +605,43 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 	
 		public function save_winners( \WP_REST_Request $request ) {
 
-			$result = true;
-			if ($request['winners']['men'] > 0) {
-			$response = $this->data_access->insertRunnerOfTheMonthWinners(
-				$request['winners']['men'],
-				'Men',
-				$request['winners']['month'],
-				$request['winners']['year']);
-				$result = $result && $response;
-			}
-				
-			if ($request['winners']['women'] > 0) {
-				$response = $this->data_access->insertRunnerOfTheMonthWinners(
-				$request['winners']['women'],
-				'Ladies',
-				$request['winners']['month'],
-				$request['winners']['year']);
-				
-				$result = $result && $response;
-			}
-				
-			if ($request['winners']['junior'] > 0) {
-				$response = $this->data_access->insertRunnerOfTheMonthWinners(
-				$request['winners']['junior'],
-				'Juniors',
-				$request['winners']['month'],
-				$request['winners']['year']);
-				
-				$result = $result && $response;
-			}
+    $response1 = true;
+    $response2 = true;
+    $response3 = true;
+    $response4 = true;
+		if ($request['winners']['men'] > 0) {
+		$response1 = $this->data_access->insertRunnerOfTheMonthWinners(
+			$request['winners']['men'],
+			'Men',
+			$request['winners']['month'],
+			$request['winners']['year']);
+    }
 			
-			return rest_ensure_response( $result );
+		if ($request['winners']['women'] > 0) {
+			$response2 = $this->data_access->insertRunnerOfTheMonthWinners(
+			$request['winners']['women'],
+			'Ladies',
+			$request['winners']['month'],
+			$request['winners']['year']);
+    }
+			
+		if ($request['winners']['boys'] > 0) {
+			$response3 = $this->data_access->insertRunnerOfTheMonthWinners(
+			$request['winners']['boys'],
+			'Boys',
+			$request['winners']['month'],
+			$request['winners']['year']);
+    }
+
+		if ($request['winners']['girls'] > 0) {
+			$response4 = $this->data_access->insertRunnerOfTheMonthWinners(
+			$request['winners']['girls'],
+			'Girls',
+			$request['winners']['month'],
+			$request['winners']['year']);
+    }
+		
+		return rest_ensure_response( $response1 && $response2 && $response3 && $response4);
 		}
 		
 		public function save_runnerofthemonthvote( \WP_REST_Request $request ) {
@@ -784,26 +790,37 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 		    $response = $this->data_access->getAllRaceResults($request['distanceId']);
 			
 			// Group data in to catgeories and pick best times
-			$categoryId = 0;
+			$categoryCode = 0;
 			$records = array();
 			foreach ($response as $item) {
-				$categoryId = $item->categoryId;
-				if (!array_key_exists($categoryId, $records)) {
+				$categoryCode = $item->categoryCode;
+				if (!array_key_exists($categoryCode, $records)) {
 					$result = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "date" => $item->date);
-					$records[$categoryId] = array("id" => $categoryId, "code" => $item->categoryCode, "records" => array($result));
+					$records[$categoryCode] = array("id" => $item->categoryId, "code" => $item->categoryCode, "records" => array($result));
 					
 					continue;
 				}
 				
 				$currentResult = $item->result;
-				$count = count($records[$categoryId]['records']);
-				$previousRecord = $records[$categoryId]['records'][$count-1]['time'];
+				$count = count($records[$categoryCode]['records']);
+				$previousRecord = $records[$categoryCode]['records'][$count-1]['time'];
 				if ($currentResult < $previousRecord) {
-					$records[$categoryId]['records'][] = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "date" => $item->date);
+					$records[$categoryCode]['records'][] = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "date" => $item->date);
 				}									
 			}
 
+			// Sort Record by Category name
+			ksort($records);		
+
 			return rest_ensure_response( $records );
+		}
+		
+		private function compareCategoryCode($a, $b) {
+			if ($a['code'] == $b['code']) {
+				return 0;
+			}
+			
+			return ($a['code'] > $b['code']) ? -1 : 1;
 		}
 		
 		public function get_averagePercentageRankings( \WP_REST_Request $request ) {
@@ -943,7 +960,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 		//http://stackoverflow.com/questions/3776682/php-calculate-age		
 
 		  $dob = new \DateTime($dateOfBirth);
-          $gpDate = new \DateTime("$year-03-01");
+          $gpDate = new \DateTime("$year-04-01");
 
           $diff = $dob->diff($gpDate);
 		  		  
