@@ -793,6 +793,9 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			$categoryCode = 0;
 			$records = array();
 			foreach ($response as $item) {
+        if ($item->courseTypeId != null && in_array($item->courseTypeId, array(2, 4, 5, 7)))
+          continue;
+        
 				$categoryCode = $item->categoryCode;
 				if (!array_key_exists($categoryCode, $records)) {
 					$result = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "date" => $item->date);

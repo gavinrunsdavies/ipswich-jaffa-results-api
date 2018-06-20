@@ -1998,7 +1998,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		
 		public function getAllRaceResults($distanceId) {
 			$sql = $this->jdb->prepare(
-					"SELECT p.name, p.id, ra.date, ra.id as 'raceId', ra.description as 'raceDescription', e.name as 'eventName', c.id as 'categoryId', c.code as 'categoryCode', r.result, r.position 
+					"SELECT p.name, p.id, ra.date, ra.id as 'raceId', ra.description as 'raceDescription', e.name as 'eventName', c.id as 'categoryId', c.code as 'categoryCode', r.result, r.position, ra.course_type_id as 'courseTypeId'
 					FROM `results` r 
 					inner join race ra on ra.id = r.race_id 
 					INNER JOIN runners p ON p.id = r.runner_id 
