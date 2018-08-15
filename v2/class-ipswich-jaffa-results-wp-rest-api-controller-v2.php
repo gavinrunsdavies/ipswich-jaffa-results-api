@@ -662,8 +662,8 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 				$vote['runnerId'] = $request['men']['runnerId'];
 				$vote['reason'] = $request['men']['reason'];
 				$vote['category'] = 'Men';
-				$vote['month'] =  $now->format('m');
-				$vote['year'] =  $now->format('Y');
+				$vote['month'] =  $request['month'];
+				$vote['year'] =  $request['year'];
 				$vote['voterId'] = $request['voterId'];
 				$vote['ipAddress'] = $_SERVER['REMOTE_ADDR'];
 				$vote['created'] = $now->format('Y-m-d H:i:s');
@@ -676,8 +676,8 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 				$vote['runnerId'] = $request['ladies']['runnerId'];
 				$vote['reason'] = $request['ladies']['reason'];
 				$vote['category'] = 'Ladies';
-				$vote['month'] =  $now->format('m');
-				$vote['year'] =  $now->format('Y');
+				$vote['month'] =  $request['month'];
+				$vote['year'] =  $request['year'];
 				$vote['voterId'] = $request['voterId'];
 				$vote['ipAddress'] = $_SERVER['REMOTE_ADDR'];
 				$vote['created'] = $now->format('Y-m-d H:i:s');
