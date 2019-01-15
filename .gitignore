@@ -42,3 +42,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 includes/config.php
+v1/config.php
+v2/config.php
+v3/config.php
