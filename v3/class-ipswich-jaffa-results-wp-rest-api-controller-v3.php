@@ -144,37 +144,33 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
     $response2 = true;
     $response3 = true;
     $response4 = true;
-		if ($request['winners']['men'] > 0) {
+		if ($request['winners']['men'] > 0)
 		$response1 = $this->data_access->insertRunnerOfTheMonthWinners(
 			$request['winners']['men'],
 			'Men',
 			$request['winners']['month'],
 			$request['winners']['year']);
-    }
 			
-		if ($request['winners']['women'] > 0) {
+		if ($request['winners']['women'] > 0)
 			$response2 = $this->data_access->insertRunnerOfTheMonthWinners(
 			$request['winners']['women'],
 			'Ladies',
 			$request['winners']['month'],
 			$request['winners']['year']);
-    }
 			
-		if ($request['winners']['boys'] > 0) {
+		if ($request['winners']['boys'] > 0)
 			$response3 = $this->data_access->insertRunnerOfTheMonthWinners(
 			$request['winners']['boys'],
 			'Boys',
 			$request['winners']['month'],
 			$request['winners']['year']);
-    }
 
-		if ($request['winners']['girls'] > 0) {
+		if ($request['winners']['girls'] > 0)
 			$response4 = $this->data_access->insertRunnerOfTheMonthWinners(
 			$request['winners']['girls'],
 			'Girls',
 			$request['winners']['month'],
 			$request['winners']['year']);
-    }
 		
 		return rest_ensure_response( $response1 && $response2 && $response3 && $response4);
 	}
