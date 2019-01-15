@@ -643,7 +643,14 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 		
 		return rest_ensure_response( $response1 && $response2 && $response3 && $response4);
 		}
-		
+
+		private function getRunnerOfMonthCategory($sexId) {
+			if ($sexId == 2) {
+				return 'Men';
+			} else {
+				return 'Ladies';
+			}
+		}
 		public function save_runnerofthemonthvote( \WP_REST_Request $request ) {
 			
 			// Validate user vote
@@ -656,6 +663,24 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 				));		
 			}
 			$now = new \DateTime();
+
+			if ($request['resultId'] != null) {
+				// TODO: Lookup month, year, category, runnerId from result
+                $result = $this->data_access->getResult($request['resultId']);
+				$date = strtotime($result['date']);
+				
+				$vote = array();
+				$vote['runnerId'] = $result['runnerId'];
+				$vote['reason'] = $result['eventName'] + ', result: ' + $result['result'] + ', position: ' + $result['position'];
+				$vote['category'] = $this->getRunnerOfMonthCategory($result['sexId']);
+				$vote['month'] = date('n', $date);
+				$vote['year'] = date('Y', $date);
+				$vote['voterId'] = $request['voterId'];
+				$vote['ipAddress'] = $_SERVER['REMOTE_ADDR'];
+				$vote['created'] = $now->format('Y-m-d H:i:s');
+				
+				$response = $this->data_access->insertRunnerOfTheMonthVote($vote);
+			}
 			
 			if ($request['men'] != null) {
 				$vote = array();

@@ -746,7 +746,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 		public function getResult($resultId) {
 						
 			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.result as 'result', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', 
-			r.scoring_team as 'team', ra.id as 'raceId',
+			r.scoring_team as 'team', ra.id as 'raceId', p.sex_id,
 			CASE
 			   WHEN ra.date >= '2017-01-01' THEN r.percentage_grading_2015
 			   ELSE r.percentage_grading
