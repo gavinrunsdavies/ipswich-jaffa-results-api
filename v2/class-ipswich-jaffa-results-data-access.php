@@ -209,9 +209,9 @@ class Ipswich_JAFFA_Results_Data_Access {
 			$standardType = 0;
 	
 			if (!($existingResult == "00:00:00" || $existingResult == "" || $existingResult == null)) {
-				$pb = $this->isPersonalBest($raceId, $results[$i]->runnerId, $existingResult);
+				$pb = $this->isPersonalBest($raceId, $results[$i]->runnerId, $existingResult, $results[$i]->date);
 				
-				$seasonBest = $this->isSeasonBest($raceId, $results[$i]->runnerId, $existingResult);
+				$seasonBest = $this->isSeasonBest($raceId, $results[$i]->runnerId, $existingResult, $results[$i]->date);
 								
 				if ($results[$i]->date < '2017-01-01') {
 					$standardType = $this->getStandardTypeId($results[$i]->categoryId, $existingResult, $raceId);				
@@ -381,9 +381,9 @@ class Ipswich_JAFFA_Results_Data_Access {
 			$standardType = 0;
 	
 			if ($this->isCertificatedCourseAndResult($existingResult->raceId, $existingResult->courseNumber, $value)) {
-				$pb = $this->isPersonalBest($existingResult->raceId, $existingResult->runnerId, $value);
+				$pb = $this->isPersonalBest($existingResult->raceId, $existingResult->runnerId, $value, $existingResult->date);
 				
-				$seasonBest = $this->isSeasonBest($existingResult->raceId, $existingResult->runnerId, $value);
+				$seasonBest = $this->isSeasonBest($existingResult->raceId, $existingResult->runnerId, $value, $existingResult->date);
 
 				if ($existingResult->date < '2017-01-01') {
 					$standardType = $this->getStandardTypeId($existingResult->categoryId, $value, $existingResult->raceId);				
@@ -616,9 +616,9 @@ class Ipswich_JAFFA_Results_Data_Access {
 			$standardType = 0;
 			
 			if ($this->isCertificatedCourseAndResult($result['raceId'], $result['courseId'], $result['result'])) {
-				$pb = $this->isPersonalBest($result['raceId'], $result['runnerId'], $result['result']);
+				$pb = $this->isPersonalBest($result['raceId'], $result['runnerId'], $result['result'], $result['date']);
 				
-				$seasonBest = $this->isSeasonBest($result['raceId'], $result['runnerId'], $result['result']);
+				$seasonBest = $this->isSeasonBest($result['raceId'], $result['runnerId'], $result['result'], $result['date']);
 
 				if ($result['date'] < '2017-01-01') {
 					$standardType = $this->getStandardTypeId($categoryId, $result['result'], $result['raceId']);				
@@ -1077,7 +1077,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			return $race->distance_id > 0 && ($race->course_type_id == 1 || $race->course_type_id == 3 || $race->course_type_id == 6) ;
 		}
 
-		private function isPersonalBest($raceId, $runnerId, $result) {				
+		private function isPersonalBest($raceId, $runnerId, $result, $date) {				
 			$sql = $this->jdb->prepare("select
 								count(r.id)
 								from
@@ -1094,16 +1094,17 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								r.result != '00:00:00' AND
 								r.result <= %s AND
 								r.runner_id = %d AND
-								r.race_id <> %d
+								r.race_id <> %d AND
+								ra1.date < '%s'
 								ORDER BY result
-								LIMIT 1", $raceId, $result, $runnerId, $raceId);
+								LIMIT 1", $raceId, $result, $runnerId, $raceId, $date);
 
 			$count = $this->jdb->get_var($sql);
 
 			return ($count == 0);
 		}	
 	
-		private function isSeasonBest($raceId, $runnerId, $result) {
+		private function isSeasonBest($raceId, $runnerId, $result, $date) {
 			$sql = $this->jdb->prepare("select
 								count(r.id)
 								from
@@ -1120,10 +1121,11 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								r.result != '00:00:00' AND
 								r.result <= %s AND
 								r.runner_id = %d AND
-								YEAR(ra.date) = YEAR(CURDATE()) AND
+								YEAR(ra.date) = YEAR('%s') AND
+								ra.date < '%s' AND
 								r.race_id <> %d
 								ORDER BY result
-								LIMIT 1", $raceId, $result, $runnerId, $raceId);
+								LIMIT 1", $raceId, $result, $runnerId, $date, $date, $raceId);
 
 			$count = $this->jdb->get_var($sql);
 
