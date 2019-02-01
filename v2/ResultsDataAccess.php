@@ -19,13 +19,12 @@ namespace IpswichJAFFARunningClubAPI\V2;
 	
 require_once plugin_dir_path( __FILE__ ) .'config.php';
 
-class Ipswich_JAFFA_Results_Data_Access {		
+class ResultsDataAccess {		
 
 	private $jdb;
 
 	public function __construct() {
 		
-		// Needs $this->dbh = mysql_connect( $this->dbhost, $this->dbuser, $this->dbpassword, false,65536 );
 		$this->jdb = new \wpdb(JAFFA_RESULTS_DB_USER, JAFFA_RESULTS_DB_PASSWORD, JAFFA_RESULTS_DB_NAME, DB_HOST);		
 		$this->jdb->show_errors();
 	}

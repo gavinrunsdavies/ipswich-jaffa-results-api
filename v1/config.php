@@ -15,7 +15,4 @@ define('JAFFA_RESULTS_DB_USER', '***');
 
 /** MySQL database password */
 define('JAFFA_RESULTS_DB_PASSWORD', '***');
-
-define('JAFFA_RESULTS_UkAthleticsWebAccessKey', '***');
-define('JAFFA_RESULTS_UkAthleticsLicenceCheckUrl', '***');
 ?>

@@ -12,7 +12,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 	
 	public function __construct() {
 		$this->data_access = new Ipswich_JAFFA_Results_Data_Access();
-		$this->data_access_v2 = new \IpswichJAFFARunningClubAPI\V2\Ipswich_JAFFA_Results_Data_Access();
+		$this->data_access_v2 = new \IpswichJAFFARunningClubAPI\V2\ResultsDataAccess();
 	}
 	
 	public function rest_api_init( ) {			
@@ -444,3 +444,4 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 		}
 	}		
 }
+?>
