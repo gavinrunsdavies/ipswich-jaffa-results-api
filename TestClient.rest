@@ -45,4 +45,37 @@ Content-Type: application/json
     "lastName": "davies"
 }
 
+### Get Event Meetings
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events/165/meetings
 
+### Get Event Meeting Races
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events/165/meetings/64/races
+
+### Get Club Records
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/records/distance/1
+
+### Get Historic Club Records
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/historicrecords/distance/1
+
+### Get Result Rankings
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/distance/1
+
+
+### Get Average Age Grading Rankings
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/averageWMA
+
+
+### Get Age Grading Rankings
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/wma
+
+### Get Runner Results
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/runner/116
+
+### Get Runner Personal Bests
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/runner/116/personalbests
+
+### Get Race Results
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/race/1
+
+### Get Grand Prix Results
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/grandPrix/2017/2

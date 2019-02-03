@@ -424,7 +424,7 @@ class ResultsController extends BaseController implements IRoute {
 	private function removeDuplicateEkidenRunnerResults($events) {
 		foreach ($events as $key => $event) {
 			if ($event["id"] == 203) {				
-				$events[$key]["results"] = $this->unique_multidim_array($event["results"]); 					
+				$events[$key]["results"] = $this->uniqueMultidimArray($event["results"]); 					
 			}
 		}
 		
@@ -432,7 +432,7 @@ class ResultsController extends BaseController implements IRoute {
 	}
 	
 	// From http://php.net/manual/en/function.array-unique.php
-	function unique_multidim_array($array) {
+	private function uniqueMultidimArray($array) {
 		$temp_array = array();
 		$i = 0;
 		$key_array = array();
