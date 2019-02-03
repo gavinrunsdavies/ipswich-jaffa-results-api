@@ -60,13 +60,11 @@ GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/historicrecords
 ### Get Result Rankings
 GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/distance/1
 
-
 ### Get Average Age Grading Rankings
-GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/averageWMA
-
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/averageWMA?sexId=2&year=2018&numberOfRaces=5
 
 ### Get Age Grading Rankings
-GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/wma
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/wma?sexId=2&distanceId=1&year=0&distinct=1
 
 ### Get Runner Results
 GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/runner/116
@@ -78,4 +76,4 @@ GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/runner/116/pers
 GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/race/1
 
 ### Get Grand Prix Results
-GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/grandPrix/2017/2
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/grandPrix/2017/3
