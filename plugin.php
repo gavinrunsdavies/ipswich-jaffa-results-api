@@ -8,8 +8,6 @@ if ( ! defined( 'ABSPATH' ) ) die( 'restricted access' );
 
 require_once plugin_dir_path( __FILE__ ) .'WordPressApiHelper.php';
 
-require_once plugin_dir_path( __FILE__ ) .'v1/class-ipswich-jaffa-results-wp-rest-api-controller-v1.php';
-
 require_once plugin_dir_path( __FILE__ ) .'v2/AccountController.php';
 require_once plugin_dir_path( __FILE__ ) .'v2/EventsController.php';
 require_once plugin_dir_path( __FILE__ ) .'v2/DistancesController.php';
@@ -23,9 +21,6 @@ require_once plugin_dir_path( __FILE__ ) .'v2/StatisticsController.php';
 require_once plugin_dir_path( __FILE__ ) .'v3/class-ipswich-jaffa-results-wp-rest-api-controller-v3.php';
 
 // hook into the rest_api_init action so we can start registering routes
-$api_controller_V1 = new Ipswich_JAFFA_Results_WP_REST_API_Controller_V1();
-add_action( 'rest_api_init', array( $api_controller_V1, 'rest_api_init') );
-
 $namespace = 'ipswich-jaffa-api/v2'; // base endpoint for our custom API
 
 $accountController = new IpswichJAFFARunningClubAPI\V2\AccountController($namespace);

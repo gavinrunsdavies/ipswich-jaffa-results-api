@@ -82,28 +82,28 @@ class RacesController extends BaseController implements IRoute {
 		) );		
 	}	
 
-	private function getRaces( \WP_REST_Request $request ) {
+	public function getRaces( \WP_REST_Request $request ) {
 	
 		$response = $this->dataAccess->getRaces($request['eventId']);
 		
 		return rest_ensure_response( $response );
 	}
 
-	private function saveRace( \WP_REST_Request $request ) {
+	public function saveRace( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->insertRace($request['race']);
 		
 		return rest_ensure_response( $response );
 	}
 
-	private function getRace( \WP_REST_Request $request ) {
+	public function getRace( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->getRace($request['id']);
 		
 		return rest_ensure_response( $response );
 	}
 
-	private function updateRace( \WP_REST_Request $request ) {
+	public function updateRace( \WP_REST_Request $request ) {
 
 		if ($request['field'] == "distance_id") {
 			$response = $this->dataAccess->updateRaceDistance($request['id'], $request['value']);
@@ -114,7 +114,7 @@ class RacesController extends BaseController implements IRoute {
 		return rest_ensure_response( $response );
 	}
 	
-	private function deleteRace( \WP_REST_Request $request ) {
+	public function deleteRace( \WP_REST_Request $request ) {
 		
 		$response = $this->dataAccess->deleteRace($request['raceId'], false);
 		

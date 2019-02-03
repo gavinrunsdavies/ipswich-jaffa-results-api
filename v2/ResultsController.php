@@ -162,51 +162,51 @@ class ResultsController extends BaseController implements IRoute {
 		) );
 	}
 	
-	private function getClubRecords( \WP_REST_Request $request ) {
+	public function getClubRecords( \WP_REST_Request $request ) {
 		$response = $this->dataAccess->getClubRecords($request['distanceId']);
 
 		return rest_ensure_response( $response );
 	}
 
-	private function getRaceResults( \WP_REST_Request $request ) {
+	public function getRaceResults( \WP_REST_Request $request ) {
 		$response = $this->dataAccess->getRaceResults($request['raceId']);
 
 		return rest_ensure_response( $response );
 	}
 	
-	private function getMemberResults( \WP_REST_Request $request ) {
+	public function getMemberResults( \WP_REST_Request $request ) {
 		$response = $this->dataAccess->getMemberResults($request['runnerId']);
 
 		return rest_ensure_response( $response );
 	}
 	
-	private function getMemberPBResults( \WP_REST_Request $request ) {
+	public function getMemberPBResults( \WP_REST_Request $request ) {
 		$response = $this->dataAccess->getMemberPBResults($request['runnerId']);
 
 		return rest_ensure_response( $response );
 	}		
 	
-	private function compareMemberRaces( \WP_REST_Request $request ) {
+	public function compareMemberRaces( \WP_REST_Request $request ) {
 		$response = $this->dataAccess->getHeadToHeadResults($request['runnerIds']);
 
 		return rest_ensure_response( $response );
 	}
 	
-	private function getResultRankings( \WP_REST_Request $request ) {
+	public function getResultRankings( \WP_REST_Request $request ) {
 		$parameters = $request->get_query_params();			
 		$response = $this->dataAccess->getResultRankings($request['distanceId'], $parameters['year'], $parameters['sexId']);
 
 		return rest_ensure_response( $response );
 	}
 	
-	private function getWMAPercentageRankings( \WP_REST_Request $request ) {
+	public function getWMAPercentageRankings( \WP_REST_Request $request ) {
 		$parameters = $request->get_query_params();			
 		$response = $this->dataAccess->getWMAPercentageRankings($parameters['sexId'], $parameters['distanceId'], $parameters['year'], $parameters['distinct']);
 
 		return rest_ensure_response( $response );
 	}
 	
-	private function getHistoricClubRecords( \WP_REST_Request $request ) {			
+	public function getHistoricClubRecords( \WP_REST_Request $request ) {			
 		$response = $this->dataAccess->getAllRaceResults($request['distanceId']);
 		
 		// Group data in to catgeories and pick best times
@@ -483,7 +483,7 @@ class ResultsController extends BaseController implements IRoute {
 		return ($a['points'] > $b['points']) ? -1 : 1;
 	}
 
-	private function getResults( \WP_REST_Request $request ) {
+	public function getResults( \WP_REST_Request $request ) {
 		// TODO, eventID, fromDate, toDate and limit. All optional.
 		// Sanitization needed before
 		$parameters = $request->get_query_params();
@@ -492,28 +492,28 @@ class ResultsController extends BaseController implements IRoute {
 		return rest_ensure_response( $response );
 	}
 	
-	private function saveResult( \WP_REST_Request $request ) {
+	public function saveResult( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->insertResult($request['result']);
 		
 		return rest_ensure_response( $response );
 	}
 	
-	private function deleteResult( \WP_REST_Request $request ) {
+	public function deleteResult( \WP_REST_Request $request ) {
 		
 		$response = $this->dataAccess->deleteResult($request['resultId'], false);
 		
 		return rest_ensure_response( $response );
 	}
 	
-	private function updateResult( \WP_REST_Request $request ) {
+	public function updateResult( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->updateResult($request['resultId'], $request['field'], $request['value']);
 		
 		return rest_ensure_response( $response );
 	}
 
-	private function validateResult($result, $request, $key) {					
+	public function validateResult($result, $request, $key) {					
 		if (intval($result['eventId']) < 1) {				
 			return new \WP_Error( 'rest_invalid_param',
 				sprintf( '%s %s has invalid eventId value', $key, json_encode($result)), array( 'status' => 400 ) );
@@ -560,7 +560,7 @@ class ResultsController extends BaseController implements IRoute {
 		}
 	}
 
-	private function isValidResultUpdateField($value, $request, $key){
+	public function isValidResultUpdateField($value, $request, $key){
 		if ( $value == 'info' || $value == 'position' || $value == 'result' || $value == 'grandprix' || $value == 'scoring_team' || $value == 'race_id') {
 			return true;
 		} else {

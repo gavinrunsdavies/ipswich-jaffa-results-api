@@ -30,7 +30,7 @@ class RunnersController extends BaseController implements IRoute {
 		
 		register_rest_route( $this->namespace, '/runners', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
-			'permission_callback' => array( $this 'isAuthorized' ),
+			'permission_callback' => array( $this, 'isAuthorized' ),
 			'callback'            => array( $this, 'saveRunner' ),				
 			'args'                => array(
 				'runner'           => array(

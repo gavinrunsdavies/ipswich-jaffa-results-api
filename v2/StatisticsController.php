@@ -17,13 +17,13 @@ class StatisticsController extends BaseController implements IRoute {
 			'args'                => array(
 				'typeId'           => array(
 					'required'          => true,												
-					'validate_callback' => array( $this, 'isValidId' ),
+					'validate_callback' => array( $this, 'isValidId' 
 				)
 			)
 		) );
 	}	
 
-	private function getStatistics( \WP_REST_Request $request ) {
+	public function getStatistics( \WP_REST_Request $request ) {
 		switch ($request['typeId'])
 		{
 			case 1:

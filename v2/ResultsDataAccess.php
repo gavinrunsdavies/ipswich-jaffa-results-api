@@ -36,7 +36,10 @@ class ResultsDataAccess {
 
 			 if (!$results)	{			
 				 return new \WP_Error( 'ipswich_jaffa_api_getDistances',
-						 'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+						 'Unknown error in reading results from the database', 
+						 array( 
+							'status' => 500 
+						));			
 			 }
 
 			 return $results;
@@ -519,7 +522,7 @@ class ResultsDataAccess {
 
 			if (!$results)	{			
 				return new \WP_Error( 'ipswich_jaffa_api_getRunners',
-						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+						'Unknown error in reading results from the database', array( 'status' => 500,  ) );			
 			}
 
 			return $results;
@@ -547,7 +550,7 @@ class ResultsDataAccess {
 
 			if (!$results)	{			
 				return new \WP_Error( 'ipswich_jaffa_api_getRunner',
-						'Unknown error in reading runner from the database', array( 'status' => 500 ) );			
+						'Unknown error in reading runner from the database', array( 'status' => 500, 'results' => json_encode($results)) );			
 			}
 
 			return $results;

@@ -105,49 +105,49 @@ class MeetingsController extends BaseController implements IRoute {
 		) );
 	}	
 
-	private function getMeetings( \WP_REST_Request $request ) {
+	public function getMeetings( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->getMeetings($request['eventId']);
 		
 		return rest_ensure_response( $response );
 	}
 	
-	private function getMeeting( \WP_REST_Request $request ) {
+	public function getMeeting( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->getMeeting($request['meetingId']);
 		
 		return rest_ensure_response( $response );
 	}
 	
-	private function getMeetingRaces( \WP_REST_Request $request ) {
+	public function getMeetingRaces( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->getMeetingRaces($request['meetingId']);
 		
 		return rest_ensure_response( $response );
 	}
 	
-	private function saveMeeting( \WP_REST_Request $request ) {
+	public function saveMeeting( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->insertMeeting($request['meeting'], $request['eventId']);
 		
 		return rest_ensure_response( $response );
 	}
 	
-	private function updateMeeting( \WP_REST_Request $request ) {
+	public function updateMeeting( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->updateMeeting($request['meetingId'], $request['field'], $request['value']);
 		
 		return rest_ensure_response( $response );
 	}
 	
-	private function deleteMeeting( \WP_REST_Request $request ) {
+	public function deleteMeeting( \WP_REST_Request $request ) {
 		
 		$response = $this->dataAccess->deleteMeeting($request['meetingId']);
 		
 		return rest_ensure_response( $response );
 	}
 
-	private function isValidMeetingUpdateField($value, $request, $key){
+	public function isValidMeetingUpdateField($value, $request, $key){
 		if ( $value == 'from_date' || $value == 'to_date' || $value == 'name' ) {
 			return true;
 		} else {
@@ -156,7 +156,7 @@ class MeetingsController extends BaseController implements IRoute {
 		} 			
 	}
 
-	private function validateMeeting($meeting, $request, $key) {
+	public function validateMeeting($meeting, $request, $key) {
 		$date = date_parse($meeting['fromDate']);
 		if (checkdate($date['month'], $date['day'], $date['year']) === FALSE) {				
 			return new \WP_Error( 'rest_invalid_param',

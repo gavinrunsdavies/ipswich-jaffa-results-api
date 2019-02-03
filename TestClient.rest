@@ -1,0 +1,48 @@
+@Protocol = http
+@Host = test.ipswichjaffa.org.uk
+
+
+### Get Runners
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/runners
+
+### Get Runner
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/runners/116
+
+### Save Runner
+POST {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/runners
+TODO
+
+### Get Distances
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/distances
+
+### Get Events
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events
+
+### Get Races
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events/1/races
+
+### Get Course Types
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/coursetypes
+
+### Save Event
+POST {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events
+TODO
+
+### Update Event
+PATCH  {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events/99999
+TODO
+
+### Delete Event
+DELETE  {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events/99999
+TODO
+
+### Runner of the Month. Vote on Result
+POST {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/runnerofthemonth/resultsvote/1
+Content-Type: application/json
+
+{
+    "voterId": 2700740,
+    "lastName": "davies"
+}
+
+

@@ -11,13 +11,13 @@ class DistancesController extends BaseController implements IRoute {
 	}
 	
 	public function registerRoutes() {										
-		register_rest_route( $namespace, '/distances', array(
+		register_rest_route( $this->namespace, '/distances', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array( $this, 'getDistances' )
 		) );	
 	}	
 
-	private function getDistances( \WP_REST_Request $request ) {
+	public function getDistances( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->getDistances();
 		

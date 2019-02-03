@@ -4,6 +4,7 @@ namespace IpswichJAFFARunningClubAPI\V2;
 require_once plugin_dir_path( __FILE__ ) .'BaseController.php';
 require_once plugin_dir_path( __FILE__ ) .'IRoute.php';
 require_once plugin_dir_path( __FILE__ ) .'config.php';
+require_once plugin_dir_path( __FILE__ ) .'CheckRegistrationStatusResult.php';
 	
 class RunnerOfTheMonthController extends BaseController implements IRoute {			
 	
@@ -23,7 +24,7 @@ class RunnerOfTheMonthController extends BaseController implements IRoute {
 			'callback'            => array( $this, 'saveRunnerOfTheMonthVote' )	
 		) );
 
-		register_rest_route( $this->namespace, '/runnerofthemonth/vote/(?P<resultId>[\d]+)', array(
+		register_rest_route( $this->namespace, '/runnerofthemonth/resultsvote/(?P<resultId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::CREATABLE,			
 			'callback'            => array( $this, 'saveRunnerOfTheMonthResultVote' ),
 			'args'                => array(
@@ -53,14 +54,7 @@ class RunnerOfTheMonthController extends BaseController implements IRoute {
 		) );			
 	}	
 
-	private function getEvents( \WP_REST_Request $request ) {
-
-		$response = $this->dataAccess->getEvents();
-		
-		return rest_ensure_response( $response );
-	}
-
-	private function saveWinners( \WP_REST_Request $request ) {
+	public function saveWinners( \WP_REST_Request $request ) {
 
 		$response1 = true;
 		$response2 = true;
@@ -101,7 +95,7 @@ class RunnerOfTheMonthController extends BaseController implements IRoute {
 		return rest_ensure_response( $response1 && $response2 && $response3 && $response4);
 	}
 
-	private function saveRunnerOfTheMonthVote( \WP_REST_Request $request ) {
+	public function saveRunnerOfTheMonthVote( \WP_REST_Request $request ) {
 		// Validate user vote
 		$voter = $this->dataAccess->getRunner($request['voterId']);
 		if (get_class($voter) == 'WP_Error' || $voter->dateOfBirth != $request['voterDateOfBirth']) {
@@ -145,11 +139,10 @@ class RunnerOfTheMonthController extends BaseController implements IRoute {
 		return rest_ensure_response(true);
 	}
 
-	private function saveRunnerOfTheMonthResultVote( \WP_REST_Request $request ) {
+	public function saveRunnerOfTheMonthResultVote( \WP_REST_Request $request ) {
 					
-		$ukMembershipResponse = $this->getUkAthleticsMembershipDetails($request['voterId']);
-
-		if ($ukMembershipResponse->success == false) {
+		$ukMembershipResponse = $this->checkRegistrationStatus(JAFFA_RESULTS_UkAthleticsWebAccessKey, $request['voterId']);
+		if ($ukMembershipResponse->success === false) {
 			return rest_ensure_response(new \WP_Error(
 				'saveRunnerOfTheMonthResultVote_invalid',
 				'UK Athletics Number not valid for Ipswich JAFFA RC Membership.',
@@ -157,23 +150,26 @@ class RunnerOfTheMonthController extends BaseController implements IRoute {
 			));
 		}
 
-		if ($ukMembershipResponse->lastName != $request['lastName']) {
+		if (strcasecmp($ukMembershipResponse->lastName, $request['lastName']) != 0) {
 			return rest_ensure_response(new \WP_Error(
 				'saveRunnerOfTheMonthResultVote_invalid',
 				'Last name supplied does not match that returned by UK Athletics for the membership number.',
-				array( 'status' => 401, "data" => $request, "ukMembershipResponse" => json_encode($ukMembershipResponse)  ) 
+				array( 
+					'status' => 401, 
+					'data' => $request)
+					//'ukMembershipResponse' => json_encode($ukMembershipResponse)  ) 
 			));						
 		}
 
 		$now = new \DateTime();
 
 		$result = $this->dataAccess->getResult($request['resultId']);
-		$date = strtotime($result['date']);
+		$date = strtotime($result->date);
 		
 		$vote = array();
-		$vote['runnerId'] = $result['runnerId'];
-		$vote['reason'] = $result['eventName'] + ', result: ' + $result['result'] + ', position: ' + $result['position'];
-		$vote['category'] = $this->getRunnerOfMonthCategory($result['sexId']);
+		$vote['runnerId'] = $result->runnerId;
+		$vote['reason'] = "Event: $result->eventName; result: $result->result; position: $result->position";
+		$vote['category'] = $this->getRunnerOfMonthCategory($result->sexId);
 		$vote['month'] = date('n', $date);
 		$vote['year'] = date('Y', $date);
 		$vote['voterId'] = $request['voterId'];
@@ -182,33 +178,69 @@ class RunnerOfTheMonthController extends BaseController implements IRoute {
 		
 		$response = $this->dataAccess->insertRunnerOfTheMonthVote($vote);
 
-		return rest_ensure_response(true);					
+		return rest_ensure_response($response);					
 	}
 
-	private function getUkAthleticsMembershipDetails($ukAthleticsMembershipNumber) {
-		$client = new SoapClient(JAFFA_RESULTS_UkAthleticsLicenceCheckUrl);
-
-		$request = array();
-		$request['webUserKey'] = JAFFA_RESULTS_UkAthleticsWebAccessKey;
-		$request['urn'] = $ukAthleticsMembershipNumber;
-
-		$response = $client->CheckRegistrationStatus_Urn("CheckRegistrationStatus_Urn", $request);
-
-		$getUkAthleticsMembershipDetailsResponse = array(
-			"success" => false
-		);
-
-		if ($response->CheckRegistrationStatus_UrnResponse->CheckRegistrationStatus_UrnResult != "MatchFound")
-			return getUkAthleticsMembershipDetailsResponse;
-
-		if ($response->CheckRegistrationStatus_UrnResponse->result->Registered != "true" ||
-		    \strpos($response->CheckRegistrationStatus_UrnResponse->result->FirstClaimClub, 'Ipswich Jaffa RC') !== false)
-			return getUkAthleticsMembershipDetailsResponse;
-
-		$getUkAthleticsMembershipDetailsResponse['success'] = true;	
-		$getUkAthleticsMembershipDetailsResponse['lastName'] = $response->CheckRegistrationStatus_UrnResponse->result->FirstClaimClub;
+	private function checkRegistrationStatus($webUserKey, $urn) {
 		
-		return $getUkAthleticsMembershipDetailsResponse;
+        $soapRequest = '<?xml version="1.0" encoding="UTF-8"?>
+		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://tempuri.org/">
+		  <SOAP-ENV:Body>
+			<ns1:CheckRegistrationStatus_Urn>
+			  <ns1:webUserKey>'.$webUserKey.'</ns1:webUserKey>
+			  <ns1:urn>'.$urn.'</ns1:urn>
+			</ns1:CheckRegistrationStatus_Urn>
+		  </SOAP-ENV:Body>
+		</SOAP-ENV:Envelope>'; 
+
+		$headers = array(
+					"Content-type: text/xml;charset=\"utf-8\"",
+					"Accept: text/xml",
+					"Cache-Control: no-cache",
+					"Pragma: no-cache",
+					"SOAPAction: http://tempuri.org/ILicenceCheck/CheckRegistrationStatus_Urn", 
+					"Content-length: ".strlen($soapRequest),
+				);
+
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
+		curl_setopt($ch, CURLOPT_URL, JAFFA_RESULTS_UkAthleticsLicenceCheckUrl);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $soapRequest);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+		$response = curl_exec($ch); 
+		curl_close($ch);
+
+		$xml = new \SimpleXMLElement($response);
+		$xml->registerXPathNamespace('tmp', 'http://tempuri.org/');
+		$xml->registerXPathNamespace('lc', 'http://schemas.datacontract.org/2004/07/LicenceCheckService');
+
+		$status = new CheckRegistrationStatusResult();
+		$urnResult = $xml->xpath("//tmp:CheckRegistrationStatus_UrnResult")[0];
+//$status->xml = $response;
+		if ($urnResult == 'MatchFound') {
+			$registered = $xml->xpath("//lc:Registered")[0];
+			if ($registered == "true") {
+				$firstClaimClub = $xml->xpath("//lc:FirstClaimClub")[0];
+				$clubName = 'Ipswich JAFFA RC';
+				if (stripos($firstClaimClub, $clubName) !== FALSE) {
+					$status->success = true;
+					$status->lastName = implode('',$xml->xpath("//lc:LastName")); // TODO understand why!
+				} else {
+					$status->errors[] = "Not registered first claim with $clubName";
+				}
+			} else {
+				$status->errors[] = 'Athlete is no-longer registered with UK Athletics';
+			}
+		} else {
+			$status->errors[] = 'No match found';
+		}
+			
+		return $status;
 	}
 
 	private function getRunnerOfMonthCategory($sexId) {
@@ -218,7 +250,7 @@ class RunnerOfTheMonthController extends BaseController implements IRoute {
 			return 'Ladies';
 	}
 	
-	private function getRunnerOfTheMonthWinners( \WP_REST_Request $request ) {
+	public function getRunnerOfTheMonthWinners( \WP_REST_Request $request ) {
 		$year = isset($request['year']) ? $request['year'] : 0;
 		$month = isset($request['month']) ? $request['month'] : 0;
 		$response = $this->dataAccess->getRunnerOfTheMonthWinnners($year, $month);

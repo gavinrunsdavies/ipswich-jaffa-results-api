@@ -25,7 +25,7 @@ class AccountController extends BaseController implements IRoute {
 		) );				
 	}	
 
-	private function login(\WP_REST_Request $request) {
+	public function login(\WP_REST_Request $request) {
 		$username = base64_decode($request['username']);
 		$password = base64_decode($request['password']);
 		

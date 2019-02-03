@@ -29,7 +29,6 @@ class EventsController extends BaseController implements IRoute {
 
 		register_rest_route( $this->namespace, '/coursetypes', array(
 				'methods'             => \WP_REST_Server::READABLE,
-				'permission_callback' => array( $this, 'isAuthorized' ),
 				'callback'            => array( $this, 'getCourseTypes' )
 			) );			
 		
@@ -94,56 +93,56 @@ class EventsController extends BaseController implements IRoute {
 		) );
 	}	
 
-	private function getEvents( \WP_REST_Request $request ) {
+	public function getEvents( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->getEvents();
 		
 		return rest_ensure_response( $response );
 	}
 
-	private function getRaces( \WP_REST_Request $request ) {
+	public function getRaces( \WP_REST_Request $request ) {
 	
 		$response = $this->dataAccess->getRaces($request['eventId']);
 		
 		return rest_ensure_response( $response );
 	}
 
-	private function getCourseTypes( \WP_REST_Request $request ) {
+	public function getCourseTypes( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->getCourseTypes();
 		
 		return rest_ensure_response( $response );
 	}
 
-	private function saveEvent( \WP_REST_Request $request ) {
+	public function saveEvent( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->insertEvent($request['event']);
 		
 		return rest_ensure_response( $response );
 	}
 
-	private function updateEvent( \WP_REST_Request $request ) {
+	public function updateEvent( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->updateEvent($request['eventId'], $request['field'], $request['value']);
 		
 		return rest_ensure_response( $response );
 	}
 
-	private function mergeEvents( \WP_REST_Request $request ) {
+	public function mergeEvents( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->mergeEvents($request['fromEventId'], $request['toEventId']);
 		
 		return rest_ensure_response( $response );
 	}
 
-	private function deleteEvent( \WP_REST_Request $request ) {
+	public function deleteEvent( \WP_REST_Request $request ) {
 		// TODO deleteResults parameter.
 		$response = $this->dataAccess->deleteEvent($request['eventId'], false);
 		
 		return rest_ensure_response( $response );
 	}
 
-	private function isValidEventUpdateField($value, $request, $key){
+	public function isValidEventUpdateField($value, $request, $key){
 		if ( $value == 'name' || $value == 'website' ) {
 			return true;
 		} else {
