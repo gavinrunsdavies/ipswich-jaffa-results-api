@@ -10,21 +10,10 @@ class WordPressApiHelper
             wp_enqueue_script( 'wp-api' );
         } );					
     }
-    
-    /**
-     * Unsets all core WP endpoints registered by the WordPress REST API (via rest_endpoints filter)
-     * @param  array   $endpoints   registered endpoints
-     * @return array
-     */
-    public function removeWordpressCoreEndpoints( $endpoints ) {
-    
-        foreach ( array_keys( $endpoints ) as $endpoint ) {
-            if ( stripos( $endpoint, '/wp/v2' ) === 0 ) {
-                unset( $endpoints[ $endpoint ] );
-            }
-        }
-    
-        return $endpoints;
+
+    public function custom_wp_user_token_response ($data, $user) {      
+        $data['isAdmin'] = (user_can($user, 'editor') || user_can($user, 'administrator')) ? true : false;
+        return $data;
     }
 }
 ?>

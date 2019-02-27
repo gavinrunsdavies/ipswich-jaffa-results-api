@@ -47,6 +47,8 @@ add_action( 'rest_api_init', array( $statisticsController, 'registerRoutes') );
 $api_controller_V3 = new IpswichJAFFARunningClubAPI\V3\Ipswich_JAFFA_Results_WP_REST_API_Controller_V3();
 add_action( 'rest_api_init', array( $api_controller_V3, 'rest_api_init') );
 
+// Customise user response for JWT login
+add_filter( 'jwt_auth_token_before_dispatch', array($helper, 'custom_wp_user_token_response'), 10, 2);
+
 add_action( 'plugins_loaded', array( $helper, 'pluginsLoaded') );
-add_filter( 'rest_endpoints', array( $helper, 'removeWordpressCoreEndpoints'), 10, 1 );
 ?>
