@@ -78,13 +78,6 @@ class RunnersController extends BaseController implements IRoute {
 		) );
 	}	
 
-	public function getDistances( \WP_REST_Request $request ) {
-
-		$response = $this->dataAccess->getDistances();
-		
-		return rest_ensure_response( $response );
-	}
-
 	public function getGenders( \WP_REST_Request $request ) {
 
 		$response = $this->dataAccess->getGenders();
