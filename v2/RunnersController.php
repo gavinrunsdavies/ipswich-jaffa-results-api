@@ -114,7 +114,7 @@ class RunnersController extends BaseController implements IRoute {
 	
 	public function saveRunner( \WP_REST_Request $request ) {
 
-		$response = $this->dataAccess->insertRunner($request['runner']);
+		$response = $this->dataAccess->insertRunner($request['name'], $request['dateOfBirth'], $request['sexId']);
 		
 		return rest_ensure_response( $response );
 	}

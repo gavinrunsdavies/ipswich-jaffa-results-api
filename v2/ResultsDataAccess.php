@@ -556,9 +556,9 @@ class ResultsDataAccess {
 			return $results;
 		}
 		
-		public function insertRunner($runner) {
+		public function insertRunner($name, $dateOfBirth, $sexId) {
 		
-			$sql = $this->jdb->prepare('INSERT INTO runners (`membership_no`, `name`, `dob`, `sex_id`, `current_member`, `club_id`) VALUES(0, %s, %s, %d, %d, 439);', $runner['name'], $runner['dateOfBirth'], $runner['sexId'], $runner['isCurrentMember']);
+			$sql = $this->jdb->prepare('INSERT INTO runners (`membership_no`, `name`, `dob`, `sex_id`, `current_member`, `club_id`) VALUES(0, %s, %s, %d, 1, 439);', $name, $dateOfBirth, $sexId);
  
 			$result = $this->jdb->query($sql);
 
@@ -581,7 +581,7 @@ class ResultsDataAccess {
 				// Runners cannot be deleted; a number results are associated with this runner. Delete these results first and then try again.
 
 				return new \WP_Error( 'ipswich_jaffa_api_validation',
-							'Runner cannot be deleted; a number results are associated with this runner. Delete the existing results for this runner and try again.', array( 'status' => 500 ) );
+							'Runner cannot be deleted; a number results are associated with this runner. Delete the existing results for this runner and try again.', array( 'status' => 409 ) );
 			}
 			
 			$sql = $this->jdb->prepare('DELETE FROM runners WHERE id = %d;', $id);
