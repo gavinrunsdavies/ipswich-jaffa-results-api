@@ -556,9 +556,9 @@ class ResultsDataAccess {
 			return $results;
 		}
 		
-		public function insertRunner($name, $dateOfBirth, $sexId) {
-		
-			$sql = $this->jdb->prepare('INSERT INTO runners (`membership_no`, `name`, `dob`, `sex_id`, `current_member`, `club_id`) VALUES(0, %s, %s, %d, 1, 439);', $name, $dateOfBirth, $sexId);
+		public function insertRunner($runner) {
+					
+			$sql = $this->jdb->prepare('INSERT INTO runners (`membership_no`, `name`, `dob`, `sex_id`, `current_member`, `club_id`) VALUES(0, %s, %s, %d, 1, 439);', $runner['name'], $runner['dateOfBirth'], $runner['sexId']);
  
 			$result = $this->jdb->query($sql);
 
