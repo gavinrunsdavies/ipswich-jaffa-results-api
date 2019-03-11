@@ -322,34 +322,20 @@ class ResultsDataAccess {
 						'Field in event may not be updated', array( 'status' => 500 , 'Field' => $field, 'Value' => $value) );
 		}
 				
-		public function updateRunner($runnerId, $field, $value) {		
+		public function updateRunner($runner) {		
 
-			// Only name and website may be changed.
-			if ($field == 'name' || $field == 'current_member') 
+			// Only a name update is allowed at this time. TODO 
+			$sql = $this->jdb->prepare('UPDATE runners SET name='%s' WHERE id = %d;', $runner['name'], $runner['id']);
+
+			$result = $this->jdb->query($sql);
+
+			if ($result)
 			{
-				$result = $this->jdb->update( 
-					'runners', 
-					array( 
-						$field => $value
-					), 
-					array( 'id' => $runnerId ), 
-					array( 
-						'%s'
-					), 
-					array( '%d' ) 
-				);
-
-				if ($result)
-				{
-					return $this->getRunner($runnerId);
-				}
-				
-				return new \WP_Error( 'ipswich_jaffa_api_updateRunner',
-						'Unknown error in updating runner in to the database'.$sql, array( 'status' => 500 ) );
+				return $this->getRunner($runner['id']);
 			}
-
+			
 			return new \WP_Error( 'ipswich_jaffa_api_updateRunner',
-						'Field in event may not be updated', array( 'status' => 500 , 'Field' => $field, 'Value' => $value) );
+						'Unknown error in updating runner in to the database', array( 'status' => 500 ) );			
 		}
 
 	public function updateResult($resultId, $field, $value) {		

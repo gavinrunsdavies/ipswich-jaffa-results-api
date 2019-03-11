@@ -68,13 +68,19 @@ class RunnersController extends BaseController implements IRoute {
 				'runnerId'           => array(
 					'required'          => true,						
 					'validate_callback' => array( $this, 'isValidId' )
-					),
-				'field'           => array(
-					'required'          => true,
-					'validate_callback' => array( $this, 'isValidRunnerUpdateField' )
-					),
-				'value'           => array(
-					'required'          => true
+					)
+				),
+				'name'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'validateName' )
+				),
+				'sexId'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'validateGender' )
+				),
+				'dateOfBirth'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'validateDateOfBirth' )
 					)
 				)				
 		) );
@@ -128,7 +134,7 @@ class RunnersController extends BaseController implements IRoute {
 	
 	public function updateRunner( \WP_REST_Request $request ) {
 
-		$response = $this->dataAccess->updateRunner($request['runnerId'], $request['field'], $request['value']);
+		$response = $this->dataAccess->updateRunner($request);
 		
 		return rest_ensure_response( $response );
 	}
