@@ -2085,8 +2085,10 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 
 		public function getLeagues() {
 
-		$sql = 'SELECT id, name, l.starting_year as startingYear
+		$sql = 'SELECT l.id, l.name, l.starting_year as startingYear, l.course_type_id as courseTypeId, count( ra.id ) AS numberOfRaces
 			FROM `leagues` l 
+			LEFT JOIN `race` ra on  ra.league_id = l.id
+			GROUP BY l.id, l.name, l.starting_year 
 			ORDER BY startingYear DESC, name ASC';
 
 		$results = $this->jdb->get_results($sql, OBJECT);
@@ -2101,14 +2103,16 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 
 		public function getLeague($id) {
 
-		$sql = $this->jdb->prepare("SELECT l.id as id, l.name as name, l.starting_year as startingYear, count( r.id ) AS numberOfResults
+		$sql = $this->jdb->prepare("SELECT l.id as id, l.name as name, l.starting_year as startingYear, l.course_type_id as courseTypeId,
+		e.id as eventId, e.name as eventName, ra.id as raceId, ra.description as raceName, ra.date as raceDate, ra.venue as raceVenue,
+		count( r.id ) AS numberOfResults
 			FROM `leagues` l 
 			INNER JOIN `race` ra on  ra.league_id = l.id
 			INNER JOIN `events` e on ra.event_id = e.id 
 			LEFT JOIN `results` r on r.race_id = ra.id
 			WHERE l.id = %d
-			GROUP BY l.id, l.name, l.starting_year 
-			ORDER BY startingYear DESC, l.name ASC", $id);
+			GROUP BY l.id, l.name, l.starting_year, e.id, e.name, ra.id, ra.description, ra.date, ra.venue
+			ORDER BY ra.date, ra.description ASC", $id);
 
 		$results = $this->jdb->get_results($sql, OBJECT);
 
@@ -2121,7 +2125,8 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 	}
 	
 	public function insertLeague($league)	{			
-		$sql = $this->jdb->prepare('INSERT INTO leagues (`name`, `starting_year`) VALUES(%s, %s);', $league['name'], $league['startingYear']);
+		$sql = $this->jdb->prepare('INSERT INTO leagues (`name`, `starting_year`, `course_type_id`) VALUES(%s, %s, %d);',
+		 $league['name'], $league['startingYear'], $league['courseTypeId']);
 
 		$result = $this->jdb->query($sql);
 

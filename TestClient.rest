@@ -77,3 +77,9 @@ GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/race/1
 
 ### Get Grand Prix Results
 GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/grandPrix/2017/3
+
+### Get Leagues
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/leagues
+
+### Get League
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/leagues/1
