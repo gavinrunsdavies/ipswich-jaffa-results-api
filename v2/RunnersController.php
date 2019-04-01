@@ -80,8 +80,7 @@ class RunnersController extends BaseController implements IRoute {
 				),
 				'dateOfBirth'           => array(
 					'required'          => true,												
-					'validate_callback' => array( $this, 'validateDateOfBirth' )
-					)
+					'validate_callback' => array( $this, 'validateDateOfBirth' )					
 				)				
 		) );
 		
