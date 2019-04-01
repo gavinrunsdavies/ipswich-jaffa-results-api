@@ -325,7 +325,7 @@ class ResultsDataAccess {
 		public function updateRunner($runner) {		
 
 			// Only a name update is allowed at this time. TODO 
-			$sql = $this->jdb->prepare('UPDATE runners SET name='%s' WHERE id = %d;', $runner['name'], $runner['id']);
+			$sql = $this->jdb->prepare("UPDATE runners SET name='%s' WHERE id = %d;", $runner['name'], $runner['id']);
 
 			$result = $this->jdb->query($sql);
 
@@ -2082,5 +2082,88 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 
 			return true;
 		}
+
+		public function getLeagues() {
+
+		$sql = 'SELECT id, name, l.starting_year as startingYear
+			FROM `leagues` l 
+			ORDER BY startingYear DESC, name ASC';
+
+		$results = $this->jdb->get_results($sql, OBJECT);
+
+		if (!$results)	{			
+			return new \WP_Error( 'ipswich_jaffa_api_getLeagues',
+					'Unknown error in reading leagues from the database', array( 'status' => 500 ) );			
+		}
+
+		return $results;
+	}
+
+		public function getLeague($id) {
+
+		$sql = $this->jdb->prepare("SELECT l.id as id, l.name as name, l.starting_year as startingYear, count( r.id ) AS numberOfResults
+			FROM `leagues` l 
+			INNER JOIN `race` ra on  ra.league_id = l.id
+			INNER JOIN `events` e on ra.event_id = e.id 
+			LEFT JOIN `results` r on r.race_id = ra.id
+			WHERE l.id = %d
+			GROUP BY l.id, l.name, l.starting_year 
+			ORDER BY startingYear DESC, l.name ASC", $id);
+
+		$results = $this->jdb->get_results($sql, OBJECT);
+
+		if (!$results)	{			
+			return new \WP_Error( 'ipswich_jaffa_api_getLeague',
+					'Unknown error in reading league from the database', array( 'status' => 500, 'id' => $id ) );			
+		}
+
+		return $results;
+	}
+	
+	public function insertLeague($league)	{			
+		$sql = $this->jdb->prepare('INSERT INTO leagues (`name`, `starting_year`) VALUES(%s, %s);', $league['name'], $league['startingYear']);
+
+		$result = $this->jdb->query($sql);
+
+		if ($result)
+		{
+			return $this->getLeague($this->jdb->insert_id);
+		}
+
+		return new \WP_Error( 'ipswich_jaffa_api_insertLeague',
+					'Unknown error in inserting league in to the database', array( 'status' => 500 ) );
+	}
+
+		public function updateLeague($leagueId, $field, $value) {		
+
+		// Only name and website may be changed.
+		if ($field == 'name' || $field == 'starting_year') 
+		{
+			$result = $this->jdb->update( 
+				'leagues', 
+				array( 
+					$field => $value
+				), 
+				array( 'id' => $leagueId ), 
+				array( 
+					'%s'
+				), 
+				array( '%d' ) 
+			);
+
+			if ($result)
+			{
+				// Get updated event
+				return $this->getLeague($leagueId);
+			}
+			
+			return new \WP_Error( 'ipswich_jaffa_api_updateLeague',
+					'Unknown error in updating league in to the database'.$sql, array( 'status' => 500 ) );
+		}
+
+		return new \WP_Error( 'ipswich_jaffa_api_updateLeague',
+					'Field in league may not be updated', array( 'status' => 500 ) );
+	}
+
 	}
 ?>

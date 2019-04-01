@@ -17,6 +17,7 @@ require_once plugin_dir_path( __FILE__ ) .'v2/ResultsController.php';
 require_once plugin_dir_path( __FILE__ ) .'v2/RunnerOfTheMonthController.php';
 require_once plugin_dir_path( __FILE__ ) .'v2/RunnersController.php';
 require_once plugin_dir_path( __FILE__ ) .'v2/StatisticsController.php';
+require_once plugin_dir_path( __FILE__ ) .'v2/LeaguesController.php';
 
 require_once plugin_dir_path( __FILE__ ) .'v3/class-ipswich-jaffa-results-wp-rest-api-controller-v3.php';
 
@@ -32,6 +33,7 @@ $resultsController = new IpswichJAFFARunningClubAPI\V2\ResultsController($namesp
 $runnerOfTheMonthController = new IpswichJAFFARunningClubAPI\V2\RunnerOfTheMonthController($namespace);
 $runnersController = new IpswichJAFFARunningClubAPI\V2\RunnersController($namespace);
 $statisticsController = new IpswichJAFFARunningClubAPI\V2\StatisticsController($namespace);
+$leaguesController = new IpswichJAFFARunningClubAPI\V2\LeaguesController($namespace);
 $helper = new IpswichJAFFARunningClubAPI\WordPressApiHelper();
 
 add_action( 'rest_api_init', array( $accountController, 'registerRoutes') );
@@ -43,6 +45,7 @@ add_action( 'rest_api_init', array( $resultsController, 'registerRoutes') );
 add_action( 'rest_api_init', array( $runnerOfTheMonthController, 'registerRoutes') );
 add_action( 'rest_api_init', array( $runnersController, 'registerRoutes') );
 add_action( 'rest_api_init', array( $statisticsController, 'registerRoutes') );
+add_action( 'rest_api_init', array( $leaguesController, 'registerRoutes') );
 
 $api_controller_V3 = new IpswichJAFFARunningClubAPI\V3\Ipswich_JAFFA_Results_WP_REST_API_Controller_V3();
 add_action( 'rest_api_init', array( $api_controller_V3, 'rest_api_init') );
