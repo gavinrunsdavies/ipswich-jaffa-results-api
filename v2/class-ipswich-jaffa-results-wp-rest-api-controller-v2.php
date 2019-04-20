@@ -88,18 +88,13 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 		
 		register_rest_route( $namespace, '/runnerofthemonth/vote', array(
 			'methods'             => \WP_REST_Server::CREATABLE,			
-			'callback'            => array( $this, 'save_runnerofthemonthvote' )	
-		) );
-
-		register_rest_route( $namespace, '/runnerofthemonth/vote/(?P<resultId>[\d]+)', array(
-			'methods'             => \WP_REST_Server::CREATABLE,			
-			'callback'            => array( $this, 'save_runnerofthemonthresultvote' ),
-			'args'                => array(
-				'resultId'           => array(
+			'callback'            => array( $this, 'save_runnerofthemonthvote' )
+			/*'args'                => array(
+				'votes'           => array(
 					'required'          => true,												
-					'validate_callback' => array( $this, 'is_valid_id' )
+					'validate_callback' => array( $this, 'validate_votes' ),
 					),
-				)		
+				)	*/		
 		) );
 
 		register_rest_route( $namespace, '/runnerofthemonth/winners', array(
@@ -648,16 +643,9 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 		
 		return rest_ensure_response( $response1 && $response2 && $response3 && $response4);
 		}
-
-		private function getRunnerOfMonthCategory($sexId) {
-			if ($sexId == 2) {
-				return 'Men';
-			} else {
-				return 'Ladies';
-			}
-		}
-
+		
 		public function save_runnerofthemonthvote( \WP_REST_Request $request ) {
+			
 			// Validate user vote
 			$voter = $this->data_access->getRunner($request['voterId']);
 			if (get_class($voter) == 'WP_Error' || $voter->dateOfBirth != $request['voterDateOfBirth']) {
@@ -667,8 +655,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 					array( 'status' => 401, "data" => $request, "voter" => json_encode($voter)  ) 
 				));		
 			}
-			
-			$now = new \DateTime();	
+			$now = new \DateTime();
 			
 			if ($request['men'] != null) {
 				$vote = array();
@@ -699,52 +686,6 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 			}
 			
 			return rest_ensure_response(true);
-		}
-
-		public function save_runnerofthemonthresultvote( \WP_REST_Request $request ) {
-						
-			$ukMembershipResponse = $this->getUkAthleticsMembershipDetails($request['voterId']);
-
-			if ($ukMembershipResponse->success == false) {
-				return rest_ensure_response(new \WP_Error(
-					'save_runnerofthemonthvote_invalid',
-					'UK Athletics Number not valid for Ipswich JAFFA RC Membership.',
-					array( 'status' => 401, "data" => $request, "number" => $request['voterId']  ) 
-				));
-			}
-
-			$voter = $this->data_access->getRunner($ukMembershipResponse->name);
-			if (get_class($voter) == 'WP_Error' || $voter->dateOfBirth != $request['voterDateOfBirth']) {
-				return rest_ensure_response(new \WP_Error(
-					'save_runnerofthemonthvote_invalid',
-					'Ipswich JAFFA RC Runner not found in results database',
-					array( 'status' => 500, "data" => $request, "ukMembershipResponse" => json_encode($ukMembershipResponse)  ) 
-				));						
-			}
-
-			$now = new \DateTime();
-
-				// TODO: Lookup month, year, category, runnerId from result
-                $result = $this->data_access->getResult($request['resultId']);
-				$date = strtotime($result['date']);
-				
-				$vote = array();
-				$vote['runnerId'] = $result['runnerId'];
-				$vote['reason'] = $result['eventName'] + ', result: ' + $result['result'] + ', position: ' + $result['position'];
-				$vote['category'] = $this->getRunnerOfMonthCategory($result['sexId']);
-				$vote['month'] = date('n', $date);
-				$vote['year'] = date('Y', $date);
-				$vote['voterId'] = $request['voterId'];
-				$vote['ipAddress'] = $_SERVER['REMOTE_ADDR'];
-				$vote['created'] = $now->format('Y-m-d H:i:s');
-				
-				$response = $this->data_access->insertRunnerOfTheMonthVote($vote);
-
-				return rest_ensure_response(true);					
-		}
-
-		private function getUkAthleticsMembershipDetails($ukAthleticsMembershipNumber) {
-			// TODO API validation to return details.
 		}
 		
 		public function get_runnerofthemonthwinners( \WP_REST_Request $request ) {
@@ -806,9 +747,29 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 
 			return rest_ensure_response( $response );
 		}
-		
-		public function get_raceResults( \WP_REST_Request $request ) {
-		    $response = $this->data_access->getRaceResults($request['raceId']);
+    
+     		public function get_raceResults( \WP_REST_Request $request ) {
+      $response = $this->data_access->getRaceResults($request['raceId']);
+      
+      $pbRunners = array();
+      foreach ($response as $result) {
+        if (!in_array($result->runnerId, $pbRunners)) {  
+          $pbRunners[] = $result->runnerId;
+        }
+      }   
+      
+      $runnerIds = implode (", ", $pbRunners);
+      
+      $previousPersonalBestResults = $this->data_access->getPreviousPersonalBest($runnerIds, $request['raceId']);
+      
+      foreach ($response as $result) {
+        foreach ($previousPersonalBestResults as $previousBestResult) {
+          if ($result->runnerId == $previousBestResult->runnerId) {
+            $result->previousPersonalBestResult = $previousBestResult->previousBest;
+            break;
+          }
+        }          
+      }
 
 			return rest_ensure_response( $response );
 		}
@@ -887,7 +848,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 		
 		public function get_averagePercentageRankings( \WP_REST_Request $request ) {
 			$parameters = $request->get_query_params();			
-		    $response = $this->data_access->getAveragePercentageRankings($parameters['sexId'], $parameters['year'], $parameters['numberOfRaces']);
+		    $response = $this->data_access->getAveragePercentageRankings($parameters['sexId'], $parameters['year'], $parameters['numberOfRaces'], isset($parameters['numberOfResults']) ? $parameters['numberOfResults'] : 50);
 
 			return rest_ensure_response( $response );
 		}
@@ -1531,7 +1492,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 
 			return $endpoints;
 		}
-		
+
 		public function login(\WP_REST_Request $request) {
 			$username = base64_decode($request['username']);
 			$password = base64_decode($request['password']);

@@ -530,10 +530,14 @@ class Ipswich_JAFFA_Results_Data_Access {
 			$sql = $this->jdb->prepare("select r.id, r.name, r.sex_id as 'sexId', r.dob as 'dateOfBirth', r.current_member as 'isCurrentMember', s.sex, c.code as 'ageCategory'
 				FROM (
 				SELECT 
-				CASE 
-					WHEN TIMESTAMPDIFF(YEAR,r.dob,CURDATE()) <= 20 then TIMESTAMPDIFF(YEAR,r.dob,STR_TO_DATE(CONCAT((YEAR(CURDATE())-1),'-08-31'), '%%Y-%%m-%%d'))
-					ELSE TIMESTAMPDIFF(YEAR, r.dob,CURDATE())
-				END as age
+        CASE 
+						WHEN TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) <= 20 AND MONTH(CURDATE()) < 9 
+              THEN TIMESTAMPDIFF(YEAR, r.dob, STR_TO_DATE(CONCAT((YEAR(CURDATE())),'-08-31'), '%%Y-%%m-%%d'))
+            WHEN TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) <= 20 
+              THEN TIMESTAMPDIFF(YEAR, r.dob, STR_TO_DATE(CONCAT((YEAR(CURDATE())+1),'-08-31'), '%%Y-%%m-%%d'))
+						ELSE 
+              TIMESTAMPDIFF(YEAR, r.dob, CURDATE())
+					END as age
 				FROM runners r
 				WHERE r.id = %d) a,
 				runners r, category c, sex s
@@ -742,6 +746,31 @@ class Ipswich_JAFFA_Results_Data_Access {
 
 			return $results;
 		}
+    
+        public function getPreviousPersonalBest($runnerIds, $newRaceId) {
+      $sql = "SELECT r1.runner_id as runnerId, MIN(r2.result) as previousBest 
+              FROM `results` r1 
+              INNER JOIN `race` ra1 ON r1.race_id = ra1.id
+              inner join `results` r2 on r1.runner_id = r2.runner_id AND r1.racedate > r2.racedate AND r2.personal_best = 1
+              INNER JOIN `race` ra2 ON r2.race_id = ra2.id
+              where r1.race_id = $newRaceId
+              and r1.personal_best = 1
+              AND ra1.distance_id = ra2.distance_id
+              AND r1.runner_id in ($runnerIds)
+              GROUP BY r1.runner_id";
+							
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if ($this->jdb->num_rows == 0)
+				return null;
+			
+			if (!$results)	{			
+				return new \WP_Error( 'ipswich_jaffa_api_getPreviousPersonalBest',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+    }
 				
 		public function getResult($resultId) {
 						
@@ -1034,16 +1063,20 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			return true;
 		}
 
-		private function getCategoryId($runnerId, $date) {
+		public function getCategoryId($runnerId, $date) {
 		
-			// If a junior use the age at the previous 31st August.
+			// If a junior (under 20) use the age at the 31st August.
 			// http://dev.mysql.com/doc/refman/5.7/en/date-calculations.html
 			$sql = $this->jdb->prepare("select c.id
 					FROM (
 					SELECT 
 					CASE 
-						WHEN TIMESTAMPDIFF(YEAR,p.dob,'%s') <= 20 THEN TIMESTAMPDIFF(YEAR,p.dob,STR_TO_DATE(CONCAT((YEAR('%s')-1),'-08-31'), '%%Y-%%m-%%d'))
-						ELSE TIMESTAMPDIFF(YEAR, p.dob,'%s')
+						WHEN TIMESTAMPDIFF(YEAR, p.dob, '%s') <= 20 AND MONTH('%s') < 9 
+              THEN TIMESTAMPDIFF(YEAR, p.dob, STR_TO_DATE(CONCAT((YEAR('%s')),'-08-31'), '%%Y-%%m-%%d'))
+            WHEN TIMESTAMPDIFF(YEAR, p.dob, '%s') <= 20 
+              THEN TIMESTAMPDIFF(YEAR, p.dob, STR_TO_DATE(CONCAT((YEAR('%s')+1),'-08-31'), '%%Y-%%m-%%d'))
+						ELSE 
+              TIMESTAMPDIFF(YEAR, p.dob, '%s')
 					END as age
 					FROM runners p
 					WHERE p.id = %d) a,
@@ -1051,8 +1084,8 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 					WHERE p.id = %d
 					AND p.sex_id = c.sex_id
 					AND a.age >= c.age_greater_equal
-					AND  a.age <  c.age_less_than
-					LIMIT 1", $date, $date, $date, $runnerId, $runnerId);
+					AND  a.age < c.age_less_than
+					LIMIT 1", $date, $date, $date, $date, $date, $date, $runnerId, $runnerId);
 
 			$id = $this->jdb->get_var($sql);
 
@@ -1783,7 +1816,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			return $results;
 		}
 		
-		public function getAveragePercentageRankings($sexId, $year = 0, $numberOfRaces = 5) {
+		public function getAveragePercentageRankings($sexId, $year = 0, $numberOfRaces = 5, $numberOfResults = 50) {
 
 			$sql = "set @cnt := 0, @runnerId := 0, @rank := 0;";
 			
@@ -1824,7 +1857,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 					group by ranktopX.runner_id
 					having count(*) = $numberOfRaces
 					order by topXAvg desc
-					LIMIT 50) Results";
+					LIMIT $numberOfResults) Results";
 			
 						
 			$results = $this->jdb->get_results($sql, OBJECT);
