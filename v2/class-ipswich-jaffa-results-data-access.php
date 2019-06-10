@@ -1125,6 +1125,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								ra1.distance_id <> 0 AND
 								r.runner_id = p.id AND
 								r.result != '00:00:00' AND
+                r.result != '' AND
 								r.result <= %s AND
 								r.runner_id = %d AND
 								r.race_id <> %d AND
@@ -1152,6 +1153,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								ra.distance_id <> 0 AND
 								r.runner_id = p.id AND
 								r.result != '00:00:00' AND
+                r.result != '' AND
 								r.result <= %s AND
 								r.runner_id = %d AND
 								YEAR(ra.date) = YEAR('%s') AND
