@@ -1128,8 +1128,10 @@ and r.id = %d", $runnerId, $raceId, $resultId);
                 r.result != '' AND
 								r.result <= %s AND
 								r.runner_id = %d AND
-								r.race_id <> %d AND
-								ra1.date < '%s'
+								r.race_id <> %d AND                
+								ra1.date < '%s' AND
+                ra1.course_type_id IN (1, 3, 6) AND
+                ra2.course_type_id IN (1, 3, 6)
 								ORDER BY result
 								LIMIT 1", $raceId, $result, $runnerId, $raceId, $date);
 
@@ -1158,7 +1160,9 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								r.runner_id = %d AND
 								YEAR(ra.date) = YEAR('%s') AND
 								ra.date < '%s' AND
-								r.race_id <> %d
+								r.race_id <> %d AND
+                ra1.course_type_id IN (1, 3, 6) AND
+                ra2.course_type_id IN (1, 3, 6)
 								ORDER BY result
 								LIMIT 1", $raceId, $result, $runnerId, $date, $date, $raceId);
 
