@@ -23,7 +23,7 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller_V1' ) ) {
 			$this->register_routes_results($namespace);						
 			$this->register_routes_runner_of_the_month($namespace);		
 			$this->register_routes_statistics($namespace);			
-			$this->register_routes_races($namespace);	
+			$this->register_routes_races($namespace);			
 		}
 
 		public function plugins_loaded() {
@@ -730,21 +730,18 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller_V1' ) ) {
 			return rest_ensure_response( $response );
 		}
 		
-    public function permission_check( \WP_REST_Request $request ) {
-      $current_user = wp_get_current_user();
-      
-      if (!($current_user instanceof \WP_User) || $current_user->ID == 0) {
-        return new \WP_Error( 'rest_forbidden',
-          sprintf( 'You do not have enough privileges to use this API.' ), array( 'status' => 403, 'User' => $current_user->ID ) );
-      }
-      
-      if (!(current_user_can('publish_pages'))) {
-          return new \WP_Error( 'rest_forbidden',
-            sprintf( 'You do not have enough privileges to use this API.' ), array( 'status' => 403, 'User' => $current_user->ID ) );
-        }
-      
-      return true;
-    }
+		public function permission_check( WP_REST_Request $request ) {
+			$id = $this->basic_auth_handler();
+			if ( $id  <= 0 ) {				
+				return new WP_Error( 'rest_forbidden',
+					sprintf( 'You must be logged in to use this API.' ), array( 'status' => 403 ) );
+			} else if (!user_can( $id, 'publish_pages' )){
+				return new WP_Error( 'rest_forbidden',
+					sprintf( 'You do not have enough privlidges to use this API.' ), array( 'status' => 403 ) );
+			} else {
+				return true;
+			}
+		}
 
 		public function is_valid_event_update_field($value, $request, $key){
 			if ( $value == 'name' || $value == 'website' ) {
@@ -911,6 +908,34 @@ if ( ! class_exists( 'Ipswich_JAFFA_Results_WP_REST_API_Controller_V1' ) ) {
 			
 			return $user;
 		}
-	
+		
+		private function basic_auth_handler( $user ) {
+			// Don't authenticate twice
+			if ( ! empty( $user ) ) {
+				return $user->ID;
+			}
+			
+			// Check that we're trying to authenticate
+			if ( !isset( $_SERVER['PHP_AUTH_USER'] ) ) {
+				return $user->ID;
+			}
+			$username = $_SERVER['PHP_AUTH_USER'];
+			$password = $_SERVER['PHP_AUTH_PW'];
+			
+			/**
+			 * In multi-site, wp_authenticate_spam_check filter is run on authentication. This filter calls
+			 * get_currentuserinfo which in turn calls the determine_current_user filter. This leads to infinite
+			 * recursion and a stack overflow unless the current function is removed from the determine_current_user
+			 * filter during authentication.
+			 */
+			remove_filter( 'determine_current_user', 'json_basic_auth_handler', 20 );
+			$user = wp_authenticate( $username, $password );
+			add_filter( 'determine_current_user', 'json_basic_auth_handler', 20 );
+			if ( is_wp_error( $user ) ) {				
+				return 0;
+			}
+			
+			return $user->ID;
+		}
 	}
 }
