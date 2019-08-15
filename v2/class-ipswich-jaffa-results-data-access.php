@@ -528,25 +528,14 @@ class Ipswich_JAFFA_Results_Data_Access {
 		
 		public function getRunner($runnerId) {
 			$sql = $this->jdb->prepare("select r.id, r.name, r.sex_id as 'sexId', r.dob as 'dateOfBirth', r.current_member as 'isCurrentMember', s.sex, c.code as 'ageCategory'
-				FROM (
-				SELECT 
-        CASE 
-						WHEN TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) <= 20 AND MONTH(CURDATE()) < 9 
-              THEN TIMESTAMPDIFF(YEAR, r.dob, STR_TO_DATE(CONCAT((YEAR(CURDATE())),'-08-31'), '%%Y-%%m-%%d'))
-            WHEN TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) <= 20 
-              THEN TIMESTAMPDIFF(YEAR, r.dob, STR_TO_DATE(CONCAT((YEAR(CURDATE())+1),'-08-31'), '%%Y-%%m-%%d'))
-						ELSE 
-              TIMESTAMPDIFF(YEAR, r.dob, CURDATE())
-					END as age
-				FROM runners r
-				WHERE r.id = %d) a,
+				FROM 
 				runners r, category c, sex s
 				WHERE r.id = %d
 				AND r.sex_id = s.id 
 				AND r.sex_id = c.sex_id
-				AND a.age >= c.age_greater_equal
-				AND  a.age < c.age_less_than
-				LIMIT 1", $runnerId, $runnerId);
+				AND TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) >= c.age_greater_equal
+				AND TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) < c.age_less_than
+				LIMIT 1", $runnerId);
 					
 			$results = $this->jdb->get_row($sql, OBJECT);
 
@@ -1064,28 +1053,15 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		}
 
 		public function getCategoryId($runnerId, $date) {
-		
-			// If a junior (under 20) use the age at the 31st August.
-			// http://dev.mysql.com/doc/refman/5.7/en/date-calculations.html
+          
 			$sql = $this->jdb->prepare("select c.id
-					FROM (
-					SELECT 
-					CASE 
-						WHEN TIMESTAMPDIFF(YEAR, p.dob, '%s') <= 20 AND MONTH('%s') < 9 
-              THEN TIMESTAMPDIFF(YEAR, p.dob, STR_TO_DATE(CONCAT((YEAR('%s')),'-08-31'), '%%Y-%%m-%%d'))
-            WHEN TIMESTAMPDIFF(YEAR, p.dob, '%s') <= 20 
-              THEN TIMESTAMPDIFF(YEAR, p.dob, STR_TO_DATE(CONCAT((YEAR('%s')+1),'-08-31'), '%%Y-%%m-%%d'))
-						ELSE 
-              TIMESTAMPDIFF(YEAR, p.dob, '%s')
-					END as age
-					FROM runners p
-					WHERE p.id = %d) a,
+					FROM 					
 					runners p, category c
 					WHERE p.id = %d
 					AND p.sex_id = c.sex_id
-					AND a.age >= c.age_greater_equal
-					AND  a.age < c.age_less_than
-					LIMIT 1", $date, $date, $date, $date, $date, $date, $runnerId, $runnerId);
+					AND TIMESTAMPDIFF(YEAR, p.dob, '%s') >= c.age_greater_equal
+					AND TIMESTAMPDIFF(YEAR, p.dob, '%s') < c.age_less_than
+					LIMIT 1", $runnerId, $date, $date);
 
 			$id = $this->jdb->get_var($sql);
 
