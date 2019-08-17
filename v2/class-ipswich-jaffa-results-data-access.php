@@ -1266,6 +1266,30 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 
 			return $results;
 		}
+    
+    public function getCountyChampions() {
+			$sql = "           
+				SELECT r.runner_id as runnerId, p.Name as runnerName, e.id as eventId, e.Name as eventName, ra.date, r.result, c.code as categoryCode, ra.id as raceId, ra.description, ra.venue
+				FROM results AS r
+        INNER JOIN race ra ON r.race_id = ra.id				
+				INNER JOIN events e ON ra.event_id = e.id
+				INNER JOIN runners p ON r.runner_id = p.id
+				INNER JOIN category c ON r.category_id = c.id      
+				WHERE r.county_champion = 1 
+				ORDER BY ra.date desc, categoryCode asc";
+				
+			$results = $this->jdb->get_results($sql, OBJECT);
+			
+			if ($this->jdb->num_rows == 0)
+				return null;
+
+			if (!$results)	{			
+				return new \WP_Error( 'ipswich_jaffa_api_getCountyChampions',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
 		
 		public function getResultRankings($distanceId, $year = 0, $sexId = 0)	{		
 

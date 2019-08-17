@@ -576,6 +576,11 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 					)
 				)
 		) );			
+    
+    register_rest_route( $namespace, '/results/county', array(
+			'methods'             => \WP_REST_Server::READABLE,				
+			'callback'            => array( $this, 'get_countyChampions' )
+		) );
 	}		
 	
 	public function get_races( \WP_REST_Request $request ) {
@@ -726,6 +731,12 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V2 {
 		
 		public function get_clubRecords( \WP_REST_Request $request ) {
 		    $response = $this->data_access->getClubRecords($request['distanceId']);
+
+			return rest_ensure_response( $response );
+		}
+    
+    public function get_countyChampions( \WP_REST_Request $request ) {
+		    $response = $this->data_access->getCountyChampions();
 
 			return rest_ensure_response( $response );
 		}
