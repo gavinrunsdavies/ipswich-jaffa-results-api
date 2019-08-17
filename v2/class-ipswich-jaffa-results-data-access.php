@@ -1137,7 +1137,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								YEAR(ra.date) = YEAR('%s') AND
 								ra.date < '%s' AND
 								r.race_id <> %d AND
-                ra1.course_type_id IN (1, 3, 6) AND
+                ra.course_type_id IN (1, 3, 6) AND
                 ra2.course_type_id IN (1, 3, 6)
 								ORDER BY result
 								LIMIT 1", $raceId, $result, $runnerId, $date, $date, $raceId);
