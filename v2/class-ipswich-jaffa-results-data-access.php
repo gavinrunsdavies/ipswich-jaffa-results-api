@@ -1269,9 +1269,10 @@ and r.id = %d", $runnerId, $raceId, $resultId);
     
     public function getCountyChampions() {
 			$sql = "           
-				SELECT r.runner_id as runnerId, p.Name as runnerName, e.id as eventId, e.Name as eventName, ra.date, r.result, c.code as categoryCode, ra.id as raceId, ra.description, ra.venue
+				SELECT r.runner_id as runnerId, p.Name as runnerName, e.id as eventId, e.Name as eventName, ra.date, r.result, c.code as categoryCode, ra.id as raceId, ra.description, d.id as distanceId, d.distance
 				FROM results AS r
         INNER JOIN race ra ON r.race_id = ra.id				
+        INNER JOIN distance d ON ra.distance_id = d.id
 				INNER JOIN events e ON ra.event_id = e.id
 				INNER JOIN runners p ON r.runner_id = p.id
 				INNER JOIN category c ON r.category_id = c.id      
