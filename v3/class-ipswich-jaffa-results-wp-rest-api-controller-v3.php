@@ -225,7 +225,7 @@ class Ipswich_JAFFA_Results_WP_REST_API_Controller_V3 {
 		return rest_ensure_response( $response );
 	}
 	
-	public function validate_rotm_email($request, $request, $key) {
+	public function validate_rotm_email($value, $request, $key) {
 		if (intval($request['email']['year']) <= 2010 ||				
 			intval($request['email']['month']) < 0 ||
 			empty($request['email']['toAddress'])) {				
