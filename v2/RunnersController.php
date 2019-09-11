@@ -33,18 +33,10 @@ class RunnersController extends BaseController implements IRoute {
 			'permission_callback' => array( $this, 'isAuthorized' ),
 			'callback'            => array( $this, 'saveRunner' ),				
 			'args'                => array(
-				'name'           => array(
+				'runner'           => array(
 					'required'          => true,												
-					'validate_callback' => array( $this, 'validateName' )
-				),
-				'sexId'           => array(
-					'required'          => true,												
-					'validate_callback' => array( $this, 'validateGender' )
-				),
-				'dateOfBirth'           => array(
-					'required'          => true,												
-					'validate_callback' => array( $this, 'validateDateOfBirth' )
-					)
+					'validate_callback' => array( $this, 'validateRunner' )
+					),
 				)
 		) );
 		
@@ -59,7 +51,7 @@ class RunnersController extends BaseController implements IRoute {
 					)
 				)
 		) );
-		
+
 		register_rest_route( $this->namespace, '/runners/(?P<runnerId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array( $this, 'isAuthorized' ),
@@ -68,19 +60,14 @@ class RunnersController extends BaseController implements IRoute {
 				'runnerId'           => array(
 					'required'          => true,						
 					'validate_callback' => array( $this, 'isValidId' )
+					),
+				'field'           => array(
+					'required'          => true,
+					'validate_callback' => array( $this, 'isValidRunnerUpdateField' )
+					),
+				'value'           => array(
+					'required'          => true
 					)
-				),
-				'name'           => array(
-					'required'          => true,												
-					'validate_callback' => array( $this, 'validateName' )
-				),
-				'sexId'           => array(
-					'required'          => true,												
-					'validate_callback' => array( $this, 'validateGender' )
-				),
-				'dateOfBirth'           => array(
-					'required'          => true,												
-					'validate_callback' => array( $this, 'validateDateOfBirth' )					
 				)				
 		) );
 		
@@ -119,7 +106,7 @@ class RunnersController extends BaseController implements IRoute {
 	
 	public function saveRunner( \WP_REST_Request $request ) {
 
-		$response = $this->dataAccess->insertRunner($request);
+		$response = $this->dataAccess->insertRunner($request['runner']);
 		
 		return rest_ensure_response( $response );
 	}
@@ -133,7 +120,7 @@ class RunnersController extends BaseController implements IRoute {
 	
 	public function updateRunner( \WP_REST_Request $request ) {
 
-		$response = $this->dataAccess->updateRunner($request);
+		$response = $this->dataAccess->updateRunner($request['runnerId'], $request['field'], $request['value']);
 		
 		return rest_ensure_response( $response );
 	}
@@ -147,31 +134,30 @@ class RunnersController extends BaseController implements IRoute {
 		} 			
 	}
 
-	public function validateName($name, $request, $key) {			
-		if ( empty($name)) {				
+	public function validateRunner($runner, $request, $key) {			
+		if ( empty($runner['name'])) {				
 			return new \WP_Error( 'rest_invalid_param',
-				sprintf( '%s %s has invalid name value.', $key, $name), array( 'status' => 400 ) );
+				sprintf( '%s %s has invalid name value.', $key, json_encode($runner)), array( 'status' => 400 ) );
 		} 
-	}
-
-	public function validateDateOfBirth($dateOfBirth, $request, $key) {			
+					
+		if (intval($runner['sexId']) < 0) {				
+			return new \WP_Error( 'rest_invalid_param',
+				sprintf( '%s %s has invalid sexId value', $key, json_encode($runner)), array( 'status' => 400 ) );
+		} 
 		
-		$date=date_parse($dateOfBirth);
+		if ($runner['isCurrentMember'] < 0 ||
+			$runner['isCurrentMember'] > 1) {				
+			return new \WP_Error( 'rest_invalid_param',
+				sprintf( '%s %s has invalid isCurrentMember value', $key, json_encode($runner)), array( 'status' => 400 ) );
+		} 
+		
+		$date = date_parse($runner['dateOfBirth']);
 		if (checkdate($date['month'], $date['day'], $date['year']) === FALSE) {				
 			return new \WP_Error( 'rest_invalid_param',
-				sprintf( '%s %s has invalid dateOfBirth value', $key, $dateOfBirth), array( 'status' => 400 ) );
+				sprintf( '%s %s has invalid dateOfBirth value', $key, json_encode($runner)), array( 'status' => 400 ) );
 		} else {
 			return true;
 		}
-	}
-
-	public function validateGender($sexId, $request, $key) {									
-		if (intval($sexId) < 0) {				
-			return new \WP_Error( 'rest_invalid_param',
-				sprintf( '%s %s has invalid sexId value', $key, $sexId), array( 'status' => 400 ) );
-		} 
-		
-		return true;
 	}
 }
 ?>

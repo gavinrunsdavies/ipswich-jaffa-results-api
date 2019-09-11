@@ -321,21 +321,31 @@ class ResultsDataAccess {
 			return new \WP_Error( 'ipswich_jaffa_api_updateRace',
 						'Field in event may not be updated', array( 'status' => 500 , 'Field' => $field, 'Value' => $value) );
 		}
-				
-		public function updateRunner($runner) {		
 
-			// Only a name update is allowed at this time. TODO 
-			$sql = $this->jdb->prepare("UPDATE runners SET name='%s' WHERE id = %d;", $runner['name'], $runner['id']);
-
-			$result = $this->jdb->query($sql);
-
-			if ($result)
+		public function updateRunner($runnerId, $field, $value) {		
+			if ($field == 'name' || $field == 'current_member') 
 			{
-				return $this->getRunner($runner['id']);
+				$result = $this->jdb->update( 
+					'runners', 
+					array( 
+						$field => $value
+					), 
+					array( 'id' => $runnerId ), 
+					array( 
+						'%s'
+					), 
+					array( '%d' ) 
+				);
+				if ($result)
+				{
+					return $this->getRunner($runnerId);
+				}
+				
+				return new \WP_Error( 'ipswich_jaffa_api_updateRunner',
+						'Unknown error in updating runner in to the database'.$sql, array( 'status' => 500 ) );
 			}
-			
 			return new \WP_Error( 'ipswich_jaffa_api_updateRunner',
-						'Unknown error in updating runner in to the database', array( 'status' => 500 ) );			
+						'Field in event may not be updated', array( 'status' => 500 , 'Field' => $field, 'Value' => $value) );
 		}
 
 	public function updateResult($resultId, $field, $value) {		
@@ -516,35 +526,28 @@ class ResultsDataAccess {
 		
 		public function getRunner($runnerId) {
 			$sql = $this->jdb->prepare("select r.id, r.name, r.sex_id as 'sexId', r.dob as 'dateOfBirth', r.current_member as 'isCurrentMember', s.sex, c.code as 'ageCategory'
-				FROM (
-				SELECT 
-				CASE 
-					WHEN TIMESTAMPDIFF(YEAR,r.dob,CURDATE()) <= 20 then TIMESTAMPDIFF(YEAR,r.dob,STR_TO_DATE(CONCAT((YEAR(CURDATE())-1),'-08-31'), '%%Y-%%m-%%d'))
-					ELSE TIMESTAMPDIFF(YEAR, r.dob,CURDATE())
-				END as age
-				FROM runners r
-				WHERE r.id = %d) a,
+				FROM 
 				runners r, category c, sex s
 				WHERE r.id = %d
 				AND r.sex_id = s.id 
 				AND r.sex_id = c.sex_id
-				AND a.age >= c.age_greater_equal
-				AND  a.age < c.age_less_than
-				LIMIT 1", $runnerId, $runnerId);
+				AND (
+					(TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) >= c.age_greater_equal AND TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) < c.age_less_than) 
+					OR r.dob= '0000-00-00'
+				)
+				LIMIT 1", $runnerId);
 					
 			$results = $this->jdb->get_row($sql, OBJECT);
-
 			if (!$results)	{			
 				return new \WP_Error( 'ipswich_jaffa_api_getRunner',
-						'Unknown error in reading runner from the database', array( 'status' => 500, 'results' => json_encode($results)) );			
+						'Unknown error in reading runner from the database', array( 'status' => 500 ) );			
 			}
-
 			return $results;
 		}
 		
 		public function insertRunner($runner) {
-					
-			$sql = $this->jdb->prepare('INSERT INTO runners (`membership_no`, `name`, `dob`, `sex_id`, `current_member`, `club_id`) VALUES(0, %s, %s, %d, 1, 439);', $runner['name'], $runner['dateOfBirth'], $runner['sexId']);
+		
+			$sql = $this->jdb->prepare('INSERT INTO runners (`membership_no`, `name`, `dob`, `sex_id`, `current_member`, `club_id`) VALUES(0, %s, %s, %d, %d, 439);', $runner['name'], $runner['dateOfBirth'], $runner['sexId'], $runner['isCurrentMember']);
  
 			$result = $this->jdb->query($sql);
 
@@ -553,7 +556,7 @@ class ResultsDataAccess {
 			}
 
 			return new \WP_Error( 'ipswich_jaffa_api_insertRunner',
-						'Unknown error in inserting runner in to the database', array( 'status' => 500 ) );
+						'Unknown error in inserting runner in to the database', array( 'status' => 500 , 'sql' => $sql) );
 		} // end function addRunner
 		
 		public function deleteRunner($id) {

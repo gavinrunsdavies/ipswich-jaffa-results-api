@@ -1,5 +1,5 @@
 <?php
-namespace IpswichJAFFARunningClubAPI\V2;
+namespace IpswichJAFFARunningClubAPI\V3;
 
 require_once plugin_dir_path( __FILE__ ) .'ResultsDataAccess.php';
 	

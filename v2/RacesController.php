@@ -120,5 +120,25 @@ class RacesController extends BaseController implements IRoute {
 		
 		return rest_ensure_response( $response );
 	}
+
+    public function isValidRaceUpdateField($value, $request, $key) {
+		if ( $value == 'event_id' || 
+			$value == 'description' || 
+			$value == 'course_type_id' || 
+			$value == 'course_number' || 
+			$value == 'area' || 
+			$value == 'county' ||
+			$value == 'country_code' || 
+			$value == 'venue' || 
+			$value == 'distance_id' || 
+			$value == 'conditions' || 
+			$value == 'meeting_id' || 
+			$value == 'grand_prix' ) {
+			return true;
+		} else {
+			return new \WP_Error( 'rest_invalid_param',
+				sprintf( '%s %d invalid value.', $key, $value ), array( 'status' => 400) );
+		} 			
+	}
 }
 ?>
