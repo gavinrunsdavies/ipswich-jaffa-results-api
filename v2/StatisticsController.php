@@ -17,7 +17,7 @@ class StatisticsController extends BaseController implements IRoute {
 			'args'                => array(
 				'typeId'           => array(
 					'required'          => true,												
-					'validate_callback' => array( $this, 'isValidId' 
+					'validate_callback' => array( $this, 'isValidId')
 				)
 			)
 		) );

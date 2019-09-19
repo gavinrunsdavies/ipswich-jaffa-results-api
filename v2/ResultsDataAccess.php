@@ -518,7 +518,7 @@ class ResultsDataAccess {
 
 			if (!$results)	{			
 				return new \WP_Error( 'ipswich_jaffa_api_getRunners',
-						'Unknown error in reading results from the database', array( 'status' => 500,  ) );			
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
 			}
 
 			return $results;
@@ -556,7 +556,7 @@ class ResultsDataAccess {
 			}
 
 			return new \WP_Error( 'ipswich_jaffa_api_insertRunner',
-						'Unknown error in inserting runner in to the database', array( 'status' => 500 , 'sql' => $sql) );
+						'Unknown error in inserting runner in to the database', array( 'status' => 500 ) );
 		} // end function addRunner
 		
 		public function deleteRunner($id) {
@@ -733,6 +733,31 @@ class ResultsDataAccess {
 
 			return $results;
 		}
+				
+        public function getPreviousPersonalBest($runnerIds, $newRaceId) {
+      $sql = "SELECT r1.runner_id as runnerId, MIN(r2.result) as previousBest 
+              FROM `results` r1 
+              INNER JOIN `race` ra1 ON r1.race_id = ra1.id
+              inner join `results` r2 on r1.runner_id = r2.runner_id AND r1.racedate > r2.racedate AND r2.personal_best = 1
+              INNER JOIN `race` ra2 ON r2.race_id = ra2.id
+              where r1.race_id = $newRaceId
+              and r1.personal_best = 1
+              AND ra1.distance_id = ra2.distance_id
+              AND r1.runner_id in ($runnerIds)
+              GROUP BY r1.runner_id";
+							
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if ($this->jdb->num_rows == 0)
+				return null;
+			
+			if (!$results)	{			
+				return new \WP_Error( 'ipswich_jaffa_api_getPreviousPersonalBest',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+    }
 				
 		public function getResult($resultId) {
 						
@@ -1025,25 +1050,16 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			return true;
 		}
 
-		private function getCategoryId($runnerId, $date) {
+		public function getCategoryId($runnerId, $date) {
 		
-			// If a junior use the age at the previous 31st August.
-			// http://dev.mysql.com/doc/refman/5.7/en/date-calculations.html
 			$sql = $this->jdb->prepare("select c.id
-					FROM (
-					SELECT 
-					CASE 
-						WHEN TIMESTAMPDIFF(YEAR,p.dob,'%s') <= 20 THEN TIMESTAMPDIFF(YEAR,p.dob,STR_TO_DATE(CONCAT((YEAR('%s')-1),'-08-31'), '%%Y-%%m-%%d'))
-						ELSE TIMESTAMPDIFF(YEAR, p.dob,'%s')
-					END as age
-					FROM runners p
-					WHERE p.id = %d) a,
+					FROM 					
 					runners p, category c
 					WHERE p.id = %d
 					AND p.sex_id = c.sex_id
-					AND a.age >= c.age_greater_equal
-					AND  a.age <  c.age_less_than
-					LIMIT 1", $date, $date, $date, $runnerId, $runnerId);
+					AND TIMESTAMPDIFF(YEAR, p.dob, '%s') >= c.age_greater_equal
+					AND TIMESTAMPDIFF(YEAR, p.dob, '%s') < c.age_less_than
+					LIMIT 1", $runnerId, $date, $date);
 
 			$id = $this->jdb->get_var($sql);
 
@@ -1083,10 +1099,13 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								ra1.distance_id <> 0 AND
 								r.runner_id = p.id AND
 								r.result != '00:00:00' AND
+                r.result != '' AND
 								r.result <= %s AND
 								r.runner_id = %d AND
 								r.race_id <> %d AND
-								ra1.date < '%s'
+								ra1.date < '%s' AND
+                ra1.course_type_id IN (1, 3, 6) AND
+                ra2.course_type_id IN (1, 3, 6)
 								ORDER BY result
 								LIMIT 1", $raceId, $result, $runnerId, $raceId, $date);
 
@@ -1110,11 +1129,14 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 								ra.distance_id <> 0 AND
 								r.runner_id = p.id AND
 								r.result != '00:00:00' AND
+                r.result != '' AND
 								r.result <= %s AND
 								r.runner_id = %d AND
 								YEAR(ra.date) = YEAR('%s') AND
 								ra.date < '%s' AND
-								r.race_id <> %d
+								r.race_id <> %d AND
+                ra.course_type_id IN (1, 3, 6) AND
+                ra2.course_type_id IN (1, 3, 6)
 								ORDER BY result
 								LIMIT 1", $raceId, $result, $runnerId, $date, $date, $raceId);
 
@@ -1237,6 +1259,31 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 
 			if (!$results)	{			
 				return new \WP_Error( 'ipswich_jaffa_api_getClubRecords',
+						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
+		
+    public function getCountyChampions() {
+			$sql = "           
+				SELECT r.runner_id as runnerId, p.Name as runnerName, e.id as eventId, e.Name as eventName, ra.date, r.result, c.code as categoryCode, ra.id as raceId, ra.description, d.id as distanceId, d.distance
+				FROM results AS r
+        INNER JOIN race ra ON r.race_id = ra.id				
+        INNER JOIN distance d ON ra.distance_id = d.id
+				INNER JOIN events e ON ra.event_id = e.id
+				INNER JOIN runners p ON r.runner_id = p.id
+				INNER JOIN category c ON r.category_id = c.id      
+				WHERE r.county_champion = 1 
+				ORDER BY ra.date desc, categoryCode asc";
+				
+			$results = $this->jdb->get_results($sql, OBJECT);
+			
+			if ($this->jdb->num_rows == 0)
+				return null;
+
+			if (!$results)	{			
+				return new \WP_Error( 'ipswich_jaffa_api_getCountyChampions',
 						'Unknown error in reading results from the database', array( 'status' => 500 ) );			
 			}
 
@@ -1774,7 +1821,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			return $results;
 		}
 		
-		public function getAveragePercentageRankings($sexId, $year = 0, $numberOfRaces = 5) {
+		public function getAveragePercentageRankings($sexId, $year = 0, $numberOfRaces = 5, $numberOfResults = 50) {
 
 			$sql = "set @cnt := 0, @runnerId := 0, @rank := 0;";
 			
@@ -1815,7 +1862,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 					group by ranktopX.runner_id
 					having count(*) = $numberOfRaces
 					order by topXAvg desc
-					LIMIT 50) Results";
+					LIMIT $numberOfResults) Results";
 			
 						
 			$results = $this->jdb->get_results($sql, OBJECT);
