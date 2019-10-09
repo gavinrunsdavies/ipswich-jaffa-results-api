@@ -6,9 +6,9 @@ require_once plugin_dir_path( __FILE__ ) .'IRoute.php';
 
 class AdminController extends BaseController implements IRoute {			
 	
-	public function __construct($namespace) {        
-		parent::__construct($namespace);
-		$this->data_access_v2 = new \IpswichJAFFARunningClubAPI\V2\ResultsDataAccess();		
+	public function __construct($namespace, $db) {        
+		parent::__construct($namespace, $db);
+		$this->data_access_v2 = new \IpswichJAFFARunningClubAPI\V2\ResultsDataAccess($db);		
 	}
 	
 	private $data_access_v2;	

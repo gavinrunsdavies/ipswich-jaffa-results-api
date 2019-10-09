@@ -6,8 +6,8 @@ require_once plugin_dir_path( __FILE__ ) .'IRoute.php';
 	
 class MeetingsController extends BaseController implements IRoute {			
 	
-	public function __construct($namespace) {        
-		parent::__construct($namespace);
+	public function __construct($namespace, $db) {        
+		parent::__construct($namespace, $db);
 	}
 	
 	public function registerRoutes() {										

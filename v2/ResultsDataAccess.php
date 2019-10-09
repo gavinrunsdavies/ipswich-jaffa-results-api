@@ -16,17 +16,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 namespace IpswichJAFFARunningClubAPI\V2;
-	
-require_once plugin_dir_path( __FILE__ ) .'config.php';
 
 class ResultsDataAccess {		
 
 	private $jdb;
 
-	public function __construct() {
-		
-		$this->jdb = new \wpdb(JAFFA_RESULTS_DB_USER, JAFFA_RESULTS_DB_PASSWORD, JAFFA_RESULTS_DB_NAME, DB_HOST);		
-		$this->jdb->show_errors();
+	public function __construct($db) {		
+		$this->jdb = $db;
 	}
 	
 	public function getDistances() {		

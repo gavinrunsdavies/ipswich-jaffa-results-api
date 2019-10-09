@@ -9,9 +9,9 @@ class BaseController
 
     protected $dataAccess;    
 	
-	public function __construct($namespace) {        
+	public function __construct($namespace, $db) {        
         $this->namespace = $namespace;
-        $this->dataAccess = new ResultsDataAccess();
+        $this->dataAccess = new ResultsDataAccess($db);
 	}
 	
 	public function isValidId( $value, $request, $key ) {

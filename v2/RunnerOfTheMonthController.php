@@ -3,13 +3,13 @@ namespace IpswichJAFFARunningClubAPI\V2;
 
 require_once plugin_dir_path( __FILE__ ) .'BaseController.php';
 require_once plugin_dir_path( __FILE__ ) .'IRoute.php';
-require_once plugin_dir_path( __FILE__ ) .'config.php';
+require_once plugin_dir_path( __FILE__ ) .'../Config.php';
 require_once plugin_dir_path( __FILE__ ) .'CheckRegistrationStatusResult.php';
 	
 class RunnerOfTheMonthController extends BaseController implements IRoute {			
 	
-	public function __construct($namespace) {        
-		parent::__construct($namespace);
+	public function __construct($namespace, $db) {        
+		parent::__construct($namespace, $db);
 	}
 	
 	public function registerRoutes() {												

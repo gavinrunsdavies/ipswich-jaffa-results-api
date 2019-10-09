@@ -83,3 +83,18 @@ GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/leagues
 
 ### Get League
 GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/leagues/1
+
+### Statistics 
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/1
+### Statistics 
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/2
+### Statistics 
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/3
+### Statistics
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/4
+### Statistics 
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/5
+### Statistics 
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/6
+### Statistics 
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/7
