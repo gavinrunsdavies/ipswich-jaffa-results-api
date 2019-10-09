@@ -161,9 +161,9 @@ class ResultsController extends BaseController implements IRoute {
 				)
 		) );
     
-        register_rest_route( $namespace, '/results/county', array(
+        register_rest_route( $this->namespace, '/results/county', array(
 			'methods'             => \WP_REST_Server::READABLE,				
-			'callback'            => array( $this, 'get_countyChampions' )
+			'callback'            => array( $this, 'getCountyChampions' )
 		) );
 	}
 	
@@ -518,8 +518,8 @@ class ResultsController extends BaseController implements IRoute {
 		return rest_ensure_response( $response );
 	}
   
-  public function get_countyChampions( \WP_REST_Request $request ) {
-		    $response = $this->data_access->getCountyChampions();
+  public function getCountyChampions( \WP_REST_Request $request ) {
+		    $response = $this->dataAccess->getCountyChampions();
 
 			return rest_ensure_response( $response );
 	}
