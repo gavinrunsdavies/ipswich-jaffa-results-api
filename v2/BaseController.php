@@ -23,12 +23,11 @@ class BaseController
 		}
     }
     
-    public function isAuthorized( \WP_REST_Request $request ) {
-        $current_user = wp_get_current_user();
-        
+    public function isAuthorized( \WP_REST_Request $request ) {                
         if (!(current_user_can('editor') || current_user_can('administrator'))) {
+          $current_user = wp_get_current_user();
           return new \WP_Error( 'rest_forbidden',
-                      sprintf( 'You do not have enough privileges to use this API.' ), array( 'status' => 403, 'User' => $current_user->ID ) );
+                      sprintf( 'You do not have enough privileges to use this API.' ), array( 'status' => 403, 'Username' => $current_user->user_login  ) );
         }
         
         return true;

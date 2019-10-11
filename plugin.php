@@ -45,8 +45,6 @@ $runnerOfTheMonthV3Controller = new IpswichJAFFARunningClubAPI\V3\RunnerOfTheMon
 
 $helper = new IpswichJAFFARunningClubAPI\WordPressApiHelper();
 
-	
-
 add_action( 'rest_api_init', array( $eventsController, 'registerRoutes') );
 add_action( 'rest_api_init', array( $distancesController, 'registerRoutes') );
 add_action( 'rest_api_init', array( $meetingsController, 'registerRoutes') );
