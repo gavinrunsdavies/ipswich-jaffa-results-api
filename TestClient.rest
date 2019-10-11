@@ -1,0 +1,100 @@
+@Protocol = http
+@Host = test.ipswichjaffa.org.uk
+
+
+### Get Runners
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/runners
+
+### Get Runner
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/runners/116
+
+### Save Runner
+POST {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/runners
+TODO
+
+### Get Distances
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/distances
+
+### Get Events
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events
+
+### Get Races
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events/1/races
+
+### Get Course Types
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/coursetypes
+
+### Save Event
+POST {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events
+TODO
+
+### Update Event
+PATCH  {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events/99999
+TODO
+
+### Delete Event
+DELETE  {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events/99999
+TODO
+
+### Runner of the Month. Vote on Result
+POST {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/runnerofthemonth/resultsvote/1
+Content-Type: application/json
+
+{
+    "voterId": 2700740,
+    "lastName": "davies"
+}
+
+### Get Event Meetings
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events/165/meetings
+
+### Get Event Meeting Races
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/events/165/meetings/64/races
+
+### Get Club Records
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/records/distance/1
+
+### Get Historic Club Records
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/historicrecords/distance/1
+
+### Get Result Rankings
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/distance/1
+
+### Get Average Age Grading Rankings
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/averageWMA?sexId=2&year=2018&numberOfRaces=5
+
+### Get Age Grading Rankings
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/wma?sexId=2&distanceId=1&year=0&distinct=1
+
+### Get Runner Results
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/runner/116
+
+### Get Runner Personal Bests
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/runner/116/personalbests
+
+### Get Race Results
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/race/1
+
+### Get Grand Prix Results
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/results/grandPrix/2017/3
+
+### Get Leagues
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/leagues
+
+### Get League
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/leagues/1
+
+### Statistics 
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/1
+### Statistics 
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/2
+### Statistics 
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/3
+### Statistics
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/4
+### Statistics 
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/5
+### Statistics 
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/6
+### Statistics 
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/7

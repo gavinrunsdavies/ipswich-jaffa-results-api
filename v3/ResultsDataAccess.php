@@ -16,19 +16,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 namespace IpswichJAFFARunningClubAPI\V3;
-	
-require_once plugin_dir_path( __FILE__ ) .'config.php';
 
-class Ipswich_JAFFA_Results_Data_Access {		
+class ResultsDataAccess {		
 
 	private $jdb;
 
-	public function __construct() {
-		
-		// Needs $this->dbh = mysql_connect( $this->dbhost, $this->dbuser, $this->dbpassword, false,65536 );
-		$this->jdb = new \wpdb(JAFFA_RESULTS_DB_USER, JAFFA_RESULTS_DB_PASSWORD, JAFFA_RESULTS_DB_NAME, DB_HOST);		
-		$this->jdb->show_errors();
-	}
+	public function __construct($db) {		
+		$this->jdb = $db;
+	}	
 		
 	public function getRunnerOfTheMonthWinnners($year = 0, $month = 0) {
 		if ($year > 0 || $month > 0) {

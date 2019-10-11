@@ -16,18 +16,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 namespace IpswichJAFFARunningClubAPI\V2;
-	
-require_once plugin_dir_path( __FILE__ ) .'config.php';
 
-class Ipswich_JAFFA_Results_Data_Access {		
+class ResultsDataAccess {		
 
 	private $jdb;
 
-	public function __construct() {
-		
-		// Needs $this->dbh = mysql_connect( $this->dbhost, $this->dbuser, $this->dbpassword, false,65536 );
-		$this->jdb = new \wpdb(JAFFA_RESULTS_DB_USER, JAFFA_RESULTS_DB_PASSWORD, JAFFA_RESULTS_DB_NAME, DB_HOST);		
-		$this->jdb->show_errors();
+	public function __construct($db) {		
+		$this->jdb = $db;
 	}
 	
 	public function getDistances() {		
@@ -37,7 +32,10 @@ class Ipswich_JAFFA_Results_Data_Access {
 
 			 if (!$results)	{			
 				 return new \WP_Error( 'ipswich_jaffa_api_getDistances',
-						 'Unknown error in reading results from the database', array( 'status' => 500 ) );			
+						 'Unknown error in reading results from the database', 
+						 array( 
+							'status' => 500 
+						));			
 			 }
 
 			 return $results;
@@ -319,10 +317,8 @@ class Ipswich_JAFFA_Results_Data_Access {
 			return new \WP_Error( 'ipswich_jaffa_api_updateRace',
 						'Field in event may not be updated', array( 'status' => 500 , 'Field' => $field, 'Value' => $value) );
 		}
-				
-		public function updateRunner($runnerId, $field, $value) {		
 
-			// Only name and website may be changed.
+		public function updateRunner($runnerId, $field, $value) {		
 			if ($field == 'name' || $field == 'current_member') 
 			{
 				$result = $this->jdb->update( 
@@ -336,7 +332,6 @@ class Ipswich_JAFFA_Results_Data_Access {
 					), 
 					array( '%d' ) 
 				);
-
 				if ($result)
 				{
 					return $this->getRunner($runnerId);
@@ -345,7 +340,6 @@ class Ipswich_JAFFA_Results_Data_Access {
 				return new \WP_Error( 'ipswich_jaffa_api_updateRunner',
 						'Unknown error in updating runner in to the database'.$sql, array( 'status' => 500 ) );
 			}
-
 			return new \WP_Error( 'ipswich_jaffa_api_updateRunner',
 						'Field in event may not be updated', array( 'status' => 500 , 'Field' => $field, 'Value' => $value) );
 		}
@@ -533,17 +527,17 @@ class Ipswich_JAFFA_Results_Data_Access {
 				WHERE r.id = %d
 				AND r.sex_id = s.id 
 				AND r.sex_id = c.sex_id
-				AND TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) >= c.age_greater_equal
-				AND TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) < c.age_less_than
+				AND (
+					(TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) >= c.age_greater_equal AND TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) < c.age_less_than) 
+					OR r.dob= '0000-00-00'
+				)
 				LIMIT 1", $runnerId);
 					
 			$results = $this->jdb->get_row($sql, OBJECT);
-
 			if (!$results)	{			
 				return new \WP_Error( 'ipswich_jaffa_api_getRunner',
 						'Unknown error in reading runner from the database', array( 'status' => 500 ) );			
 			}
-
 			return $results;
 		}
 		
@@ -572,7 +566,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 				// Runners cannot be deleted; a number results are associated with this runner. Delete these results first and then try again.
 
 				return new \WP_Error( 'ipswich_jaffa_api_validation',
-							'Runner cannot be deleted; a number results are associated with this runner. Delete the existing results for this runner and try again.', array( 'status' => 500 ) );
+							'Runner cannot be deleted; a number results are associated with this runner. Delete the existing results for this runner and try again.', array( 'status' => 409 ) );
 			}
 			
 			$sql = $this->jdb->prepare('DELETE FROM runners WHERE id = %d;', $id);
@@ -735,7 +729,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 
 			return $results;
 		}
-    
+				
         public function getPreviousPersonalBest($runnerIds, $newRaceId) {
       $sql = "SELECT r1.runner_id as runnerId, MIN(r2.result) as previousBest 
               FROM `results` r1 
@@ -764,7 +758,7 @@ class Ipswich_JAFFA_Results_Data_Access {
 		public function getResult($resultId) {
 						
 			$sql = "SELECT r.id, r.event_id as 'eventId', r.runner_id as 'runnerId', r.position, r.racedate as 'date', r.result as 'time', r.result as 'result', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult', 
-			r.scoring_team as 'team', ra.id as 'raceId', p.sex_id,
+			r.scoring_team as 'team', ra.id as 'raceId', p.sex_id, e.name as 'eventName',
 			CASE
 			   WHEN ra.date >= '2017-01-01' THEN r.percentage_grading_2015
 			   ELSE r.percentage_grading
@@ -1053,7 +1047,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		}
 
 		public function getCategoryId($runnerId, $date) {
-          
+		
 			$sql = $this->jdb->prepare("select c.id
 					FROM 					
 					runners p, category c
@@ -1104,7 +1098,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
                 r.result != '' AND
 								r.result <= %s AND
 								r.runner_id = %d AND
-								r.race_id <> %d AND                
+								r.race_id <> %d AND
 								ra1.date < '%s' AND
                 ra1.course_type_id IN (1, 3, 6) AND
                 ra2.course_type_id IN (1, 3, 6)
@@ -1266,7 +1260,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 
 			return $results;
 		}
-    
+		
     public function getCountyChampions() {
 			$sql = "           
 				SELECT r.runner_id as runnerId, p.Name as runnerName, e.id as eventId, e.Name as eventName, ra.date, r.result, c.code as categoryCode, ra.id as raceId, ra.description, d.id as distanceId, d.distance
@@ -2134,5 +2128,93 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 
 			return true;
 		}
+
+		public function getLeagues() {
+
+		$sql = 'SELECT l.id, l.name, l.starting_year as startingYear, l.course_type_id as courseTypeId, count( ra.id ) AS numberOfRaces
+			FROM `leagues` l 
+			LEFT JOIN `race` ra on  ra.league_id = l.id
+			GROUP BY l.id, l.name, l.starting_year 
+			ORDER BY startingYear DESC, name ASC';
+
+		$results = $this->jdb->get_results($sql, OBJECT);
+
+		if (!$results)	{			
+			return new \WP_Error( 'ipswich_jaffa_api_getLeagues',
+					'Unknown error in reading leagues from the database', array( 'status' => 500 ) );			
+		}
+
+		return $results;
+	}
+
+		public function getLeague($id) {
+
+		$sql = $this->jdb->prepare("SELECT l.id as id, l.name as name, l.starting_year as startingYear, l.course_type_id as courseTypeId,
+		e.id as eventId, e.name as eventName, ra.id as raceId, ra.description as raceName, ra.date as raceDate, ra.venue as raceVenue,
+		count( r.id ) AS numberOfResults
+			FROM `leagues` l 
+			INNER JOIN `race` ra on  ra.league_id = l.id
+			INNER JOIN `events` e on ra.event_id = e.id 
+			LEFT JOIN `results` r on r.race_id = ra.id
+			WHERE l.id = %d
+			GROUP BY l.id, l.name, l.starting_year, e.id, e.name, ra.id, ra.description, ra.date, ra.venue
+			ORDER BY ra.date, ra.description ASC", $id);
+
+		$results = $this->jdb->get_results($sql, OBJECT);
+
+		if (!$results)	{			
+			return new \WP_Error( 'ipswich_jaffa_api_getLeague',
+					'Unknown error in reading league from the database', array( 'status' => 500, 'id' => $id ) );			
+		}
+
+		return $results;
+	}
+	
+	public function insertLeague($league)	{			
+		$sql = $this->jdb->prepare('INSERT INTO leagues (`name`, `starting_year`, `course_type_id`) VALUES(%s, %s, %d);',
+		 $league['name'], $league['startingYear'], $league['courseTypeId']);
+
+		$result = $this->jdb->query($sql);
+
+		if ($result)
+		{
+			return $this->getLeague($this->jdb->insert_id);
+		}
+
+		return new \WP_Error( 'ipswich_jaffa_api_insertLeague',
+					'Unknown error in inserting league in to the database', array( 'status' => 500 ) );
+	}
+
+		public function updateLeague($leagueId, $field, $value) {		
+
+		// Only name and website may be changed.
+		if ($field == 'name' || $field == 'starting_year') 
+		{
+			$result = $this->jdb->update( 
+				'leagues', 
+				array( 
+					$field => $value
+				), 
+				array( 'id' => $leagueId ), 
+				array( 
+					'%s'
+				), 
+				array( '%d' ) 
+			);
+
+			if ($result)
+			{
+				// Get updated event
+				return $this->getLeague($leagueId);
+			}
+			
+			return new \WP_Error( 'ipswich_jaffa_api_updateLeague',
+					'Unknown error in updating league in to the database'.$sql, array( 'status' => 500 ) );
+		}
+
+		return new \WP_Error( 'ipswich_jaffa_api_updateLeague',
+					'Field in league may not be updated', array( 'status' => 500 ) );
+	}
+
 	}
 ?>
