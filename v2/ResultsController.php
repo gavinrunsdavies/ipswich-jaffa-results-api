@@ -175,7 +175,27 @@ class ResultsController extends BaseController implements IRoute {
 
 	public function getRaceResults( \WP_REST_Request $request ) {
 		$response = $this->dataAccess->getRaceResults($request['raceId']);
-
+      
+		$pbRunners = array();
+		foreach ($response as $result) {
+		  if (!in_array($result->runnerId, $pbRunners)) {  
+			$pbRunners[] = $result->runnerId;
+		  }
+		}   
+		
+		$runnerIds = implode (", ", $pbRunners);
+		
+		$previousPersonalBestResults = $this->dataAccess->getPreviousPersonalBest($runnerIds, $request['raceId']);
+		
+		foreach ($response as $result) {
+		  foreach ($previousPersonalBestResults as $previousBestResult) {
+			if ($result->runnerId == $previousBestResult->runnerId) {
+			  $result->previousPersonalBestResult = $previousBestResult->previousBest;
+			  break;
+			}
+		  }          
+		}
+		
 		return rest_ensure_response( $response );
 	}
 	
