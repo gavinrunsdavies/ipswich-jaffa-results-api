@@ -2155,8 +2155,8 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		ra.meeting_id as meetingId,
 		count( r.id ) AS numberOfResults
 			FROM `leagues` l 
-			INNER JOIN `race` ra on  ra.league_id = l.id
-			INNER JOIN `events` e on ra.event_id = e.id 
+			LEFT JOIN `race` ra on  ra.league_id = l.id
+			LEFT JOIN `events` e on ra.event_id = e.id 
 			LEFT JOIN `results` r on r.race_id = ra.id
 			WHERE l.id = %d
 			GROUP BY l.id, l.name, l.starting_year, e.id, e.name, ra.id, ra.description, ra.date, ra.venue
