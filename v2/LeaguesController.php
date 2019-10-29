@@ -114,5 +114,14 @@ class LeaguesController extends BaseController implements IRoute {
 				sprintf( '%s %d must be name only.', $key, $value ), array( 'status' => 400 ) );
 		} 			
 	}
+
+	public function validateLeague($value, $request, $key){
+		if ( $value != null ) {
+			return true;
+		} else {
+			return new \WP_Error( 'rest_invalid_param',
+				sprintf( '%s %d invalid.', $key, $value ), array( 'status' => 400 ) );
+		} 			
+	}
 }
 ?>
