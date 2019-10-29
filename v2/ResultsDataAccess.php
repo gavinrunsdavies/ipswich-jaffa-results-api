@@ -276,6 +276,7 @@ class ResultsDataAccess {
 				$field == 'venue' || 
 				$field == 'conditions' || 
 				$field == 'meeting_id' || 
+				$field == 'league_id' ||
 				$field == 'grand_prix') 
 			{
 				if ($field == 'country_code' && $value != 'GB') {
