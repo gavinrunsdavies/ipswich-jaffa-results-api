@@ -2151,6 +2151,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 
 		$sql = $this->jdb->prepare("SELECT l.id as id, l.name as name, l.starting_year as startingYear, l.course_type_id as courseTypeId,
 		e.id as eventId, e.name as eventName, ra.id as raceId, ra.description as raceName, ra.date as raceDate, ra.venue as raceVenue,
+		ra.meeting_id as meetingId
 		count( r.id ) AS numberOfResults
 			FROM `leagues` l 
 			INNER JOIN `race` ra on  ra.league_id = l.id
