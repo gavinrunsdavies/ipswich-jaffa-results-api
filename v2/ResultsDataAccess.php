@@ -2218,5 +2218,39 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 					'Field in league may not be updated', array( 'status' => 500 ) );
 	}
 
+	public function deleteLeague($leagueId, $deleteRaceAssociations) {
+		$sql = $this->jdb->prepare('SELECT COUNT(r.id) FROM race r WHERE r.league_id = %d LIMIT 1;',$leagueId);
+
+		$exists = $this->jdb->get_var($sql); // $jdb->get_var returns a single value from the database. In this case 1 if the find term exists and 0 if it does not.
+
+		if ($exists != 0) {
+			if (empty($deleteRaceAssociations)) {
+				return new \WP_Error( 'ipswich_jaffa_api_validation',
+					'League cannot be deleted; a number of races are associated with this league. Delete the existing races for this league and try again.', array( 'status' => 403 ) );
+			}
+			
+			// Delete all associated results
+			$sql = $this->jdb->prepare('UPDATE race r SET r.league_id = NULL WHERE r.league_id = %d;',$leagueId);
+
+			$result = $this->jdb->query($sql);
+
+			if (!$result) {			
+				return new \WP_Error( 'ipswich_jaffa_api_deleteLeagueRaces',
+					'Unknown error in deleting league races from the database', array( 'status' => 500 ) );			
+			}
+		}
+
+		$sql = $this->jdb->prepare('DELETE FROM leagues WHERE id = %d;', $leagueId);
+
+		$result = $this->jdb->query($sql);
+
+		if (!$result) {			
+			return new \WP_Error( 'ipswich_jaffa_api_deleteLeague',
+					'Unknown error in deleting league from the database', array( 'status' => 500 ) );			
+		}
+
+		return true;
 	}
+
+}
 ?>

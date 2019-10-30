@@ -101,7 +101,9 @@ class LeaguesController extends BaseController implements IRoute {
 	}
 
 	public function deleteLeague( \WP_REST_Request $request ) {
-		$response = $this->dataAccess->deleteLeague($request['leagueId']);
+		$parameters = $request->get_query_params();	
+
+		$response = $this->dataAccess->deleteLeague($request['leagueId'], $parameters['deleteRaceAssociations']);
 		
 		return rest_ensure_response( $response );
 	}
