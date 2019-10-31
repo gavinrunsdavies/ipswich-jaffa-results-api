@@ -65,6 +65,7 @@ class RacesController extends BaseController implements IRoute {
 				)				
 		) );
 
+		// TODO. Why is this route different? It includes Events resource.
 		register_rest_route( $this->namespace, '/events/(?P<eventId>[\d]+)/race/(?P<raceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
 			'callback'            => array( $this, 'deleteRace' ),
@@ -133,11 +134,12 @@ class RacesController extends BaseController implements IRoute {
 			$value == 'distance_id' || 
 			$value == 'conditions' || 
 			$value == 'meeting_id' || 
+			$value == 'league_id' || 
 			$value == 'grand_prix' ) {
 			return true;
 		} else {
 			return new \WP_Error( 'rest_invalid_param',
-				sprintf( '%s %d invalid value.', $key, $value ), array( 'status' => 400) );
+				sprintf( '%s %s invalid value.', $key, $value ), array( 'status' => 400) );
 		} 			
 	}
 }
