@@ -2132,7 +2132,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 
 		public function getLeagues() {
 
-		$sql = 'SELECT l.id, l.name, l.starting_year as startingYear, l.course_type_id as courseTypeId, count( ra.id ) AS numberOfRaces
+		$sql = 'SELECT l.id, l.name, l.starting_year as startingYear, l.course_type_id as courseTypeId, count( ra.id ) AS numberOfRaces, l.final_position as finalPosition
 			FROM `leagues` l 
 			LEFT JOIN `race` ra on  ra.league_id = l.id
 			GROUP BY l.id, l.name, l.starting_year 
