@@ -139,7 +139,7 @@ class RacesController extends BaseController implements IRoute {
 			return true;
 		} else {
 			return new \WP_Error( 'rest_invalid_param',
-				sprintf( '%s %s invalid value.', $key, $value ), array( 'status' => 400) );
+				sprintf( '%s %s has an invalid value.', $key, $value ), array( 'status' => 400) );
 		} 			
 	}
 }
