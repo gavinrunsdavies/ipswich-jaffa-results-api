@@ -46,3 +46,6 @@ v1/config.php
 v2/config.php
 v3/config.php
 v2/config.live.php
+
+# Compare files
+*.php.bak
