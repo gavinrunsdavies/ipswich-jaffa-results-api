@@ -167,7 +167,7 @@ class ResultsDataAccess {
 		
 	public function getRaces($eventId) {
 		$sql = $this->jdb->prepare(
-				'SELECT ra.id, e.id AS eventId, e.Name as name, ra.date, ra.description, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.distance, ra.grand_prix as isGrandPrixRace, ra.course_number as courseNumber, ra.meeting_id as meetingId, d.result_measurement_unit_type_id as resultMeasurementUnitTypeId, count(r.id) as count
+				'SELECT ra.id, e.id AS eventId, e.Name as name, ra.date, ra.description, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.id as distanceId, d.distance, ra.grand_prix as isGrandPrixRace, ra.course_number as courseNumber, ra.meeting_id as meetingId, d.result_measurement_unit_type_id as resultMeasurementUnitTypeId, count(r.id) as count
 				FROM `events` e
 				INNER JOIN `race` ra ON ra.event_id = e.id
                 LEFT JOIN `results` r ON ra.id = r.race_id
@@ -2151,7 +2151,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		public function getLeague($id) {
 
 		$sql = $this->jdb->prepare("SELECT l.id as id, l.name as name, l.starting_year as startingYear, l.course_type_id as courseTypeId,
-		e.id as eventId, e.name as eventName, ra.id as raceId, ra.description as raceName, ra.date as raceDate, ra.venue as raceVenue,
+		l.final_position as leagueFinalPosition, e.id as eventId, e.name as eventName, ra.id as raceId, ra.description as raceName, ra.date as raceDate, ra.venue as raceVenue,
 		ra.meeting_id as meetingId,
 		count( r.id ) AS numberOfResults
 			FROM `leagues` l 
