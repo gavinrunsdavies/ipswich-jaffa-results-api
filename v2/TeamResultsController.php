@@ -28,10 +28,18 @@ class TeamResultsController extends BaseController implements IRoute {
 			'permission_callback' => array( $this, 'isAuthorized' ),
 			'callback'            => array( $this, 'saveTeamResult' ),				
 			'args'                => array(
-				'teamResult'           => array(
+				'name'           => array(
 					'required'          => true,												
-					'validate_callback' => array( $this, 'validateTeamResult' ),
+					'validate_callback' => array( $this, 'validateTeamResult' )
 					),
+				'meetingId'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'validateTeamResult' )
+					),
+				'resultIds'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'validateTeamResult' )
+					)
 				)
 		) );
 		
@@ -57,7 +65,7 @@ class TeamResultsController extends BaseController implements IRoute {
 
 	public function saveTeamResult( \WP_REST_Request $request ) {
 
-		$response = $this->dataAccess->insertTeamResult($request['team-result']);
+		$response = $this->dataAccess->insertTeamResult($request);
 		
 		return rest_ensure_response( $response );
 	}

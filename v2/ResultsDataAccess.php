@@ -2322,26 +2322,12 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		return true;
 	}
 
-	public function getMeeting($id) {
-
-		$sql = $this->jdb->prepare("", $id);
-
-		$results = $this->jdb->get_results($sql, OBJECT);
-
-		if (!$results)	{			
-			return new \WP_Error( 'ipswich_jaffa_api_getMeeting',
-					'Unknown error in reading meeting from the database', array( 'status' => 500, 'id' => $id ) );			
-		}
-
-		return $results;
-	}
-
 	public function deleteTeamResult($teamResultId) {
 
 		$sql = $this->jdb->prepare('
 			DELETE FROM team_results WHERE id = %d;
 			DELETE FROM team_results_runners WHERE team_result_id = %d;', 
-			$teamResultId), $teamResultId;
+			$teamResultId, $teamResultId);
 
 		$result = $this->jdb->query($sql);
 
@@ -2379,7 +2365,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 	}
 
 	public function insertTeamResult($teamResult)	{			
-		$sql = $this->jdb->prepare('INSERT INTO team_results (`team_name`, `result`, `position`, `meeting_id`) VALUES(%s, %s, %d, 5d);',
+		$sql = $this->jdb->prepare('INSERT INTO team_results (`team_name`, `result`, `position`, `meeting_id`) VALUES(%s, %s, %d, %d);',
 		 $teamResult['name'], $teamResult['result'], $teamResult['position'], $teamResult['meetingId']);
 
 		$result = $this->jdb->query($sql);
@@ -2395,10 +2381,10 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 				$order++;
 			}
 
-			$sql = $this->jdb->prepare(
-				'INSERT INTO team_results_runners (`team_result_id`, `result_id`, `order`)
-				 VALUES (%s);',
-				implode(',', $values));
+			$sql = 
+				"INSERT INTO team_results_runners (`team_result_id`, `result_id`, `order`)
+				 VALUES ".implode(",", $values);
+				
 
 			$result = $this->jdb->query($sql);
 
@@ -2408,7 +2394,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		}
 
 		return new \WP_Error( 'ipswich_jaffa_api_insertTeamResult',
-					'Unknown error in inserting team result in to the database', array( 'status' => 500 ) );
+					'Unknown error in inserting team result in to the database', array( 'status' => 500, 'sql' => $sql ) );
 	}
 }
 ?>
