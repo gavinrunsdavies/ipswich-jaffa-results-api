@@ -167,12 +167,14 @@ class ResultsDataAccess {
 		
 	public function getRaces($eventId) {
 		$sql = $this->jdb->prepare(
-				'SELECT ra.id, e.id AS eventId, e.Name as name, ra.date, ra.description, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.id as distanceId, d.distance, ra.grand_prix as isGrandPrixRace, ra.course_number as courseNumber, ra.meeting_id as meetingId, d.result_measurement_unit_type_id as resultMeasurementUnitTypeId, count(r.id) as count
+				'SELECT ra.id, e.id AS eventId, e.Name as name, ra.date, ra.description, ra.course_type_id AS courseTypeId, c.description AS courseType, ra.area, ra.county, ra.country_code AS countryCode, ra.conditions, ra.venue, d.id as distanceId, d.distance, ra.grand_prix as isGrandPrixRace, ra.course_number as courseNumber, ra.meeting_id as meetingId, m.name as meetingName, d.result_measurement_unit_type_id as resultMeasurementUnitTypeId, l.name as leagueName, l.starting_year as leagueStartingYear, count(r.id) as count
 				FROM `events` e
 				INNER JOIN `race` ra ON ra.event_id = e.id
                 LEFT JOIN `results` r ON ra.id = r.race_id
 				LEFT JOIN `distance` d ON ra.distance_id = d.id
 				LEFT JOIN `course_type` c ON ra.course_type_id = c.id
+                LEFT JOIN `leagues` l ON ra.league_id = l.id
+                LEFT JOIN `meeting` m ON ra.meeting_id = m.id
 				WHERE e.id = %d
 				GROUP BY ra.id, eventId, name, ra.date, ra.description, courseTypeId, courseType, ra.area, ra.county, countryCode, ra.conditions, ra.venue, d.distance, isGrandPrixRace
 				ORDER BY ra.date DESC, ra.description', $eventId);
@@ -1704,6 +1706,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 						p.name,
 						e.id as eventId,
 						e.name as event,
+						ra2.id as raceId,
 						ra2.date,
 						r.result,						
 						CASE
@@ -1723,11 +1726,12 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			} 
 			else
 			{
-				if ($year == 0 || $year >= 2017)
+				if ($year >= 2017)
 				{
 					$sql = "
 					SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
 						SELECT r.runner_id as runnerId, p.Name as name, e.id as eventId, e.Name as event, 
+						ra.id as raceId,
 						ra.date,
 						r.result,
 						r.percentage_grading_2015 as percentageGrading
@@ -1769,6 +1773,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 					SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
 						SELECT r.runner_id as runnerId, p.Name as name, e.id as eventId, e.Name as event, 
 						ra.date,
+						ra.id as raceId,
 						r.result,
 						r.percentage_grading as percentageGrading
 						FROM results AS r
@@ -1951,6 +1956,71 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			if (!$results)	{			
 				return new \WP_Error( 'ipswich_jaffa_api_getMeeting',
 						'Unknown error in reading meeting from the database', array( 'status' => 500 ) );			
+			}
+
+			return $results;
+		}
+
+		public function getMeetingV2($meetingId) {
+
+			$sql = $this->jdb->prepare(
+					'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate						
+					FROM `meeting` m
+					WHERE m.id = %d', $meetingId);
+
+			$meeting = $this->jdb->get_row($sql, OBJECT);
+
+			if ($this->jdb->num_rows == 0)
+				return null;	
+			
+			if (!$meeting) {			
+				return new \WP_Error( 'ipswich_jaffa_api_getMeetingV2',
+						'Unknown error in getting meeting from the database', array( 'status' => 500 ) );			
+			}
+
+			return $meeting;
+		}
+
+		public function getMeetingTeams($meetingId) {
+
+			$sql = $this->jdb->prepare(
+					'SELECT tr.id as teamId, tr.county_championship as countyChampionshipResult, team_name as teamName, tr.position as teamPosition, tr.result as teamResult
+					FROM `team_results` tr 
+					WHERE tr.meeting_id = %d', $meetingId);
+
+			$teams = $this->jdb->get_results($sql, OBJECT);
+
+			if ($this->jdb->num_rows == 0)
+				return null;	
+			
+			if (!$teams) {			
+				return new \WP_Error( 'ipswich_jaffa_api_getMeetingTeams',
+						'Unknown error in getting meeting teams from the database', array( 'status' => 500 ) );			
+			}
+
+			return $teams;
+		}
+
+		public function getMeetingResults($meetingId) {
+
+			$sql = $this->jdb->prepare(
+				'SELECT tr.id as teamId, p.name as runnerName, p.id as runnerId, r.result as runnerResult, 
+				r.position as runnerPosition, trr.order as teamOrder
+				FROM `team_results` tr 
+				INNER JOIN `team_results_runners` trr ON tr.id = trr.team_result_id
+				INNER JOIN `results` r on trr.result_id = r.id
+				INNER JOIN `runners` p ON r.runner_id = p.id
+				WHERE meeting_id = %d
+				ORDER BY tr.position, trr.order', $meetingId);
+
+			$results = $this->jdb->get_results($sql, OBJECT);
+
+			if ($this->jdb->num_rows == 0)
+				return null;	
+			
+			if (!$results) {			
+				return new \WP_Error( 'ipswich_jaffa_api_getMeetingResults',
+						'Unknown error in getting meeting results from the database', array( 'status' => 500 ) );			
 			}
 
 			return $results;
@@ -2252,5 +2322,93 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		return true;
 	}
 
+	public function getMeeting($id) {
+
+		$sql = $this->jdb->prepare("", $id);
+
+		$results = $this->jdb->get_results($sql, OBJECT);
+
+		if (!$results)	{			
+			return new \WP_Error( 'ipswich_jaffa_api_getMeeting',
+					'Unknown error in reading meeting from the database', array( 'status' => 500, 'id' => $id ) );			
+		}
+
+		return $results;
+	}
+
+	public function deleteTeamResult($teamResultId) {
+
+		$sql = $this->jdb->prepare('
+			DELETE FROM team_results WHERE id = %d;
+			DELETE FROM team_results_runners WHERE team_result_id = %d;', 
+			$teamResultId), $teamResultId;
+
+		$result = $this->jdb->query($sql);
+
+		if (!$result) {			
+			return new \WP_Error( 'ipswich_jaffa_api_deleteTeamResult',
+					'Unknown error in deleting team result from the database', array( 'status' => 500 ) );			
+		}
+
+		return true;
+	}
+
+	public function getTeamResult($teamResultId) {
+
+		$sql = $this->jdb->prepare(
+			'SELECT tr.id as teamId, p.name as runnerName, p.id as runnerId, r.result as runnerResult, 
+			r.position as runnerPosition, trr.order as teamOrder
+			FROM `team_results` tr 
+			INNER JOIN `team_results_runners` trr ON tr.id = trr.team_result_id
+			INNER JOIN `results` r on trr.result_id = r.id
+			INNER JOIN `runners` p ON r.runner_id = p.id
+			WHERE tr.id = %d
+			ORDER BY tr.position, trr.order', $teamResultId);
+
+		$result = $this->jdb->get_row($sql, OBJECT);
+
+		if ($this->jdb->num_rows == 0)
+			return null;	
+		
+		if (!$result) {			
+			return new \WP_Error( 'ipswich_jaffa_api_getTeamResult',
+					'Unknown error in getting team result from the database', array( 'status' => 500 ) );			
+		}
+
+		return $result;
+	}
+
+	public function insertTeamResult($teamResult)	{			
+		$sql = $this->jdb->prepare('INSERT INTO team_results (`team_name`, `result`, `position`, `meeting_id`) VALUES(%s, %s, %d, 5d);',
+		 $teamResult['name'], $teamResult['result'], $teamResult['position'], $teamResult['meetingId']);
+
+		$result = $this->jdb->query($sql);
+
+		if ($result)
+		{
+			$teamResultId = $this->jdb->insert_id;
+
+			$values = array();
+			$order = 1;
+			foreach($teamResult['resultIds'] as $resultId){
+				$values[] = "($teamResultId, $resultId, $order)";
+				$order++;
+			}
+
+			$sql = $this->jdb->prepare(
+				'INSERT INTO team_results_runners (`team_result_id`, `result_id`, `order`)
+				 VALUES (%s);',
+				implode(',', $values));
+
+			$result = $this->jdb->query($sql);
+
+			if ($result) {
+				return $this->getTeamResult($teamResultId);
+			}
+		}
+
+		return new \WP_Error( 'ipswich_jaffa_api_insertTeamResult',
+					'Unknown error in inserting team result in to the database', array( 'status' => 500 ) );
+	}
 }
 ?>
