@@ -992,6 +992,7 @@ AND r.runner_id = %d
 AND p.dob <> '0000-00-00'
 AND p.dob is not null
 and r.result <> '00:00:00'
+and r.result <> ''
 and ra.id = %d
 and ra.distance_id <> 0
 and r.id = %d", $runnerId, $raceId, $resultId);
@@ -1033,6 +1034,7 @@ AND r.runner_id = %d
 AND p.dob <> '0000-00-00'
 AND p.dob is not null
 and r.result <> '00:00:00'
+and r.result <> ''
 and ra.id = %d
 and ra.distance_id <> 0
 and ra.course_type_id = a.course_type_id
@@ -1235,7 +1237,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 					ON ra.distance_id = d.id
 					INNER JOIN `runners` p2
 					ON r2.runner_id = p2.id
-					WHERE r2.result != '00:00:00' and d.id = %d and r2.category_id <> 0
+					WHERE r2.result != '00:00:00' and r2.result != '' and d.id = %d and r2.category_id <> 0
           AND (ra.course_type_id NOT IN (2, 4, 5, 7) OR ra.course_type_id IS NULL)
 					GROUP BY r2.category_id
 				   ) AS rt
@@ -1332,8 +1334,9 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 						INNER JOIN `runners` p2
 						ON r2.runner_id = p2.id
 						WHERE r2.result != '00:00:00' 
+						AND r2.result != '' 
 						AND ra2.distance_id = $distanceId
-            AND (ra2.course_type_id NOT IN (2, 4, 5, 7) OR ra2.course_type_id IS NULL)
+                        AND (ra2.course_type_id NOT IN (2, 4, 5, 7) OR ra2.course_type_id IS NULL)
 						$sexQuery
 						$dateQuery2
 						GROUP BY r2.runner_id
@@ -1451,6 +1454,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 						  r.runner_id = %d 
 						  and r.personal_best = 1
 						  and r.result != '00:00:00' 
+						  and r.result != '' 
 						group by ra.distance_id
 					) t on r.result = t.pb and ra.distance_id = t.distanceId
 					where					   
@@ -1928,7 +1932,8 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			$sql = $this->jdb->prepare(
 					'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate
 					FROM `meeting` m
-					WHERE m.event_id = %d', $eventId);
+					WHERE m.event_id = %d
+					ORDER BY m.from_date DESC', $eventId);
 
 			$results = $this->jdb->get_results($sql, OBJECT);
 			
@@ -2111,7 +2116,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 					INNER JOIN runners p ON p.id = r.runner_id 
 					INNER JOIN events e ON e.id = ra.event_id 
 					INNER JOIN category c ON c.id = r.category_id 
-					WHERE ra.distance_id = %d AND c.id > 0 AND r.result <> '00:00:00'
+					WHERE ra.distance_id = %d AND c.id > 0 AND r.result <> '00:00:00' AND r.result <> ''
 					order by category_id asc, ra.date asc, r.result asc", $distanceId);	
 
 			$results = $this->jdb->get_results($sql, OBJECT);
