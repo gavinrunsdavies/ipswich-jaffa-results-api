@@ -1989,7 +1989,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 		public function getMeetingTeams($meetingId) {
 
 			$sql = $this->jdb->prepare(
-					'SELECT tr.id as teamId, tr.county_championship as countyChampionshipResult, team_name as teamName, tr.position as teamPosition, tr.result as teamResult
+					'SELECT tr.id as teamId, tr.county_championship as countyChampionshipResult, tr.team_name as teamName, tr.category as teamCategory, tr.position as teamPosition, tr.result as teamResult
 					FROM `team_results` tr 
 					WHERE tr.meeting_id = %d', $meetingId);
 
@@ -2370,8 +2370,8 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 	}
 
 	public function insertTeamResult($teamResult)	{			
-		$sql = $this->jdb->prepare('INSERT INTO team_results (`team_name`, `result`, `position`, `meeting_id`) VALUES(%s, %s, %d, %d);',
-		 $teamResult['name'], $teamResult['result'], $teamResult['position'], $teamResult['meetingId']);
+		$sql = $this->jdb->prepare('INSERT INTO team_results (`team_name`, `category`, `result`, `position`, `meeting_id`) VALUES(%s, %s, %d, %d);',
+		 $teamResult['name'], $teamResult['category'], $teamResult['result'], $teamResult['position'], $teamResult['meetingId']);
 
 		$result = $this->jdb->query($sql);
 

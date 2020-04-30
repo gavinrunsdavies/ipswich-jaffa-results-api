@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Ipswich JAFFA RC Results WP REST API
+Plugin Name: Ipswich JAFFA RC Results WP REST API V2
 */
 
 if ( ! defined( 'ABSPATH' ) ) die( 'restricted access' );
