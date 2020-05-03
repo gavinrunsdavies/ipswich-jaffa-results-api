@@ -1827,7 +1827,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 			return $results;
 		}
 		
-		public function getAveragePercentageRankings($sexId, $year = 0, $numberOfRaces = 5, $numberOfResults = 50) {
+		public function getAveragePercentageRankings($sexId, $year = 0, $numberOfRaces = 5, $numberOfResults = 200) {
 
 			$sql = "set @cnt := 0, @runnerId := 0, @rank := 0;";
 			
@@ -2370,7 +2370,7 @@ and r.id = %d", $runnerId, $raceId, $resultId);
 	}
 
 	public function insertTeamResult($teamResult)	{			
-		$sql = $this->jdb->prepare('INSERT INTO team_results (`team_name`, `category`, `result`, `position`, `meeting_id`) VALUES(%s, %s, %d, %d);',
+		$sql = $this->jdb->prepare('INSERT INTO team_results (`team_name`, `category`, `result`, `position`, `meeting_id`) VALUES(%s, %s, %s, %d, %d);',
 		 $teamResult['name'], $teamResult['category'], $teamResult['result'], $teamResult['position'], $teamResult['meetingId']);
 
 		$result = $this->jdb->query($sql);
