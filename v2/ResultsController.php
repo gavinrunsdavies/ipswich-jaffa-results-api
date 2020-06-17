@@ -238,8 +238,8 @@ class ResultsController extends BaseController implements IRoute {
 		$categoryCode = 0;
 		$records = array();
 		foreach ($response as $item) {
-	if ($item->courseTypeId != null && in_array($item->courseTypeId, array(2, 4, 5, 7)))
-	  continue;
+			if ($item->courseTypeId != null && in_array($item->courseTypeId, array(2, 4, 5, 7)))
+	  			continue;
 	
 			$categoryCode = $item->categoryCode;
 			if (!array_key_exists($categoryCode, $records)) {
