@@ -41,7 +41,7 @@ class ResultsDataAccess
             return new \WP_Error('ipswich_jaffa_api_getDistances',
                 'Unknown error in reading results from the database',
                 array(
-                    'status' => 500,
+                    'status' => 500
                 ));
         }
 
@@ -752,7 +752,7 @@ class ResultsDataAccess
         // If a PB query to see whether a new certificate is required and if we need to re-evaluate later PB
         if ($pb == true) {
             $this->checkAndUpdatePersonalBest($runnerId);
-            
+
             $isNewStandard = $this->isNewStandard($resultId);
 
             if ($isNewStandard == true) {
@@ -866,10 +866,11 @@ class ResultsDataAccess
     {
         $sql = "SELECT r1.runner_id as runnerId, MIN(r2.result) as previousBest
               FROM `results` r1
-              INNER JOIN `race` ra1 ON r1.race_id = ra1.id
-              inner join `results` r2 on r1.runner_id = r2.runner_id AND ra1.date > ra2.date AND r2.personal_best = 1
-              INNER JOIN `race` ra2 ON r2.race_id = ra2.id
+              INNER JOIN `race` ra1 ON r1.race_id = ra1.id              
+              inner join `results` r2 on r1.runner_id = r2.runner_id   
+              INNER JOIN `race` ra2 ON r2.race_id = ra2.id          
               where r1.race_id = $newRaceId
+              AND ra1.date > ra2.date AND r2.personal_best = 1 
               and r1.personal_best = 1
               AND ra1.distance_id = ra2.distance_id
               AND r1.runner_id in ($runnerIds)
@@ -2755,3 +2756,4 @@ class ResultsDataAccess
             'Unknown error in inserting team result in to the database', array('status' => 500, 'sql' => $sql));
     }
 }
+?>
