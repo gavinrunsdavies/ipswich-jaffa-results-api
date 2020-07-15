@@ -484,7 +484,7 @@ class ResultsDataAccess
             if ($result !== false) {
                 if ($ageGrading > 0) {
                     // TODO check response for number of results
-                    $this->updatePercentageGradingPersonalBest($resultId, $existingResult[$i]->runnerId, $existingResult[$i]->date);
+                    $this->updatePercentageGradingPersonalBest($resultId, $existingResult->runnerId, $existingResult->date);
                     if ($response != true) {
                         return $response;
                     }
