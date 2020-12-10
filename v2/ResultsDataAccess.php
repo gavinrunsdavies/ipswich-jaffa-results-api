@@ -2435,7 +2435,7 @@ class ResultsDataAccess
     public function getMeetingRaces($meetingId)
     {
         $sql = $this->jdb->prepare(
-            'SELECT ra.id, ra.date, ra.description, ra.course_type_id as courseTypeId
+            'SELECT ra.id, ra.date, ra.description, ra.course_type_id as courseTypeId, ra.report as report
 					FROM `race` ra
 					WHERE ra.meeting_id = %d
 					ORDER BY ra.date, ra.description', $meetingId);
