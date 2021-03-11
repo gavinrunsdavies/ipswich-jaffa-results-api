@@ -2308,7 +2308,7 @@ class ResultsDataAccess
     {
 
         $sql = $this->jdb->prepare(
-            'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate
+            'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate, m.report as report
 					FROM `meeting` m
 					WHERE m.id = %d', $meetingId);
 
