@@ -235,11 +235,13 @@ class ResultsController extends BaseController implements IRoute {
 		$response = $this->dataAccess->getAllRaceResults($request['distanceId']);
 		
 		// Group data in to catgeories and pick best times
+		$distanceMeasurementUnitTypes = array(3,4,5);
 		$categoryCode = 0;
 		$records = array();
 		foreach ($response as $item) {
-			if ($item->courseTypeId != null && in_array($item->courseTypeId, array(2, 4, 5, 7)))
+			if ($item->courseTypeId != null && in_array($item->courseTypeId, array(2, 4, 5, 7))){
 	  			continue;
+			}
 	
 			$categoryCode = $item->categoryCode;
 			if (!array_key_exists($categoryCode, $records)) {
@@ -252,9 +254,15 @@ class ResultsController extends BaseController implements IRoute {
 			$currentResult = $item->result;
 			$count = count($records[$categoryCode]['records']);
 			$previousRecord = $records[$categoryCode]['records'][$count-1]['time'];
-			if ($currentResult < $previousRecord) {
-				$records[$categoryCode]['records'][] = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "date" => $item->date);
-			}									
+			if (in_array($item->resultMeasurementUnitTypeId, $distanceMeasurementUnitTypes)) {
+				if ($currentResult > $previousRecord) {
+					$records[$categoryCode]['records'][] = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "date" => $item->date);
+				}									
+			} else {
+				if ($currentResult < $previousRecord) {
+					$records[$categoryCode]['records'][] = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "date" => $item->date);
+				}	
+			}
 		}
 
 		// Sort Record by Category name

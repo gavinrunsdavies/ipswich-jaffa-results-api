@@ -306,7 +306,7 @@ class ResultsDataAccess
             if ($success) {
                 if ($ageGrading > 0) {
                     // TODO check response for number of results
-                    $this->updatePercentageGradingPersonalBest($results[$i]->id, $results[$i]->runnerId, $results[$i]->date);
+                    $response = $this->updatePercentageGradingPersonalBest($results[$i]->id, $results[$i]->runnerId, $results[$i]->date);
                     if ($response != true) {
                         return $response;
                     }
@@ -460,7 +460,7 @@ class ResultsDataAccess
                 $standardType = $this->getResultStandardTypeId($categoryId, $newResult, $existingResult->raceId, $ageGrading2015, $existingResult->date);
             }
 
-            $success = $this->jdb->update(
+            $result = $this->jdb->update(
                 'results',
                 array(
                     'result' => $value,
@@ -485,7 +485,7 @@ class ResultsDataAccess
             if ($result !== false) {
                 if ($ageGrading > 0) {
                     // TODO check response for number of results
-                    $this->updatePercentageGradingPersonalBest($resultId, $existingResult->runnerId, $existingResult->date);
+                    $response = $this->updatePercentageGradingPersonalBest($resultId, $existingResult->runnerId, $existingResult->date);
                     if ($response != true) {
                         return $response;
                     }
@@ -1568,7 +1568,12 @@ class ResultsDataAccess
 				  FROM results AS r1
           INNER JOIN race ra1 on r1.race_id = ra1.id
 				  JOIN (
-					SELECT MIN(r2.result) AS quickest, r2.category_id
+					SELECT 
+                    CASE
+                        WHEN d.result_measurement_unit_type_id = 3 OR  d.result_measurement_unit_type_id = 4  OR  d.result_measurement_unit_type_id = 5 THEN MAX(r2.result)
+                        ELSE MIN(r2.result)
+                    END as quickest,
+                    r2.category_id
 					FROM results r2
 					INNER JOIN race ra
 					ON r2.race_id = ra.id
@@ -2457,14 +2462,26 @@ class ResultsDataAccess
     public function getAllRaceResults($distanceId)
     {
         $sql = $this->jdb->prepare(
-            "SELECT p.name, p.id, ra.date, ra.id as 'raceId', ra.description as 'raceDescription', e.name as 'eventName', c.id as 'categoryId', c.code as 'categoryCode', r.result, r.position, ra.course_type_id as 'courseTypeId'
-					FROM `results` r
-					inner join race ra on ra.id = r.race_id
-					INNER JOIN runners p ON p.id = r.runner_id
-					INNER JOIN events e ON e.id = ra.event_id
-					INNER JOIN category c ON c.id = r.category_id
-					WHERE ra.distance_id = %d AND c.id > 0 AND r.result <> '00:00:00' AND r.result <> ''
-					order by category_id asc, ra.date asc, r.result asc", $distanceId);
+            "SELECT p.name, 
+            p.id, 
+            ra.date, 
+            ra.id as 'raceId',
+            ra.description as 'raceDescription',
+            e.name as 'eventName',
+            c.id as 'categoryId',
+            c.code as 'categoryCode',
+            r.result,
+            r.position,
+            ra.course_type_id as 'courseTypeId',
+            d.result_measurement_unit_type_id as resultMeasurementUnitTypeId
+                FROM `results` r
+                inner join race ra on ra.id = r.race_id
+                INNER JOIN runners p ON p.id = r.runner_id
+                INNER JOIN events e ON e.id = ra.event_id
+                INNER JOIN category c ON c.id = r.category_id
+                INNER JOIN distance d ON d.id = ra.distance_id
+                WHERE ra.distance_id = %d AND c.id > 0 AND r.result <> '00:00:00' AND r.result <> ''
+                order by category_id asc, ra.date asc, r.result asc", $distanceId);
 
         $results = $this->jdb->get_results($sql, OBJECT);
 
