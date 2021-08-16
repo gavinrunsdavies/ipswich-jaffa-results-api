@@ -2171,20 +2171,24 @@ class ResultsDataAccess
         $sql = "set @cnt := 0, @runnerId := 0, @rank := 0;";
 
         $this->jdb->query($sql);
-
-        // Membership year changed in 2015 to be from 1st March
-        if ($year == 2015) {
+        // If no year specificed the query is across all years.
+        // Prior to 2015 it is for calendar year results
+        // In 2015 the membership year changed to be from 1st March
+        // In 2021 the membership year changed to be from 1st April
+        if ($year == 0) {
+            $yearQuery = "";
+        } elseif ($year < 2015) {
+            $yearQuery = "AND YEAR(ra.date) = $year";
+        } elseif ($year == 2015) {
             $yearQuery = "AND ra.date >= '2015-01-01' AND ra.date < '2016-03-01'";
-
-        } else if ($year > 2015) {
+        } else if ($year < 2020) {
             $nextYear = $year + 1;
             $yearQuery = "AND ra.date >= '$year-03-01' AND ra.date < '$nextYear-03-01'";
+        } else if ($year == 2020) {
+            $yearQuery = "AND ra.date >= '2020-03-01' AND ra.date < '2021-04-01'";
         } else {
-            if ($year == 0) {
-                $yearQuery = "";
-            } else {
-                $yearQuery = "AND YEAR(ra.date) = $year";
-            }
+            $nextYear = $year + 1;
+            $yearQuery = "AND ra.date >= '$year-04-01' AND ra.date < '$nextYear-03-01'";
         }
 
         $sql = "select @rank := @rank + 1 AS rank, Results.* FROM (
