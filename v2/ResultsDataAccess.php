@@ -21,6 +21,8 @@ class ResultsDataAccess
 {
 
     private $jdb;
+    const a2017 = '2017-01-01';
+    const GENERIC_ERROR_MESSAGE = 'Unknown error in reading results from the database';
 
     public function __construct($db)
     {
@@ -39,7 +41,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getDistances',
-                'Unknown error in reading results from the database',
+                GENERIC_ERROR_MESSAGE,
                 array(
                     'status' => 500
                 ));
@@ -50,7 +52,6 @@ class ResultsDataAccess
 
     public function getCourseTypes()
     {
-
         $sql = 'SELECT
 					id,
 					description
@@ -61,7 +62,45 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getCourseTypes',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
+        }
+
+        return $results;
+    }
+	
+	public function getMemberInsightsRaceDistance($distanceId) 
+	{
+		$sql = $this->jdb->prepare("SELECT FLOOR(TIME_TO_SEC(cast(result as TIME))/60) as timeBand, count(r.id) as count FROM results r INNER JOIN race a ON a.id = r.race_id WHERE a.distance_id = %d AND r.result != '00:00:00' AND r.result != '' GROUP BY TimeBand ORDER BY TimeBand Asc", $distanceId);
+
+        $results = $this->jdb->get_results($sql, OBJECT);
+
+        if (!$results) {
+            return new \WP_Error('ipswich_jaffa_api_getMemberInsightsRaceDistance',
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
+        }
+
+        return $results;
+	}
+
+    public function getRunnerDistanceResultMinMaxAverage($runnerId, $distanceId)
+    {
+        $sql = $this->jdb->prepare("
+        select 
+            MIN(result) as fastest, 
+            MAX(result) as slowest, 
+            SUBSTR(SEC_TO_TIME(AVG(substring(result, 1, 2) * 3600) + (substring(result, 4, 2) * 60) + (substring(result, 7, 2))), 1, 8) as mean 
+        from results r 
+            inner join race a on a.id = r.race_id 
+        where 
+            runner_id = %d 
+            and a.distance_id = %d 
+            and result != '00:00:00'", $runnerId, $distanceId);
+
+        $results = $this->jdb->get_row($sql, OBJECT);
+
+        if ($results === FALSE) {
+            return new \WP_Error('getRunnerDistanceResultMinMaxAverage',
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -81,7 +120,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getEvents',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -617,7 +656,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getRunners',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -696,7 +735,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getGenders',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -814,7 +853,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getResults',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -857,7 +896,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getRaceResults',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -885,7 +924,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getPreviousPersonalBest',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -913,7 +952,7 @@ class ResultsDataAccess
 
         if ($results === FALSE) {
             return new \WP_Error('ipswich_jaffa_api_getResult',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -970,7 +1009,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getResultsByYearAndCounty',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -988,7 +1027,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getResultsByYearAndCountry',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -1006,7 +1045,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getResultsCountByYear',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -1020,7 +1059,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getPersonalBestTotals',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -1034,7 +1073,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getPersonalBestTotalByYear',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -1053,7 +1092,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getTopAttendedRaces',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -1067,7 +1106,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getTopMembersRacing',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -1081,7 +1120,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getTopMembersRacingByYear',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -1584,7 +1623,7 @@ class ResultsDataAccess
 					INNER JOIN `runners` p2
 					ON r2.runner_id = p2.id
 					WHERE r2.result != '00:00:00' and r2.result != '' and d.id = %d and r2.category_id <> 0
-          AND (ra.course_type_id NOT IN (2, 4, 5, 7) OR ra.course_type_id IS NULL)
+          AND (ra.course_type_id NOT IN (2, 4, 5, 7, 9) OR ra.course_type_id IS NULL)
 					GROUP BY r2.category_id
 				   ) AS rt
 				   ON r1.result = rt.quickest and r1.category_id = rt.category_id
@@ -1607,7 +1646,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getClubRecords',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -1634,7 +1673,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getCountyChampions',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -1706,7 +1745,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getResultRankings',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -1757,7 +1796,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getMemberResults',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -1817,7 +1856,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getMemberPBResults',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -1872,7 +1911,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getHeadToHeadResults',
-                'Unknown error in reading results from the database', array('status' => 500, 'sql' => $sql));
+                GENERIC_ERROR_MESSAGE, array('status' => 500, 'sql' => $sql));
         }
 
         return $results;
@@ -1900,7 +1939,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getStandardCertificates',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -2159,12 +2198,11 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getWMAPercentageRankings',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
     }
-
     public function getAveragePercentageRankings($sexId, $year = 0, $numberOfRaces = 5, $numberOfResults = 200)
     {
 
@@ -2221,7 +2259,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getAveragePerformanceRankings',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -2265,7 +2303,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getGrandPrixPoints',
-                'Unknown error in reading results from the database', array('status' => 500));
+                GENERIC_ERROR_MESSAGE, array('status' => 500));
         }
 
         return $results;
@@ -2544,7 +2582,7 @@ class ResultsDataAccess
 
         if (!$results) {
             return new \WP_Error('ipswich_jaffa_api_getRunnerOfTheMonthWinnners',
-                'Unknown error in reading results from the database', array('status' => 500, 'sql' => $sql));
+                GENERIC_ERROR_MESSAGE, array('status' => 500, 'sql' => $sql));
         }
 
         return $results;

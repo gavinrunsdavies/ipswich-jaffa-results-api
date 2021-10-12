@@ -126,6 +126,43 @@ class ResultsController extends BaseController implements IRoute {
 				)		
 		) );
 		
+		register_rest_route( $this->namespace, '/results/runner/(?P<runnerId>[\d]+)/insights/distance/(?P<distanceId>[\d]+)', array(
+			'methods'             => \WP_REST_Server::READABLE,				
+			'callback'            => array( $this, 'getMemberInsightsRaceDistance' ),
+			'args'                => array(
+				'runnerId'           => array(
+					'required'          => true,						
+					'validate_callback' => array( $this, 'isValidId' )
+					),
+				'distanceId'           => array(
+					'required'          => true,						
+					'validate_callback' => array( $this, 'isValidId' )
+					)
+				)		
+		) );
+		
+		register_rest_route( $this->namespace, '/results/runner/(?P<runnerId>[\d]+)/insights/numberOfRaces', array(
+			'methods'             => \WP_REST_Server::READABLE,				
+			'callback'            => array( $this, 'getMemberInsightsNumberOfRaces' ),
+			'args'                => array(
+				'runnerId'           => array(
+					'required'          => true,						
+					'validate_callback' => array( $this, 'isValidId' )
+					)	
+			)
+		) );
+		
+		register_rest_route( $this->namespace, '/results/runner/(?P<runnerId>[\d]+)/insights/totalRaceTime', array(
+			'methods'             => \WP_REST_Server::READABLE,				
+			'callback'            => array( $this, 'getMemberInsightsTotalRaceTime' ),
+			'args'                => array(
+				'runnerId'           => array(
+					'required'          => true,						
+					'validate_callback' => array( $this, 'isValidId' )
+					)	
+				)
+		) );
+							
 		register_rest_route( $this->namespace, '/results/runner/compare', array(
 			'methods'             => \WP_REST_Server::CREATABLE,				
 			'callback'            => array( $this, 'compareMemberRaces' ),
@@ -166,7 +203,31 @@ class ResultsController extends BaseController implements IRoute {
 			'callback'            => array( $this, 'getCountyChampions' )
 		) );
 	}
-	
+	public function getMemberInsightsRaceDistance( \WP_REST_Request $request ) {
+		$raceTimes = $this->dataAccess->getMemberInsightsRaceDistance($request['distanceId']);
+
+		$memberTotals = $this->dataAccess->getRunnerDistanceResultMinMaxAverage($request['runnerId'], $request['distanceId']);
+
+		$response = array();
+		$response['raceTimes'] = $raceTimes;
+		$response['slowest'] = $memberTotals->slowest;
+		$response['fastest'] = $memberTotals->fastest;
+		$response['mean'] = $memberTotals->mean;
+		return rest_ensure_response( $response );
+	}
+							
+	public function getMemberInsightsNumberOfRaces( \WP_REST_Request $request ) {
+		$response = $this->dataAccess->getMemberInsightsNumberOfRaces($request['runnerId']);
+
+		return rest_ensure_response( $response );
+	}
+							
+	public function getMemberInsightsTotalRaceTime( \WP_REST_Request $request ) {
+		$response = $this->dataAccess->getMemberInsightsTotalRaceTime($request['runnerId']);
+
+		return rest_ensure_response( $response );
+	}
+							
 	public function getClubRecords( \WP_REST_Request $request ) {
 		$response = $this->dataAccess->getClubRecords($request['distanceId']);
 
@@ -235,11 +296,11 @@ class ResultsController extends BaseController implements IRoute {
 		$response = $this->dataAccess->getAllRaceResults($request['distanceId']);
 		
 		// Group data in to catgeories and pick best times
-		$distanceMeasurementUnitTypes = array(3,4,5);
+		$distanceMeasurementUnitTypes = array(3, 4, 5);
 		$categoryCode = 0;
 		$records = array();
 		foreach ($response as $item) {
-			if ($item->courseTypeId != null && in_array($item->courseTypeId, array(2, 4, 5, 7))){
+			if ($item->courseTypeId != null && in_array($item->courseTypeId, array(2, 4, 5, 7, 9))){
 	  			continue;
 			}
 	
@@ -270,14 +331,7 @@ class ResultsController extends BaseController implements IRoute {
 
 		return rest_ensure_response( $records );
 	}
-	
-	private function compareCategoryCode($a, $b) {
-		if ($a['code'] == $b['code']) {
-			return 0;
-		}
-		
-		return ($a['code'] > $b['code']) ? -1 : 1;
-	}
+
 	
 	public function getAveragePercentageRankings( \WP_REST_Request $request ) {
 		$parameters = $request->get_query_params();			
