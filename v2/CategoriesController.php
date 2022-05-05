@@ -4,18 +4,18 @@ namespace IpswichJAFFARunningClubAPI\V2;
 require_once plugin_dir_path( __FILE__ ) .'BaseController.php';
 require_once plugin_dir_path( __FILE__ ) .'IRoute.php';
 	
-class DistancesController extends BaseController implements IRoute {			
+class CategoriesController extends BaseController implements IRoute {			
 	
 	public function registerRoutes() {										
-		register_rest_route( $this->namespace, '/distances', array(
+		register_rest_route( $this->namespace, '/categories', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array( $this, 'getDistances' )
-		) );	
+			'callback'            => array( $this, 'getCategories' )
+		) );			
 	}	
 
-	public function getDistances( \WP_REST_Request $request ) {
+	public function getCategories( \WP_REST_Request $request ) {
 
-		$response = $this->dataAccess->getDistances();
+		$response = $this->dataAccess->getCategories();
 		
 		return rest_ensure_response( $response );
 	}

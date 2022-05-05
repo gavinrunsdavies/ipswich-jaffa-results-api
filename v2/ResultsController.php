@@ -3,13 +3,29 @@ namespace IpswichJAFFARunningClubAPI\V2;
 
 require_once plugin_dir_path( __FILE__ ) .'BaseController.php';
 require_once plugin_dir_path( __FILE__ ) .'IRoute.php';
+require_once plugin_dir_path( __DIR__ ) .'/Constants/CourseTypes.php';
+require_once plugin_dir_path( __DIR__ ) .'/Constants/Distances.php';
 
 class ResultsController extends BaseController implements IRoute {			
 	
-	public function __construct($namespace, $db) {        
-		parent::__construct($namespace, $db);
-	}
-	
+	private $invalidCourseTypes = array(
+		\IpswichJAFFARunningClubAPI\Constants\CourseTypes::MULTITERRAIN, 
+		\IpswichJAFFARunningClubAPI\Constants\CourseTypes::FELL, 
+		\IpswichJAFFARunningClubAPI\Constants\CourseTypes::CROSS_COUNTRY, 
+		\IpswichJAFFARunningClubAPI\Constants\CourseTypes::PARK, 
+		\IpswichJAFFARunningClubAPI\Constants\CourseTypes::VIRTUAL
+	);
+
+	private $standardDistances = array(
+		\IpswichJAFFARunningClubAPI\Constants\Distances::FIVE_KILOMETRES, 
+		\IpswichJAFFARunningClubAPI\Constants\Distances::FIVE_MILES, 
+		\IpswichJAFFARunningClubAPI\Constants\Distances::TEN_KILOMETRES, 
+		\IpswichJAFFARunningClubAPI\Constants\Distances::TEN_MILES, 
+		\IpswichJAFFARunningClubAPI\Constants\Distances::HALF_MARATHON, 
+		\IpswichJAFFARunningClubAPI\Constants\Distances::TWENTY_MILES, 
+		\IpswichJAFFARunningClubAPI\Constants\Distances::MARATHON
+	);
+
 	public function registerRoutes() {										
 		register_rest_route( $this->namespace, '/results', array(
 			'methods'             => \WP_REST_Server::READABLE,
@@ -60,6 +76,16 @@ class ResultsController extends BaseController implements IRoute {
 					)
 				)				
 		) );
+
+		register_rest_route( $this->namespace, '/results/records', array(
+			'methods'             => \WP_REST_Server::READABLE,				
+			'callback'            => array( $this, 'getOverallClubRecords' )	
+		) );
+
+		register_rest_route( $this->namespace, '/results/records/holders', array(
+			'methods'             => \WP_REST_Server::READABLE,				
+			'callback'            => array( $this, 'getTopClubRecordHolders' )			
+		) );
 		
 		register_rest_route( $this->namespace, '/results/records/distance/(?P<distanceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,				
@@ -77,6 +103,17 @@ class ResultsController extends BaseController implements IRoute {
 			'callback'            => array( $this, 'getHistoricClubRecords' ),
 			'args'                => array(
 				'distanceId'           => array(
+					'required'          => true,						
+					'validate_callback' => array( $this, 'isValidId' )
+					)
+				)		
+		) );
+
+		register_rest_route( $this->namespace, '/results/historicrecords/category/(?P<categoryId>[\d]+)', array(
+			'methods'             => \WP_REST_Server::READABLE,				
+			'callback'            => array( $this, 'getHistoricClubRecordsByCategory' ),
+			'args'                => array(
+				'categoryId'           => array(
 					'required'          => true,						
 					'validate_callback' => array( $this, 'isValidId' )
 					)
@@ -227,11 +264,56 @@ class ResultsController extends BaseController implements IRoute {
 
 		return rest_ensure_response( $response );
 	}
+
+	public function getOverallClubRecords( \WP_REST_Request $request ) {
+		$response = $this->dataAccess->getOverallClubRecords();
+
+		return rest_ensure_response( $response );
+	}
 							
 	public function getClubRecords( \WP_REST_Request $request ) {
 		$response = $this->dataAccess->getClubRecords($request['distanceId']);
 
 		return rest_ensure_response( $response );
+	}
+
+	public function getTopClubRecordHolders( \WP_REST_Request $request ) {
+		$distances = array(1,2,3,4,5,7,8);
+		$recordHolders = array();
+		foreach ($distances as $distanceId) {
+			$records = $this->dataAccess->getClubRecords($distanceId);
+			foreach ($records as $categoryRecord) {
+				if (!array_key_exists($categoryRecord->runnerId, $recordHolders)) {  
+					$recordHolders[$categoryRecord->runnerId] = array();
+				}
+				$recordHolders[$categoryRecord->runnerId][] = $categoryRecord;
+		    }
+		}
+
+		$parameters = $request->get_query_params();
+		$filteredRecordHolders = array();
+		$limit = $parameters['limit'] ?? 3;
+		foreach ($recordHolders as $holder => $records) {
+			if (count($records) >= $limit) {
+				$runner = array("id" => $holder, "name" => $records[0]->runnerName);
+				$runnerRecords = array();
+				foreach ($records as $record) {					
+					$runnerRecords[]= array(
+						"eventId" => $record->eventId,
+						"eventName" => $record->eventName,
+						"date" => $record->date,
+						"distance" => $record->distance,
+						"result" => $record->result,
+						"categoryCode" => $record->categoryCode,
+						"raceId" => $record->raceId,
+						"description" => $record->description,
+						"venue" => $record->venue);					
+				}
+				$filteredRecordHolders[] = array("runner" => $runner, "records" => $runnerRecords);
+			}
+		}
+
+		return rest_ensure_response( $filteredRecordHolders );
 	}
 
 	public function getRaceResults( \WP_REST_Request $request ) {
@@ -280,7 +362,7 @@ class ResultsController extends BaseController implements IRoute {
 	
 	public function getResultRankings( \WP_REST_Request $request ) {
 		$parameters = $request->get_query_params();			
-		$response = $this->dataAccess->getResultRankings($request['distanceId'], $parameters['year'], $parameters['sexId']);
+		$response = $this->dataAccess->getResultRankings($request['distanceId'], $parameters['year'], $parameters['sexId'], $parameters['categoryId']);
 
 		return rest_ensure_response( $response );
 	}
@@ -296,11 +378,11 @@ class ResultsController extends BaseController implements IRoute {
 		$response = $this->dataAccess->getAllRaceResults($request['distanceId']);
 		
 		// Group data in to catgeories and pick best times
-		$distanceMeasurementUnitTypes = array(3, 4, 5);
+		$distanceMeasurementUnitTypes = array(3,4,5);
 		$categoryCode = 0;
 		$records = array();
 		foreach ($response as $item) {
-			if ($item->courseTypeId != null && in_array($item->courseTypeId, array(2, 4, 5, 7, 9))){
+			if ($item->courseTypeId != null && in_array($item->courseTypeId, $this->invalidCourseTypes)){
 	  			continue;
 			}
 	
@@ -332,6 +414,65 @@ class ResultsController extends BaseController implements IRoute {
 		return rest_ensure_response( $records );
 	}
 
+	public function getHistoricClubRecordsByCategory( \WP_REST_Request $request ) {			
+		$response = $this->dataAccess->getAllRaceResultsByCategory($request['categoryId']);
+		
+		// Group data in to distances and pick best times
+		$distanceMeasurementUnitTypes = array(3,4,5);
+		$distance = 0;
+		$records = array();
+		
+		foreach ($response as $item) {
+			if (!$this->isValidCourseTypeForMeasuredDistance($item->courseTypeId)) {
+	  			continue;
+			}
+
+			if (!$this->isStandardDistance($item->distanceId)) {
+				continue;
+		    }
+	
+			$distance = $item->distance;
+			if (!array_key_exists($distance, $records)) {
+				$result = array("distance" => $distance, "runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "startDate" => $item->date, "endDate" => date("Y-m-d"));
+				$records[$distance] = array($result);
+				
+				continue;
+			}
+			
+			$currentResult = $item->result;
+			$count = count($records[$distance]);
+			$previousRecord = $records[$distance][$count-1]['time'];
+			if (in_array($item->resultMeasurementUnitTypeId, $distanceMeasurementUnitTypes)) {
+				if ($currentResult > $previousRecord) {
+					$records[$distance][$count-1]['endDate'] = $item->date;
+					$records[$distance][] = array("distance" => $distance, "runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "startDate" => $item->date, "endDate" => date("Y-m-d"));
+				}									
+			} else {
+				if ($currentResult < $previousRecord) {
+					$records[$distance][$count-1]['endDate'] = $item->date;
+					$records[$distance][] = array("distance" => $distance, "runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "startDate" => $item->date, "endDate" => date("Y-m-d"));
+				}	
+			}
+		}
+
+		// Flatten
+		$flattenedRecords = [];		
+		foreach ($records as $value) {	
+			foreach ($value as $item) {
+				$flattenedRecords[] = $item;
+			}
+		}
+
+		return rest_ensure_response($flattenedRecords);
+	}
+
+	private function isValidCourseTypeForMeasuredDistance($courseTypeId) {
+		return $courseTypeId == null || !in_array($courseTypeId, $this->invalidCourseTypes);
+	}
+
+	private function isStandardDistance($distanceId) {
+		return in_array($distanceId, $this->standardDistances);
+	}
 	
 	public function getAveragePercentageRankings( \WP_REST_Request $request ) {
 		$parameters = $request->get_query_params();			

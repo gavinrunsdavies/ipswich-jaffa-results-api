@@ -7,11 +7,6 @@ require_once plugin_dir_path(__FILE__) . 'IRoute.php';
 class RunnersController extends BaseController implements IRoute
 {
 
-    public function __construct($namespace, $db)
-    {
-        parent::__construct($namespace, $db);
-    }
-
     public function registerRoutes()
     {
         register_rest_route($this->namespace, '/runners', array(

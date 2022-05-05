@@ -6,10 +6,6 @@ require_once plugin_dir_path( __FILE__ ) .'IRoute.php';
 	
 class EventsController extends BaseController implements IRoute {			
 	
-	public function __construct($namespace, $db) {        
-		parent::__construct($namespace, $db);
-	}
-	
 	public function registerRoutes() {										
 		register_rest_route( $this->namespace, '/events', array(
 			'methods'             => \WP_REST_Server::READABLE,
@@ -91,7 +87,36 @@ class EventsController extends BaseController implements IRoute {
 					)
 				)
 		) );
+
+		register_rest_route( $this->namespace, '/events/(?P<eventId>[\d]+)/topAttendees', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array( $this, 'getTopAttendees' ),
+			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'isValidId' ),
+					),
+				)
+		) );
+
+		register_rest_route( $this->namespace, '/events/(?P<eventId>[\d]+)/insights', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array( $this, 'getEventRaceInsights' ),
+			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,												
+					'validate_callback' => array( $this, 'isValidId' ),
+					),
+				)
+		) );
 	}	
+
+	public function getEventRaceInsights( \WP_REST_Request $request ) {
+
+		$response = $this->dataAccess->getEventRaceInsights($request['eventId']);
+		
+		return rest_ensure_response( $response );
+	}
 
 	public function getEvents( \WP_REST_Request $request ) {
 
@@ -105,6 +130,47 @@ class EventsController extends BaseController implements IRoute {
 		$response = $this->dataAccess->getRaces($request['eventId']);
 		
 		return rest_ensure_response( $response );
+	}
+
+	public function getTopAttendees( \WP_REST_Request $request ) {
+	
+		$response = $this->dataAccess->getEventTopAttendees($request['eventId']);
+
+		// Array: year, name, count
+		// Transform to JSON of form:
+		// Data = {}
+		// "year1" : {
+		//	 	"name1" : count,
+		// 		"name2" : count,
+		// 		"name3" : count,
+		// },
+		// "year2" : {
+		//	 	"name1" : count,
+		// 		"name2" : count,
+		// 		"name3" : count,
+		// },
+
+		$topAttendeesByYear = array();
+		$lastYear = 0;
+		foreach ($response as $item) {
+
+			// Should only be the first time
+			 if (!array_key_exists($item->year, $topAttendeesByYear)) {
+			 	$topAttendeesByYear[$item->year] = new class{};
+			 } 
+
+			// Build up cumulative values. Add all values from last year
+			if ($lastYear != $item->year) {				
+				if ($lastYear != 0) {
+					$topAttendeesByYear[$item->year] = clone $topAttendeesByYear[$lastYear];
+				}
+				$lastYear = $item->year;
+			}
+
+			$topAttendeesByYear[$item->year]->{$item->name} = $item->runningTotal;						
+		}
+		
+		return rest_ensure_response( $topAttendeesByYear );
 	}
 
 	public function getCourseTypes( \WP_REST_Request $request ) {

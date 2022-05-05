@@ -6,22 +6,7 @@ require_once plugin_dir_path( __FILE__ ) .'IRoute.php';
 	
 class RacesController extends BaseController implements IRoute {			
 	
-	public function __construct($namespace, $db) {        
-		parent::__construct($namespace, $db);
-	}
-	
-	public function registerRoutes() {										
-		
-		register_rest_route( $this->namespace, '/events/(?P<eventId>[\d]+)/races', array(
-			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array( $this, 'getRaces' ),
-			'args'                => array(
-				'eventId'           => array(
-					'required'          => true,												
-					'validate_callback' => array( $this, 'isValidId' ),
-					),
-				)
-		) );			
+	public function registerRoutes() {											
 		
 		register_rest_route( $this->namespace, '/races', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
@@ -80,15 +65,8 @@ class RacesController extends BaseController implements IRoute {
 					'validate_callback' => array( $this, 'isValidId' ),
 					),
 				)
-		) );		
+		) );	
 	}	
-
-	public function getRaces( \WP_REST_Request $request ) {
-	
-		$response = $this->dataAccess->getRaces($request['eventId']);
-		
-		return rest_ensure_response( $response );
-	}
 
 	public function saveRace( \WP_REST_Request $request ) {
 
