@@ -17,6 +17,7 @@ jobs:
   web-deploy:
     name: 🎉 Deploy
     runs-on: ubuntu-latest
+    environment: Test JAFFA
     steps:
     - name: Run a one-line script
       run: echo Hello, world!
@@ -29,7 +30,7 @@ jobs:
       with:
         server: ftp.test.ipswichjaffa.org.uk
         username: ftp@test.ipswichjaffa.org.uk
-        password: ${{ secrets.FTPSERVERPASSWORD }}
+        password: ${{ secrets.FtpServerPassword }}
         server-dir: public_html/wp-content/plugins/test/
         dry-run: true
         exclude: |
