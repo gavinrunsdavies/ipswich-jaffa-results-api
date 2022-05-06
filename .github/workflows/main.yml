@@ -29,7 +29,7 @@ jobs:
       with:
         server: ftp.test.ipswichjaffa.org.uk
         username: ftp@test.ipswichjaffa.org.uk
-        password: ${{ secrets.password }}
+        password: ${{ secrets.FTPSERVERPASSWORD }}
         server-dir: public_html/wp-content/plugins/test/
         dry-run: true
         exclude: |
