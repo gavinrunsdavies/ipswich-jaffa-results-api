@@ -20,6 +20,7 @@ jobs:
       uses: overtrue/phplint@8.1
       with:
         path: .
+        options: --no-configuration
       
     - name: 🚚 Get latest code
       uses: actions/checkout@v2
