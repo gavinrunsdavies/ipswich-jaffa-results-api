@@ -10,11 +10,17 @@ on:
   workflow_dispatch:
 
 jobs:
+
   web-deploy:
     name: 🎉 Deploy
     runs-on: ubuntu-latest
     environment: Test JAFFA
-    steps:        
+    steps: 
+    - name: Php Linter
+      uses: overtrue/phplint@8.1
+      with:
+        path: .
+      
     - name: 🚚 Get latest code
       uses: actions/checkout@v2
 
