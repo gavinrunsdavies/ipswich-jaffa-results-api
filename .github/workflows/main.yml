@@ -1,0 +1,38 @@
+# Basic workflow to push all code changes to a feature branch to the JAFFA test site
+
+name: 🚀 Deploy to test website on push
+
+on:
+  push:
+    branches: [ 'feature/**' ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    environment: Test JAFFA
+    steps: 
+    - name: Php Linter
+      uses: overtrue/phplint@8.1
+      with:
+        path: .
+        options: --no-configuration
+      
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v2
+
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@4.3.0
+      with:
+        server: ftp.test.ipswichjaffa.org.uk
+        username: ftp@test.ipswichjaffa.org.uk
+        password: ${{ secrets.FtpServerPassword }}
+        server-dir: public_html/wp-content/plugins/test/
+        dry-run: false
+        exclude: |
+          **/.git*
+          **/.git*/**          
