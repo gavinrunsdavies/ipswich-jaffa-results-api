@@ -34,7 +34,7 @@ class ResultsDataAccess
     public function getEventRaceInsightsByYear($eventId)
     {
         $sql = $this->jdb->prepare("
-        SELECT YEAR(race.date) as year, d.distance, count(r.id) as count, MIN(NULLIF(r.result, '00:00:00')) as min, MAX(r.result) as max, 
+        SELECT YEAR(race.date) as year, d.distance, count(r.id) as count, MIN(NULLIF(NULLIF(r.result, '00:00:00'), '')) as min, MAX(r.result) as max, 
         SUBSTR(SEC_TO_TIME(AVG((substring(r.result, 1, 2) * 3600) + (substring(r.result, 4, 2) * 60) + substring(r.result, 7, 2))), 1, 8) as mean
         FROM `results` r
         INNER JOIN race race ON r.race_id = race.id
@@ -59,7 +59,7 @@ class ResultsDataAccess
     public function getEventRaceInsightsByDistance($eventId)
     {
         $sql = $this->jdb->prepare("
-        SELECT d.distance, count(r.id) as count, MIN(NULLIF(r.result, '00:00:00')) as min, MAX(r.result) as max, SUBSTR(SEC_TO_TIME(AVG((substring(r.result, 1, 2) * 3600) + (substring(r.result, 4, 2) * 60) + substring(r.result, 7, 2))), 1, 8) as mean 
+        SELECT d.distance, count(r.id) as count,  MIN(NULLIF(NULLIF(r.result, '00:00:00'), '')) as min, MAX(r.result) as max, SUBSTR(SEC_TO_TIME(AVG((substring(r.result, 1, 2) * 3600) + (substring(r.result, 4, 2) * 60) + substring(r.result, 7, 2))), 1, 8) as mean 
         FROM `race` race 
         INNER JOIN `distance` d on race.distance_id = d.id 
         INNER JOIN `results` r ON race.id = r.race_id 
