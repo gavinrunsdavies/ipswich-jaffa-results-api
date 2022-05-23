@@ -1,0 +1,34 @@
+# Basic workflow to push all code changes from master to the JAFFA live site
+
+name: 🚀 Deploy to live website on push
+
+on:
+  push:
+    branches: [ 'master' ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    environment: Live JAFFA
+    steps: 
+      
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v2
+
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@4.3.0
+      with:
+        server: ftp.ipswichjaffa.org.uk
+        username: githubftp@ipswichjaffa.org.uk
+        password: ${{ secrets.FtpServerPassword }}
+        server-dir: public_html/wp-content/plugins/ipswich-jaffa-results-api/
+        dry-run: true
+        exclude: |
+          **/.git*
+          **/.git*/**          
+          Config.php   
