@@ -31,16 +31,40 @@ class ResultsDataAccess
         $this->jdb = $db;
     }
 
-    public function getEventRaceInsights($eventId)
+    public function getEventRaceInsightsByYear($eventId)
     {
         $sql = $this->jdb->prepare("
-        SELECT YEAR(race.date) as year, count(r.id) as count, MIN(NULLIF(r.result, '00:00:00')) as min, MAX(r.result) as max, 
+        SELECT YEAR(race.date) as year, d.distance, count(r.id) as count, MIN(NULLIF(NULLIF(r.result, '00:00:00'), '')) as min, MAX(r.result) as max, 
         SUBSTR(SEC_TO_TIME(AVG((substring(r.result, 1, 2) * 3600) + (substring(r.result, 4, 2) * 60) + substring(r.result, 7, 2))), 1, 8) as mean
         FROM `results` r
         INNER JOIN race race ON r.race_id = race.id
+        LEFT JOIN distance d ON d.id = race.distance_id
         WHERE race.event_id = %d
-        GROUP BY year        
+        GROUP BY year, distance        
         ORDER BY year", $eventId);
+
+        $results = $this->jdb->get_results($sql, OBJECT);
+
+        if (!$results) {
+            return new \WP_Error(__METHOD__,
+                GENERIC_ERROR_MESSAGE,
+                array(
+                    'status' => 500
+                ));
+        }
+
+        return $results;
+    }
+
+    public function getEventRaceInsightsByDistance($eventId)
+    {
+        $sql = $this->jdb->prepare("
+        SELECT d.distance, count(r.id) as count,  MIN(NULLIF(NULLIF(r.result, '00:00:00'), '')) as min, MAX(r.result) as max, SUBSTR(SEC_TO_TIME(AVG((substring(r.result, 1, 2) * 3600) + (substring(r.result, 4, 2) * 60) + substring(r.result, 7, 2))), 1, 8) as mean 
+        FROM `race` race 
+        INNER JOIN `distance` d on race.distance_id = d.id 
+        INNER JOIN `results` r ON race.id = r.race_id 
+        WHERE race.event_id = %d 
+        GROUP BY distance", $eventId);
 
         $results = $this->jdb->get_results($sql, OBJECT);
 

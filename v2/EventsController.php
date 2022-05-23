@@ -113,7 +113,14 @@ class EventsController extends BaseController implements IRoute {
 
 	public function getEventRaceInsights( \WP_REST_Request $request ) {
 
-		$response = $this->dataAccess->getEventRaceInsights($request['eventId']);
+		$distanceMetrics = $this->dataAccess->getEventRaceInsightsByDistance($request['eventId']);
+
+		$yearlyMetrics = $this->dataAccess->getEventRaceInsightsByYear($request['eventId']);
+
+		$response = array(
+			"years" => $yearlyMetrics,
+			"distance" => $distanceMetrics
+		);
 		
 		return rest_ensure_response( $response );
 	}
