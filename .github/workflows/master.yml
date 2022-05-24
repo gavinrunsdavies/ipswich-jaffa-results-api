@@ -27,7 +27,7 @@ jobs:
         username: githubftp@ipswichjaffa.org.uk
         password: ${{ secrets.FtpServerPassword }}
         server-dir: public_html/wp-content/plugins/ipswich-jaffa-results-api/
-        dry-run: true
+        dry-run: false
         exclude: |
           **/.git*
           **/.git*/**          
