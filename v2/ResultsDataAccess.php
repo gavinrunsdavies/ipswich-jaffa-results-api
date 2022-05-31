@@ -1321,7 +1321,7 @@ class ResultsDataAccess
                     COALESCE(sum(case when race.course_type_id = 2 then 1 end), 0) as 'multi-terrain',
                     COALESCE(sum(case when race.course_type_id = 3 then 1 end), 0) as track,
                     COALESCE(sum(case when race.course_type_id = 5 then 1 end), 0) as xc,
-                    COALESCE(sum(case when race.course_type_id = 9 then 1 end), 0) as virtual,
+                    COALESCE(sum(case when race.course_type_id = 9 then 1 end), 0) as 'virtual',
                     COALESCE(sum(case when race.course_type_id = 4 OR race.course_type_id = 6 OR race.course_type_id = 7 OR race.course_type_id = 8 then 1 end), 0) as other
                     FROM results r
                     INNER JOIN race race ON race.id = r.race_id                    
