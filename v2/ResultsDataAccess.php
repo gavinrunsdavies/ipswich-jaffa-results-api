@@ -1314,14 +1314,14 @@ class ResultsDataAccess
             $sql = "SELECT 
                     YEAR(race.date) as year, 
                     MONTH(race.date) as month, 
-                    DATE_FORMAT(race.date, '%Y-%m-01') as monthYear, 
+                    DATE_FORMAT(race.date, '%%Y-%%m-01') as monthYear, 
                     count(r.id) AS count, 
                     COALESCE(sum(case when race.course_type_id IS NULL OR race.course_type_id = 0 then 1 end), 0) as unknown,
                     COALESCE(sum(case when race.course_type_id = 1 then 1 end), 0) as road,
                     COALESCE(sum(case when race.course_type_id = 2 then 1 end), 0) as 'multi-terrain',
                     COALESCE(sum(case when race.course_type_id = 3 then 1 end), 0) as track,
                     COALESCE(sum(case when race.course_type_id = 5 then 1 end), 0) as xc,
-                    COALESCE(sum(case when race.course_type_id = 9 then 1 end), 0) as virtual,
+                    COALESCE(sum(case when race.course_type_id = 9 then 1 end), 0) as 'virtual',
                     COALESCE(sum(case when race.course_type_id = 4 OR race.course_type_id = 6 OR race.course_type_id = 7 OR race.course_type_id = 8 then 1 end), 0) as other
                     FROM results r
                     INNER JOIN race race ON race.id = r.race_id                    
