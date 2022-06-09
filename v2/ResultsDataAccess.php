@@ -3165,7 +3165,7 @@ class ResultsDataAccess
         // 1. Result date 2017 or afterwards
         // 2. 2015 age grading is positive
         // 3. Order by date ascending
-        $sql = "SELECT r.id as id FROM `standard_certificates` sc INNER JOIN results r ON r.id = sc.result_id INNER JOIN race race ON race.id = r.race_id WHERE race.date >= '2017-01-01' AND r.percentage_grading_2015 > 0 ORDER BY race.date ASC";
+        $sql = "SELECT r.id as id FROM results r INNER JOIN race race ON race.id = r.race_id WHERE race.date >= '2017-01-01' AND r.percentage_grading_2015 > 0 ORDER BY race.date ASC";
         $newStandardResultIds = $this->jdb->get_results($sql, OBJECT);
 
           // Find if new certifcate
