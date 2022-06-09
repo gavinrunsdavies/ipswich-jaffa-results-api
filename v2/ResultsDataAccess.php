@@ -1796,7 +1796,7 @@ class ResultsDataAccess
         // -- Match results of the same distance
         // -- Find results with the same standard or better
         // -- Only use the new standards - those 5+
-        $sql = $this->jdb->prepare("SELECT count(r2.id)
+        $sql = $this->jdb->prepare("SELECT count(existingResult.id)
                                     FROM results newResult, results existingResult, race newRace, race existingRace
                                     WHERE newResult.id = %d
                                     AND newResult.id != existingResult.id
