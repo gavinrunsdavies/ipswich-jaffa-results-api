@@ -29,7 +29,7 @@ class ResultsController extends BaseController implements IRoute {
 	public function registerRoutes() {		
 		register_rest_route( $this->namespace, '/results/correctStandardCertifcates', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'permission_callback' => array( $this, 'isAuthorized' ),
+			//'permission_callback' => array( $this, 'isAuthorized' ),
 			'callback'            => array( $this, 'correctStandardCertifcates' )
 		) );
 
