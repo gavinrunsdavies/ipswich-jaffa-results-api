@@ -1795,7 +1795,6 @@ class ResultsDataAccess
         // -- Match results of the same runner
         // -- Match results of the same distance
         // -- Find results with the same standard or better
-        // -- Only use the new standards - those 5+
         $sql = $this->jdb->prepare("SELECT count(existingResult.id)
                                     FROM results newResult, results existingResult, race newRace, race existingRace
                                     WHERE newResult.id = %d
@@ -1804,10 +1803,11 @@ class ResultsDataAccess
                                     AND newResult.race_id = newRace.id
                                     AND existingResult.race_id = existingRace.id
                                     AND newRace.distance_id = existingRace.distance_id
-                                    AND existingResult.standard_type_id > newResult.standard_type_id
+                                    AND newRace.date > existingRace.date
+                                    AND existingResult.standard_type_id <= newResult.standard_type_id
                                     AND newResult.standard_type_id IN (14, 15, 16, 17, 18, 19, 20)
-				    AND existingResult.standard_type_id IN (14, 15, 16, 17, 18, 19, 20)",
-            			    $resultId);
+				                    AND existingResult.standard_type_id IN (14, 15, 16, 17, 18, 19, 20)",
+            			            $resultId);
 
         $count = $this->jdb->get_var($sql);
 
