@@ -1791,10 +1791,11 @@ class ResultsDataAccess
 
     private function isNewStandard($resultId)
     {
-	// 7 Star standards - from January 1st 2017
+	    // 7 Star standards - from January 1st 2017
         // -- Match results of the same runner
         // -- Match results of the same distance
-        // -- Find results with the same standard or better
+        // -- Date is after existing races
+        // -- Find results with the same standard or better (small ID)
         $sql = $this->jdb->prepare("SELECT count(existingResult.id)
                                     FROM results newResult, results existingResult, race newRace, race existingRace
                                     WHERE newResult.id = %d
@@ -1804,7 +1805,7 @@ class ResultsDataAccess
                                     AND existingResult.race_id = existingRace.id
                                     AND newRace.distance_id = existingRace.distance_id
                                     AND newRace.date > existingRace.date
-                                    AND existingResult.standard_type_id <= newResult.standard_type_id
+                                    AND existingResult.standard_type_id > newResult.standard_type_id
                                     AND newResult.standard_type_id IN (14, 15, 16, 17, 18, 19, 20)
 				                    AND existingResult.standard_type_id IN (14, 15, 16, 17, 18, 19, 20)",
             			            $resultId);
