@@ -27,11 +27,6 @@ class ResultsController extends BaseController implements IRoute {
 	);
 
 	public function registerRoutes() {		
-		register_rest_route( $this->namespace, '/results/correctStandardCertifcates', array(
-			'methods'             => \WP_REST_Server::READABLE,
-			//'permission_callback' => array( $this, 'isAuthorized' ),
-			'callback'            => array( $this, 'correctStandardCertifcates' )
-		) );
 
 		register_rest_route( $this->namespace, '/results', array(
 			'methods'             => \WP_REST_Server::READABLE,
@@ -245,12 +240,6 @@ class ResultsController extends BaseController implements IRoute {
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this, 'getCountyChampions' )
 		) );
-	}
-
-	public function correctStandardCertifcates( \WP_REST_Request $request ) {
-		$response = $this->dataAccess->correctStandardTypesForResultsAfter2015();
-
-		return rest_ensure_response( $response );
 	}
 
 	public function getMemberInsightsRaceDistance( \WP_REST_Request $request ) {
