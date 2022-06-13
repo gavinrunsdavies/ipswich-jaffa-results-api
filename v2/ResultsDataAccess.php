@@ -1805,7 +1805,8 @@ class ResultsDataAccess
                                     AND existingResult.race_id = existingRace.id
                                     AND newRace.distance_id = existingRace.distance_id
                                     AND newRace.date > existingRace.date
-                                    AND existingResult.standard_type_id > newResult.standard_type_id
+                                    AND existingRace.date >= '2017-01-01'
+                                    AND existingResult.standard_type_id <= newResult.standard_type_id
                                     AND newResult.standard_type_id IN (14, 15, 16, 17, 18, 19, 20)
 				                    AND existingResult.standard_type_id IN (14, 15, 16, 17, 18, 19, 20)",
             			            $resultId);
@@ -3174,6 +3175,7 @@ class ResultsDataAccess
         // Insert new standard certifcates
         //$resultIds = trim($resultIds, ",");
         //$sql = $this->jdb->prepare("insert into standard_certificates (result_id) VALUES %s", $resultIds);
+        // SELECT * FROM results r INNER JOIN race race ON race.id = r.race_id WHERE race.date >= '2017-01-01' AND r.percentage_grading_2015 > 0 and r.runner_id = 116 and race.distance_id = 1 ORDER BY race.date ASC
 
         //$result = $this->jdb->query($sql);
 
