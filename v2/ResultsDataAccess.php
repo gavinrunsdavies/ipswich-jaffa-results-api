@@ -1804,7 +1804,7 @@ class ResultsDataAccess
                                     AND newResult.race_id = newRace.id
                                     AND existingResult.race_id = existingRace.id
                                     AND newRace.distance_id = existingRace.distance_id
-                                    AND newRace.date > existingRace.date
+                                    AND newRace.date >= existingRace.date
                                     AND existingRace.date >= '2017-01-01'
                                     AND existingResult.standard_type_id <= newResult.standard_type_id
                                     AND newResult.standard_type_id IN (14, 15, 16, 17, 18, 19, 20)
