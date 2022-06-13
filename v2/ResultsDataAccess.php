@@ -479,13 +479,9 @@ class ResultsDataAccess
                         return $response;
                     }
 
-                }
-
-                // If a PB query to see whether a new certificate is required.
-                if ($pb == true) {
                     $isNewStandard = $this->isNewStandard($results[$i]->id);
 
-                    if ($isNewStandard == true) {
+                    if ($isNewStandard) {
                         $this->saveStandardCertificate($results[$i]->id);
                     }
                 }
@@ -625,7 +621,7 @@ class ResultsDataAccess
                     $ageGrading2015 = $this->get2015FactorsAgeGrading($newResult, $existingResult->runnerId, $existingResult->raceId);
                 }
 
-                $standardType = $this->getResultStandardTypeId($categoryId, $newResult, $existingResult->raceId, $ageGrading2015, $existingResult->date);
+                $standardType = $this->getResultStandardTypeId($existingResult->categoryId, $newResult, $existingResult->raceId, $ageGrading2015, $existingResult->date);
             }
 
             $result = $this->jdb->update(
@@ -658,13 +654,9 @@ class ResultsDataAccess
                         return $response;
                     }
 
-                }
-
-                // If a PB query to see whether a new certificate is required.
-                if ($pb == true) {
                     $isNewStandard = $this->isNewStandard($resultId);
 
-                    if ($isNewStandard == true) {
+                    if ($isNewStandard) {
                         $this->saveStandardCertificate($resultId);
                     }
                 }
@@ -910,17 +902,17 @@ class ResultsDataAccess
         if ($ageGrading > 0) {
             // TODO check response for number of results
             $this->updatePercentageGradingPersonalBest($resultId, $result['runnerId'], $result['date']);
+
+            $isNewStandard = $this->isNewStandard($resultId);
+
+            if ($isNewStandard) {
+                $this->saveStandardCertificate($resultId);
+            }
         }
 
         // If a PB query to see whether a new certificate is required and if we need to re-evaluate later PB
         if ($pb == true) {
-            $this->checkAndUpdatePersonalBest($runnerId);
-
-            $isNewStandard = $this->isNewStandard($resultId);
-
-            if ($isNewStandard == true) {
-                $this->saveStandardCertificate($resultId);
-            }
+            $this->checkAndUpdatePersonalBest($result['runnerId']);            
         }
 
         return $this->getResult($resultId);
@@ -1389,9 +1381,14 @@ class ResultsDataAccess
             } else {
                 return 0;
             }
-
         }
 
+        return $this->getStarStandardTypeIdBefore2015($catgeoryId, $result, $raceId);
+    }
+
+    private function getStarStandardTypeIdBefore2015($catgeoryId, $result, $raceId)
+    {
+        // Get standard type for results before 2015
         $sql = $this->jdb->prepare("SELECT
 									s.standard_type_id
 									FROM
@@ -1794,31 +1791,25 @@ class ResultsDataAccess
 
     private function isNewStandard($resultId)
     {
+	    // 7 Star standards - from January 1st 2017
         // -- Match results of the same runner
         // -- Match results of the same distance
-        // -- Find results with the same standard or better
-        // -- Find results in the same age category
-        // -- Find results only for first claim club
-        // -- Only use the new standards - those 5+
-        $sql = $this->jdb->prepare("SELECT  count(r2.id)
-									   FROM results r1, results r2, race ra1, race ra2, runners p, category c1, category c2
-									   WHERE r1.id = %d
-										AND r1.id != r2.id
-										AND r1.runner_id = r2.runner_id
-										AND r1.race_id = ra1.id
-										AND r2.race_id = ra2.id
-										AND ra1.distance_id = ra2.distance_id
-										AND r2.standard_type_id < r1.standard_type_id
-										AND r2.standard_type_id > 4
-										AND r2.runner_id = p.id
-										AND p.sex_id = c1.sex_id
-										AND (year(from_days(to_days(ra1.date)-to_days(p.dob) + 1)) >= c1.age_greater_equal
-												AND  year(from_days(to_days(ra1.date)-to_days(p.dob) + 1)) <  c1.age_less_than)
-										AND p.sex_id = c2.sex_id
-										AND (year(from_days(to_days(ra2.date)-to_days(p.dob) + 1)) >= c2.age_greater_equal
-												AND  year(from_days(to_days(ra2.date)-to_days(p.dob) + 1)) <  c2.age_less_than)
-										AND c1.id = c2.id",
-            $resultId);
+        // -- Date is after existing races
+        // -- Find results with the same standard or better (small ID)
+        $sql = $this->jdb->prepare("SELECT count(existingResult.id)
+                                    FROM results newResult, results existingResult, race newRace, race existingRace
+                                    WHERE newResult.id = %d
+                                    AND newResult.id != existingResult.id
+                                    AND newResult.runner_id = existingResult.runner_id
+                                    AND newResult.race_id = newRace.id
+                                    AND existingResult.race_id = existingRace.id
+                                    AND newRace.distance_id = existingRace.distance_id
+                                    AND newRace.date >= existingRace.date
+                                    AND existingRace.date >= '2017-01-01'
+                                    AND existingResult.standard_type_id <= newResult.standard_type_id
+                                    AND newResult.standard_type_id IN (14, 15, 16, 17, 18, 19, 20)
+				                    AND existingResult.standard_type_id IN (14, 15, 16, 17, 18, 19, 20)",
+            			            $resultId);
 
         $count = $this->jdb->get_var($sql);
 
@@ -2227,7 +2218,6 @@ class ResultsDataAccess
 
     public function getStandardCertificates($runnerId)
     {
-
         $sql = $this->jdb->prepare("SELECT st.name, e.name as 'event', d.distance, r.result, DATE_FORMAT( ra.date, '%%M %%e, %%Y' ) as 'date'
 								  FROM standard_certificates sc
 								  INNER JOIN results r ON sc.result_id = r.id

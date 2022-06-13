@@ -26,7 +26,8 @@ class ResultsController extends BaseController implements IRoute {
 		\IpswichJAFFARunningClubAPI\Constants\Distances::MARATHON
 	);
 
-	public function registerRoutes() {										
+	public function registerRoutes() {		
+
 		register_rest_route( $this->namespace, '/results', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'permission_callback' => array( $this, 'isAuthorized' ),
@@ -240,6 +241,7 @@ class ResultsController extends BaseController implements IRoute {
 			'callback'            => array( $this, 'getCountyChampions' )
 		) );
 	}
+
 	public function getMemberInsightsRaceDistance( \WP_REST_Request $request ) {
 		$raceTimes = $this->dataAccess->getMemberInsightsRaceDistance($request['distanceId']);
 
