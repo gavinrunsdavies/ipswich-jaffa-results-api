@@ -1,6 +1,6 @@
 <?php
 
-namespace IpswichJAFFARunningClubAPI\Constants;
+namespace IpswichJAFFARunningClubAPI\V4\Constants;
 
 abstract class CourseTypes
 {
