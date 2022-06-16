@@ -2,21 +2,12 @@
 
 namespace IpswichJAFFARunningClubAPI\V4\Statistics;
 
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/Constants/CourseTypes.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/Constants/ErrorMessages.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/DataAccess.php';
 
-use IpswichJAFFARunningClubAPI\V4\Constants as CourseTypes;
-use IpswichJAFFARunningClubAPI\V4\Constants as ErrorMessages;
+use IpswichJAFFARunningClubAPI\V4\DataAccess as DataAccess;
 
-class StatisticsDataAccess
-{
-    private $resultsDatabase;        
-
-    public function __construct($db)
-    {
-        $this->resultsDatabase = $db;
-    }
-  
+class StatisticsDataAccess extends DataAccess
+{ 
 	public function getMeanPercentageGradingByMonth() 
 	{
 		$sql = "SELECT DATE_FORMAT(race.date, '%Y-%m-01') as date, c.code as categoryCode, ROUND(AVG(r.percentage_grading_2015), 2) as meanGrading
@@ -52,7 +43,7 @@ class StatisticsDataAccess
             INNER JOIN runners p ON p.id = r.runner_id
             wHERE race.event_id = %d
             GROUP BY name, year) as t2
-        on t1.name=t2.name and t1.year >= t2.year
+        on t1.name = t2.name and t1.year >= t2.year
         group by t1.name, t1.year  
         ORDER BY t1.year ASC", $eventId, $eventId);
 
@@ -204,23 +195,4 @@ class StatisticsDataAccess
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
-
-    private function executeResultsQuery(string $methodName, $sql)
-    {       
-        $results = $this->resultsDatabase->get_results($sql);
-        
-        if (!$results) {
-            return new \WP_Error($methodName, GENERIC_ERROR_MESSAGE, 
-                array('status' => 500,
-                      'statement' => $sql,
-                      'last_query' => $this->resultsDatabase->last_query));
-        }
-
-        if ($this->resultsDatabase->num_rows == 0) {
-            return new stdClass();
-        }
-
-        return $results;
-    }
 }
-?>

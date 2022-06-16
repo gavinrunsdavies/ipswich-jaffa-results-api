@@ -7,26 +7,27 @@ if ( ! defined( 'ABSPATH' ) ) die( 'restricted access' );
 
 define( 'IPSWICH_JAFFA_API_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
-require_once plugin_dir_path( __FILE__ ) .'Config.php';
-require_once plugin_dir_path( __FILE__ ) .'WordPressApiHelper.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'Config.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'WordPressApiHelper.php';
 
-require_once plugin_dir_path( __FILE__ ) .'v2/EventsController.php';
-require_once plugin_dir_path( __FILE__ ) .'v2/DistancesController.php';
-require_once plugin_dir_path( __FILE__ ) .'v2/MeetingsController.php';
-require_once plugin_dir_path( __FILE__ ) .'v2/RacesController.php';
-require_once plugin_dir_path( __FILE__ ) .'v2/ResultsController.php';
-require_once plugin_dir_path( __FILE__ ) .'v2/RunnerOfTheMonthController.php';
-require_once plugin_dir_path( __FILE__ ) .'v2/RunnersController.php';
-require_once plugin_dir_path( __FILE__ ) .'v2/StatisticsController.php';
-require_once plugin_dir_path( __FILE__ ) .'v2/LeaguesController.php';
-require_once plugin_dir_path( __FILE__ ) .'v2/TeamResultsController.php';
-require_once plugin_dir_path( __FILE__ ) .'v2/CategoriesController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v2/EventsController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v2/DistancesController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v2/MeetingsController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v2/RacesController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v2/ResultsController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v2/RunnerOfTheMonthController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v2/RunnersController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v2/StatisticsController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v2/LeaguesController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v2/TeamResultsController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v2/CategoriesController.php';
 
-require_once plugin_dir_path( __FILE__ ) .'v3/ResultsController.php';
-require_once plugin_dir_path( __FILE__ ) .'v3/RunnerOfTheMonthController.php';
-require_once plugin_dir_path( __FILE__ ) .'v3/AdminController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v3/ResultsController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v3/RunnerOfTheMonthController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v3/AdminController.php';
 
-require_once plugin_dir_path( __FILE__ ) .'V4/Statistics/StatisticsController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/Statistics/StatisticsController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/TeamResults/TeamResultsController.php';
 
 // hook into the rest_api_init action so we can start registering routes
 $namespace = 'ipswich-jaffa-api/v2'; // base endpoint for our custom API
@@ -53,6 +54,7 @@ $runnerOfTheMonthV3Controller = new IpswichJAFFARunningClubAPI\V3\RunnerOfTheMon
 
 $routeV4 = 'ipswich-jaffa-api/v4';
 $v4StatisticsController = new IpswichJAFFARunningClubAPI\V4\Statistics\StatisticsController($routeV4, $resultsDb);
+$v4TeamResultsController = new IpswichJAFFARunningClubAPI\V4\TeamResults\TeamResultsController($routeV4, $resultsDb);
 
 $helper = new IpswichJAFFARunningClubAPI\WordPressApiHelper();
 
@@ -73,6 +75,7 @@ add_action( 'rest_api_init', array( $adminV3Controller, 'registerRoutes') );
 add_action( 'rest_api_init', array( $runnerOfTheMonthV3Controller, 'registerRoutes') );
 
 add_action( 'rest_api_init', array( $v4StatisticsController, 'registerRoutes') );
+add_action( 'rest_api_init', array( $v4TeamResultsController, 'registerRoutes') );
 
 // Customise user response for JWT login
 add_filter( 'jwt_auth_token_before_dispatch', array($helper, 'custom_wp_user_token_response'), 10, 2);

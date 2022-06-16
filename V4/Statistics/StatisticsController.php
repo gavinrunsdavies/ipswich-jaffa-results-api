@@ -152,14 +152,4 @@ class StatisticsController extends BaseController implements IRoute
 			return $response;
 		});	
 	}
-
-	private function processDataResponse($response, $queryFunction)
-	{
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		return rest_ensure_response($queryFunction($response));
-	}
 }
-?>

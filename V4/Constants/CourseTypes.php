@@ -14,4 +14,3 @@ abstract class CourseTypes
     const FIELD = 8;
     const VIRTUAL = 9;
 }
-?>

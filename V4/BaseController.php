@@ -15,11 +15,20 @@ abstract class BaseController
 	protected function isValidId( string $value, \WP_REST_Request $request, string $key ) {
 		if ( $value < 1 ) {
 			return new \WP_Error( 'rest_invalid_param',
-				sprintf( '%s %d must be greater than 0', $key, $value ), array( 'status' => 400 ) );
+				sprintf( '%s %d must be greater than 0.', $key, $value ), array( 'status' => 400 ) );
 		} else {
 			return true;
 		}
     }
+
+    protected function isNotNull($value, $request, $key){
+		if ( $value != null ) {
+			return true;
+		} else {
+			return new \WP_Error( 'rest_invalid_param',
+				sprintf( '%s %d must not be null.', $key, $value ), array( 'status' => 400 ) );
+		} 			
+	}
     
     protected function isAuthorized( \WP_REST_Request $request ) {                
         if (!(current_user_can('editor') || current_user_can('administrator'))) {
@@ -30,5 +39,13 @@ abstract class BaseController
         
         return true;
     }
+
+    protected function processDataResponse($response, $queryFunction)
+	{
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		return rest_ensure_response($queryFunction($response));
+	}
 }
-?>

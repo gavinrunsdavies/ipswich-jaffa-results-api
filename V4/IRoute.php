@@ -6,4 +6,3 @@ interface IRoute
 {
   public function registerRoutes();
 }
-?>

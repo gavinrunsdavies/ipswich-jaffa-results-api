@@ -13,4 +13,3 @@ abstract class Distances
     const TWENTY_MILES = 7;
     const MARATHON = 8;
 }
-?>
