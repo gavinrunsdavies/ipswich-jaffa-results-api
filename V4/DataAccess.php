@@ -10,7 +10,7 @@ abstract class DataAccess
 {
     protected $resultsDatabase;        
 
-    protected function __construct($db)
+    public function __construct($db)
     {
         $this->resultsDatabase = $db;
     }
