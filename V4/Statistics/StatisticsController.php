@@ -1,8 +1,8 @@
 <?php
 namespace IpswichJAFFARunningClubAPI\V4\Statistics;
 
-require_once plugin_dir_path( __DIR__ ) .'V4/BaseController.php';
-require_once plugin_dir_path( __DIR__ ) .'V4/IRoute.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/BaseController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/IRoute.php';
 require_once 'StatisticsDataAccess.php';
 
 use IpswichJAFFARunningClubAPI\V4\BaseController as BaseController;

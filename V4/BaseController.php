@@ -3,7 +3,7 @@ namespace IpswichJAFFARunningClubAPI\V4;
 	
 abstract class BaseController 
 {
-    protected string $route;
+    protected $route;
 
     protected $dataAccess;    
 	
