@@ -7,7 +7,7 @@ abstract class BaseController
 
     protected $dataAccess;    
 	
-	protected function __construct($route, $dataAccess) {        
+	public function __construct($route, $dataAccess) {        
         $this->route = $route;
         $this->dataAccess = $dataAccess;
 	}
