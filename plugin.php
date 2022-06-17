@@ -28,6 +28,7 @@ require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'v3/AdminController.php';
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/Statistics/StatisticsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/TeamResults/TeamResultsController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/Races/RacesController.php';
 
 // hook into the rest_api_init action so we can start registering routes
 $namespace = 'ipswich-jaffa-api/v2'; // base endpoint for our custom API
@@ -55,6 +56,7 @@ $runnerOfTheMonthV3Controller = new IpswichJAFFARunningClubAPI\V3\RunnerOfTheMon
 $routeV4 = 'ipswich-jaffa-api/v4';
 $v4StatisticsController = new IpswichJAFFARunningClubAPI\V4\Statistics\StatisticsController($routeV4, $resultsDb);
 $v4TeamResultsController = new IpswichJAFFARunningClubAPI\V4\TeamResults\TeamResultsController($routeV4, $resultsDb);
+$v4RacesController = new IpswichJAFFARunningClubAPI\V4\Races\RacesController($routeV4, $resultsDb);
 
 $helper = new IpswichJAFFARunningClubAPI\WordPressApiHelper();
 
@@ -76,7 +78,7 @@ add_action( 'rest_api_init', array( $runnerOfTheMonthV3Controller, 'registerRout
 
 add_action( 'rest_api_init', array( $v4StatisticsController, 'registerRoutes') );
 add_action( 'rest_api_init', array( $v4TeamResultsController, 'registerRoutes') );
+add_action( 'rest_api_init', array( $v4RacesController, 'registerRoutes') );
 
 // Customise user response for JWT login
 add_filter( 'jwt_auth_token_before_dispatch', array($helper, 'custom_wp_user_token_response'), 10, 2);
-?>
