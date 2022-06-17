@@ -15,9 +15,9 @@ class TeamResultsController extends BaseController implements IRoute {
 		parent::__construct($route, new TeamResultsDataAccess($db));
 	}
 	
-	public function registerRoutes() {										
-		
-		register_rest_route( $this->namespace, '/team-results/(?P<teamResultId>[\d]+)', array(
+	public function registerRoutes() 
+	{										
+		register_rest_route( $this->route, '/team-results/(?P<teamResultId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array( $this, 'getTeamResult' ),
 			'args'                => array(
@@ -28,7 +28,7 @@ class TeamResultsController extends BaseController implements IRoute {
 				)
 		) );		
 		
-		register_rest_route( $this->namespace, '/team-results', array(
+		register_rest_route( $this->route, '/team-results', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array( $this, 'isAuthorized' ),
 			'callback'            => array( $this, 'saveTeamResult' ),				
@@ -48,7 +48,7 @@ class TeamResultsController extends BaseController implements IRoute {
 				)
 		) );
 		
-		register_rest_route( $this->namespace, '/team-results/(?P<teamResultId>[\d]+)', array(
+		register_rest_route( $this->route, '/team-results/(?P<teamResultId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
 			'callback'            => array( $this, 'deleteTeamResult' ),
 			'permission_callback' => array( $this, 'isAuthorized' ),

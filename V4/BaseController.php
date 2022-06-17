@@ -12,7 +12,8 @@ abstract class BaseController
         $this->dataAccess = $dataAccess;
 	}
 	
-	protected function isValidId( string $value, \WP_REST_Request $request, string $key ) {
+	// Needs to be public as used in a call back method
+	public function isValidId( string $value, \WP_REST_Request $request, string $key ) {
 		if ( $value < 1 ) {
 			return new \WP_Error( 'rest_invalid_param',
 				sprintf( '%s %d must be greater than 0.', $key, $value ), array( 'status' => 400 ) );
@@ -21,7 +22,8 @@ abstract class BaseController
 		}
     }
 
-    protected function isNotNull($value, $request, $key){
+	// Needs to be public as used in a call back method
+    public function isNotNull($value, $request, $key){
 		if ( $value != null ) {
 			return true;
 		} else {
@@ -30,7 +32,8 @@ abstract class BaseController
 		} 			
 	}
     
-    protected function isAuthorized( \WP_REST_Request $request ) {                
+	// Needs to be public as used in a call back method
+    public function isAuthorized( \WP_REST_Request $request ) {                
         if (!(current_user_can('editor') || current_user_can('administrator'))) {
           $current_user = wp_get_current_user();
           return new \WP_Error( 'rest_forbidden',
