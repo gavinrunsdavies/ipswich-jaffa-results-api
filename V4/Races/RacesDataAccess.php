@@ -14,6 +14,7 @@ class RacesDataAccess extends DataAccess
 
     public function __construct($db)
     {
+        parent::__construct($db);
         $this->resultsDataAccess = new ResultsDataAccess($db);
     }
 
