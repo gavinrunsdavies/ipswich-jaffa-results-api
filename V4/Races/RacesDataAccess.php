@@ -19,7 +19,7 @@ class RacesDataAccess extends DataAccess
 
     public function getRace($raceId)
     {
-        $sql = $this->resultsDataAccess->prepare(
+        $sql = $this->resultsDatabase->prepare(
             'SELECT
 				ra.id,
 				 e.id AS eventId,
@@ -52,7 +52,7 @@ class RacesDataAccess extends DataAccess
 
     public function insertRace($race)
     {
-        $sql = $this->resultsDataAccess->prepare(
+        $sql = $this->resultsDatabase->prepare(
             '
 		INSERT INTO `race`(`event_id`, `date`, `course_number`, `venue`, `description`, `conditions`, `distance_id`, `course_type_id`, `county`, `country_code`, `area`, `grand_prix`)
 		VALUES(%d, %s, %s, %s, %s, %s, %d, %d, %s, %s, %s, %d)',
@@ -73,7 +73,7 @@ class RacesDataAccess extends DataAccess
         $result = $this->executeQuery(__METHOD__, $sql);
 
         if (!is_wp_error($result)) {
-            return $this->getRace($this->resultsDataAccess->insert_id);
+            return $this->getRace($this->resultsDatabase->insert_id);
         }
 
         return $result;
@@ -81,7 +81,7 @@ class RacesDataAccess extends DataAccess
 
     public function deleteRace($raceId)
     {
-        $sql = $this->resultsDataAccess->prepare('DELETE FROM race WHERE id = %d;', $raceId);
+        $sql = $this->resultsDatabase->prepare('DELETE FROM race WHERE id = %d;', $raceId);
 
         return $this->executeQuery(__METHOD__, $sql);
     }
@@ -104,7 +104,7 @@ class RacesDataAccess extends DataAccess
             $field == 'grand_prix'
         ) {
             if ($field == 'country_code' && $value != 'GB') {
-                $result = $this->resultsDataAccess->update(
+                $result = $this->resultsDatabase->update(
                     'race',
                     array(
                         $field => $value, 'county' => null, 'area' => null,
@@ -116,7 +116,7 @@ class RacesDataAccess extends DataAccess
                     array('%d')
                 );
             } else {
-                $result = $this->resultsDataAccess->update(
+                $result = $this->resultsDatabase->update(
                     'race',
                     array(
                         $field => $value,

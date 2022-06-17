@@ -2,15 +2,15 @@
 
 namespace IpswichJAFFARunningClubAPI\V4\Statistics;
 
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/DataAccess.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/DataAccess.php';
 
 use IpswichJAFFARunningClubAPI\V4\DataAccess as DataAccess;
 
 class StatisticsDataAccess extends DataAccess
-{ 
-	public function getMeanPercentageGradingByMonth() 
-	{
-		$sql = "SELECT DATE_FORMAT(race.date, '%Y-%m-01') as date, c.code as categoryCode, ROUND(AVG(r.percentage_grading_2015), 2) as meanGrading
+{
+    public function getMeanPercentageGradingByMonth()
+    {
+        $sql = "SELECT DATE_FORMAT(race.date, '%Y-%m-01') as date, c.code as categoryCode, ROUND(AVG(r.percentage_grading_2015), 2) as meanGrading
 				FROM race race
 				inner join results r on r.race_id = race.id
 				INNER join category c on c.id = r.category_id
@@ -19,11 +19,11 @@ class StatisticsDataAccess extends DataAccess
 				ORDER BY date, categoryCode";
 
         return $this->executeResultsQuery(__METHOD__, $sql);
-	}
+    }
 
-    public function getEventTopAttendees(int $eventId) 
-	{
-		$sql = $this->jdb->prepare("
+    public function getEventTopAttendees(int $eventId)
+    {
+        $sql = $this->resultsDatabase->prepare("
         select t1.name,
         t1.year,        
         sum(t2.count) as runningTotal
@@ -48,7 +48,7 @@ class StatisticsDataAccess extends DataAccess
         ORDER BY t1.year ASC", $eventId, $eventId);
 
         return $this->executeResultsQuery(__METHOD__, $sql);
-	}
+    }
 
     public function getResultsByYearAndCounty()
     {
