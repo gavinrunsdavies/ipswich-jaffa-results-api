@@ -21,7 +21,7 @@ class TeamResultsDataAccess extends DataAccess
     public function getTeamResult($teamResultId)
     {
         $sql = $this->jdb->prepare(
-            'SELECT tr.id as teamId, p.name as runnerName, p.id as runnerId, r.result as runnerResult,
+            'SELECT tr.id as teamId, p.name as runnerName, p.id as runnerId, r.performance as runnerResult,
 			r.position as runnerPosition, trr.order as teamOrder
 			FROM `team_results` tr
 			INNER JOIN `team_results_runners` trr ON tr.id = trr.team_result_id
@@ -35,8 +35,8 @@ class TeamResultsDataAccess extends DataAccess
 
     public function insertTeamResult($teamResult)
     {
-        $sql = $this->jdb->prepare('INSERT INTO team_results (`team_name`, `category`, `result`, `position`, `meeting_id`) VALUES(%s, %s, %s, %d, %d);',
-            $teamResult['name'], $teamResult['category'], $teamResult['result'], $teamResult['position'], $teamResult['meetingId']);
+        $sql = $this->jdb->prepare('INSERT INTO team_results (`team_name`, `category`, `performance`, `position`, `meeting_id`) VALUES(%s, %s, %s, %d, %d);',
+            $teamResult['name'], $teamResult['category'], $teamResult['performance'], $teamResult['position'], $teamResult['meetingId']);
 
         $result = $this->executeQuery($sql);
 
