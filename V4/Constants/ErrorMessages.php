@@ -1,4 +1,5 @@
 <?php
+
 namespace IpswichJAFFARunningClubAPI\V4\Constants;
 
 abstract class ErrorMessages

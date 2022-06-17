@@ -2,15 +2,15 @@
 
 namespace IpswichJAFFARunningClubAPI\V4\Races;
 
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/DataAccess.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V4/Results/ResultsDataAccess.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/DataAccess.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/Results/ResultsDataAccess.php';
 
 use IpswichJAFFARunningClubAPI\V4\DataAccess as DataAccess;
 use IpswichJAFFARunningClubAPI\V4\Results\ResultsDataAccess as ResultsDataAccess;
 
 class RacesDataAccess extends DataAccess
-{ 
-    private $resultsDataAccess;   
+{
+    private $resultsDataAccess;
 
     public function __construct($db)
     {
@@ -19,7 +19,7 @@ class RacesDataAccess extends DataAccess
 
     public function getRace($raceId)
     {
-        $sql = $this->jdb->prepare(
+        $sql = $this->resultsDataAccess->prepare(
             'SELECT
 				ra.id,
 				 e.id AS eventId,
@@ -44,14 +44,16 @@ class RacesDataAccess extends DataAccess
 				LEFT JOIN `distance` d ON ra.distance_id = d.id
 				LEFT JOIN `course_type` c ON ra.course_type_id = c.id
 				WHERE ra.id = %d',
-            $raceId);
+            $raceId
+        );
 
         return $this->executeResultQuery(__METHOD__, $sql);
     }
 
     public function insertRace($race)
     {
-        $sql = $this->jdb->prepare('
+        $sql = $this->resultsDataAccess->prepare(
+            '
 		INSERT INTO `race`(`event_id`, `date`, `course_number`, `venue`, `description`, `conditions`, `distance_id`, `course_type_id`, `county`, `country_code`, `area`, `grand_prix`)
 		VALUES(%d, %s, %s, %s, %s, %s, %d, %d, %s, %s, %s, %d)',
             $race['eventId'],
@@ -65,12 +67,13 @@ class RacesDataAccess extends DataAccess
             $race['county'],
             $race['countryCode'],
             $race['area'],
-            $race['isGrandPrixRace']);
+            $race['isGrandPrixRace']
+        );
 
         $result = $this->executeQuery(__METHOD__, $sql);
 
-        if (!is_wp_error($result))  {
-            return $this->getRace($this->jdb->insert_id);
+        if (!is_wp_error($result)) {
+            return $this->getRace($this->resultsDataAccess->insert_id);
         }
 
         return $result;
@@ -78,7 +81,7 @@ class RacesDataAccess extends DataAccess
 
     public function deleteRace($raceId)
     {
-        $sql = $this->jdb->prepare('DELETE FROM race WHERE id = %d;', $raceId);
+        $sql = $this->resultsDataAccess->prepare('DELETE FROM race WHERE id = %d;', $raceId);
 
         return $this->executeQuery(__METHOD__, $sql);
     }
@@ -86,7 +89,8 @@ class RacesDataAccess extends DataAccess
     public function updateRace($raceId, $field, $value)
     {
         // Race date and distance can not be changed - affected PBs etc
-        if ($field == 'event_id' ||
+        if (
+            $field == 'event_id' ||
             $field == 'description' ||
             $field == 'course_type_id' ||
             $field == 'course_number' ||
@@ -97,9 +101,10 @@ class RacesDataAccess extends DataAccess
             $field == 'conditions' ||
             $field == 'meeting_id' ||
             $field == 'league_id' ||
-            $field == 'grand_prix') {
+            $field == 'grand_prix'
+        ) {
             if ($field == 'country_code' && $value != 'GB') {
-                $result = $this->jdb->update(
+                $result = $this->resultsDataAccess->update(
                     'race',
                     array(
                         $field => $value, 'county' => null, 'area' => null,
@@ -111,7 +116,7 @@ class RacesDataAccess extends DataAccess
                     array('%d')
                 );
             } else {
-                $result = $this->jdb->update(
+                $result = $this->resultsDataAccess->update(
                     'race',
                     array(
                         $field => $value,
@@ -129,11 +134,17 @@ class RacesDataAccess extends DataAccess
                 return $this->getRace($raceId);
             }
 
-            return new \WP_Error(__METHOD__,
-                'Unknown error in updating event in to the database', array('status' => 500));
+            return new \WP_Error(
+                __METHOD__,
+                'Unknown error in updating event in to the database',
+                array('status' => 500)
+            );
         }
 
-        return new \WP_Error(__METHOD__,
-            'Field in event may not be updated', array('status' => 500, 'Field' => $field, 'Value' => $value));
+        return new \WP_Error(
+            __METHOD__,
+            'Field in event may not be updated',
+            array('status' => 500, 'Field' => $field, 'Value' => $value)
+        );
     }
 }

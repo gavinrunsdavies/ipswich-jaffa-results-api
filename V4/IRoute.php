@@ -2,7 +2,7 @@
 
 namespace IpswichJAFFARunningClubAPI\V4;
 
-interface IRoute 
+interface IRoute
 {
-    public function registerRoutes();
+  public function registerRoutes();
 }
