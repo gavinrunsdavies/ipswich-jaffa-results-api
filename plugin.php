@@ -26,9 +26,11 @@ require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'v3/ResultsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'v3/RunnerOfTheMonthController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'v3/AdminController.php';
 
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/CourseTypes/CourseTypesController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/Distances/DistancesController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/Races/RacesController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/Statistics/StatisticsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/TeamResults/TeamResultsController.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/Races/RacesController.php';
 
 // hook into the rest_api_init action so we can start registering routes
 $namespace = 'ipswich-jaffa-api/v2'; // base endpoint for our custom API
@@ -54,9 +56,11 @@ $resultsV3Controller = new IpswichJAFFARunningClubAPI\V3\ResultsController($name
 $runnerOfTheMonthV3Controller = new IpswichJAFFARunningClubAPI\V3\RunnerOfTheMonthController($namespaceV3, $resultsDb);
 
 $routeV4 = 'ipswich-jaffa-api/v4';
+$v4CourseTypesController = new IpswichJAFFARunningClubAPI\V4\CourseTypes\CourseTypesController($routeV4, $resultsDb);
+$v4DistancesController = new IpswichJAFFARunningClubAPI\V4\Distances\DistancesController($routeV4, $resultsDb);
+$v4RacesController = new IpswichJAFFARunningClubAPI\V4\Races\RacesController($routeV4, $resultsDb);
 $v4StatisticsController = new IpswichJAFFARunningClubAPI\V4\Statistics\StatisticsController($routeV4, $resultsDb);
 $v4TeamResultsController = new IpswichJAFFARunningClubAPI\V4\TeamResults\TeamResultsController($routeV4, $resultsDb);
-$v4RacesController = new IpswichJAFFARunningClubAPI\V4\Races\RacesController($routeV4, $resultsDb);
 
 $helper = new IpswichJAFFARunningClubAPI\WordPressApiHelper();
 
@@ -76,9 +80,11 @@ add_action('rest_api_init', array($resultsV3Controller, 'registerRoutes'));
 add_action('rest_api_init', array($adminV3Controller, 'registerRoutes'));
 add_action('rest_api_init', array($runnerOfTheMonthV3Controller, 'registerRoutes'));
 
+add_action('rest_api_init', array($v4CourseTypesController, 'registerRoutes'));
+add_action('rest_api_init', array($v4DistancesController, 'registerRoutes'));
+add_action('rest_api_init', array($v4RacesController, 'registerRoutes'));
 add_action('rest_api_init', array($v4StatisticsController, 'registerRoutes'));
 add_action('rest_api_init', array($v4TeamResultsController, 'registerRoutes'));
-add_action('rest_api_init', array($v4RacesController, 'registerRoutes'));
 
 // Customise user response for JWT login
 add_filter('jwt_auth_token_before_dispatch', array($helper, 'custom_wp_user_token_response'), 10, 2);
