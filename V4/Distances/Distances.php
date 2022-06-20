@@ -1,6 +1,6 @@
 <?php
 
-namespace IpswichJAFFARunningClubAPI\V4\Constants;
+namespace IpswichJAFFARunningClubAPI\V4\Distances;
 
 abstract class Distances
 {

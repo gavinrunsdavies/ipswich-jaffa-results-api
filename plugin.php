@@ -58,6 +58,8 @@ $runnerOfTheMonthV3Controller = new IpswichJAFFARunningClubAPI\V3\RunnerOfTheMon
 $routeV4 = 'ipswich-jaffa-api/v4';
 $v4CourseTypesController = new IpswichJAFFARunningClubAPI\V4\CourseTypes\CourseTypesController($routeV4, $resultsDb);
 $v4DistancesController = new IpswichJAFFARunningClubAPI\V4\Distances\DistancesController($routeV4, $resultsDb);
+$v4EventsController = new IpswichJAFFARunningClubAPI\V4\Events\EventsController($routeV4, $resultsDb);
+$v4MeetingsController = new IpswichJAFFARunningClubAPI\V4\Meetings\MeetingsController($routeV4, $resultsDb);
 $v4RacesController = new IpswichJAFFARunningClubAPI\V4\Races\RacesController($routeV4, $resultsDb);
 $v4StatisticsController = new IpswichJAFFARunningClubAPI\V4\Statistics\StatisticsController($routeV4, $resultsDb);
 $v4TeamResultsController = new IpswichJAFFARunningClubAPI\V4\TeamResults\TeamResultsController($routeV4, $resultsDb);
@@ -82,6 +84,8 @@ add_action('rest_api_init', array($runnerOfTheMonthV3Controller, 'registerRoutes
 
 add_action('rest_api_init', array($v4CourseTypesController, 'registerRoutes'));
 add_action('rest_api_init', array($v4DistancesController, 'registerRoutes'));
+add_action('rest_api_init', array($v4EventsController, 'registerRoutes'));
+add_action('rest_api_init', array($v4MeetingsController, 'registerRoutes'));
 add_action('rest_api_init', array($v4RacesController, 'registerRoutes'));
 add_action('rest_api_init', array($v4StatisticsController, 'registerRoutes'));
 add_action('rest_api_init', array($v4TeamResultsController, 'registerRoutes'));

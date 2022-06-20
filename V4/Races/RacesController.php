@@ -18,22 +18,26 @@ class RacesController extends BaseController implements IRoute
 
 	public function registerRoutes()
 	{
-		register_rest_route($this->route, '/races', array(
+		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/races', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
 			'callback'            => array($this, 'saveRace'),
 			'args'                => array(
-				'race'           => array(
+				'eventId'           => array(
 					'required'          => true,
-					'validate_callback' => array($this, 'validateRace'),
-				),
+					'validate_callback' => array($this, 'isValidId')
+				)
 			)
 		));
 
-		register_rest_route($this->route, '/races/(?P<id>[\d]+)', array(
+		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/races/(?P<id>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array($this, 'getRace'),
 			'args'                 => array(
+				'eventId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId')
+				),
 				'id'           => array(
 					'required'          => true,
 					'validate_callback' => array($this, 'isValidId')
@@ -41,11 +45,15 @@ class RacesController extends BaseController implements IRoute
 			)
 		));
 
-		register_rest_route($this->route, '/races/(?P<id>[\d]+)', array(
+		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/races/(?P<id>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
 			'callback'            => array($this, 'updateRace'),
 			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId')
+				),
 				'id'           => array(
 					'required'          => true,
 					'validate_callback' => array($this, 'isValidId')
@@ -60,11 +68,15 @@ class RacesController extends BaseController implements IRoute
 			)
 		));
 
-		register_rest_route($this->route, '/races/(?P<raceId>[\d]+)', array(
+		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/races/(?P<raceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
 			'callback'            => array($this, 'deleteRace'),
 			'permission_callback' => array($this, 'isAuthorized'),
 			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId')
+				),
 				'raceId'           => array(
 					'required'          => true,
 					'validate_callback' => array($this, 'isValidId'),
