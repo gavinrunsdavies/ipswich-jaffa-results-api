@@ -28,6 +28,7 @@ require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'v3/AdminController.php';
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/CourseTypes/CourseTypesController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/Distances/DistancesController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/Events/EventsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/Races/RacesController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/Statistics/StatisticsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/TeamResults/TeamResultsController.php';
