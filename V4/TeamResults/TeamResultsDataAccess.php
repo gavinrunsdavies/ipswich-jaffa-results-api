@@ -8,7 +8,7 @@ use IpswichJAFFARunningClubAPI\V4\DataAccess as DataAccess;
 
 class TeamResultsDataAccess extends DataAccess
 {
-    public function deleteTeamResult($teamResultId)
+    public function deleteTeamResult(int $teamResultId)
     {
         $sql = $this->resultsDatabase->prepare(
             '
@@ -21,7 +21,7 @@ class TeamResultsDataAccess extends DataAccess
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    public function getTeamResult($teamResultId)
+    public function getTeamResult(int $teamResultId)
     {
         $sql = $this->resultsDatabase->prepare(
             'SELECT tr.id as teamId, p.name as runnerName, p.id as runnerId, r.performance as runnerResult,
@@ -38,7 +38,7 @@ class TeamResultsDataAccess extends DataAccess
         return $this->executeResultQuery(__METHOD__, $sql);
     }
 
-    public function insertTeamResult($teamResult)
+    public function insertTeamResult(int $teamResult)
     {
         $sql = $this->resultsDatabase->prepare(
             'INSERT INTO team_results (`team_name`, `category`, `performance`, `position`, `meeting_id`) VALUES(%s, %s, %s, %d, %d);',
