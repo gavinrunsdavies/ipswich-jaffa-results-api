@@ -19,21 +19,20 @@ abstract class DataAccess
     {
         $results = $this->resultsDatabase->get_results($sql);
 
+        if ($this->resultsDatabase->num_rows == 0) {
+            return new stdClass();
+        }
+
         if (!$results) {
             return new \WP_Error(
                 $methodName,
                 ErrorMessages::GENERIC_ERROR_MESSAGE,
                 array(
                     'status' => 500,
-                    'statement' => $sql,
                     'last_query' => $this->resultsDatabase->last_query
                 )
             );
-        }
-
-        if ($this->resultsDatabase->num_rows == 0) {
-            return new stdClass();
-        }
+        }        
 
         return $results;
     }
@@ -42,20 +41,19 @@ abstract class DataAccess
     {
         $results = $this->resultsDatabase->get_row($sql);
 
+        if ($this->resultsDatabase->num_rows == 0) {
+            return new stdClass();
+        }
+
         if (!$results) {
             return new \WP_Error(
                 $methodName,
                 ErrorMessages::GENERIC_ERROR_MESSAGE,
                 array(
                     'status' => 500,
-                    'statement' => $sql,
                     'last_query' => $this->resultsDatabase->last_query
                 )
             );
-        }
-
-        if ($this->resultsDatabase->num_rows == 0) {
-            return new stdClass();
         }
 
         return $results;
@@ -71,7 +69,6 @@ abstract class DataAccess
                 ErrorMessages::GENERIC_ERROR_MESSAGE,
                 array(
                     'status' => 500,
-                    'statement' => $sql,
                     'last_query' => $this->resultsDatabase->last_query
                 )
             );
