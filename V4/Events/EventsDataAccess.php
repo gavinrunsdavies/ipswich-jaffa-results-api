@@ -35,14 +35,14 @@ class EventsDataAccess extends DataAccess
         return $result;
     }
 
-    public function getEvent($eventId)
+    public function getEvent(int $eventId)
     {
         $sql = $this->resultsDatabase->prepare("SELECT e.id, e.name, e.website FROM `events` e WHERE e.id = %d", $eventId);
 
         return $this->executeResultQuery(__METHOD__, $sql);
     }
 
-    public function updateEvent($eventId, $field, $value)
+    public function updateEvent(int $eventId, string $field, string $value)
     {
         if ($field == 'name' || $field == 'website') {
             $result = $this->resultsDatabase->update(
@@ -71,7 +71,7 @@ class EventsDataAccess extends DataAccess
         );
     }
 
-    public function deleteEvent($eventId)
+    public function deleteEvent(int $eventId)
     {
         $sql = $this->resultsDatabase->prepare('SELECT COUNT(r.id) FROM results r INNER JOIN race ra ON ra.id = r.race_id WHERE ra.event_id = %d LIMIT 1;', $eventId);
 
@@ -90,7 +90,7 @@ class EventsDataAccess extends DataAccess
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    public function getEventTopAttendees($eventId)
+    public function getEventTopAttendees(int $eventId)
     {
         $sql = $this->resultsDatabase->prepare("
         select t1.name,
@@ -119,7 +119,7 @@ class EventsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    public function mergeEvents($fromEventId, $toEventId)
+    public function mergeEvents(int $fromEventId, int $toEventId)
     {
         $sql = $this->resultsDatabase->prepare(
             "update race set event_id = %d WHERE event_id = %d",

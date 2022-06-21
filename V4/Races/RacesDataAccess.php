@@ -18,7 +18,7 @@ class RacesDataAccess extends DataAccess
         $this->resultsDataAccess = new ResultsDataAccess($db);
     }
 
-    public function getRace($raceId)
+    public function getRace(int $raceId)
     {
         $sql = $this->resultsDatabase->prepare(
             'SELECT
@@ -80,14 +80,14 @@ class RacesDataAccess extends DataAccess
         return $result;
     }
 
-    public function deleteRace($raceId)
+    public function deleteRace(int $raceId)
     {
         $sql = $this->resultsDatabase->prepare('DELETE FROM race WHERE id = %d;', $raceId);
 
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    public function updateRace($raceId, $field, $value)
+    public function updateRace(int $raceId, string $field, string $value)
     {
         // Race date and distance can not be changed - affected PBs etc
         if (

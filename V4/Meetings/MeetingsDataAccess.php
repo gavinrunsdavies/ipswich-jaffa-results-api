@@ -8,7 +8,7 @@ use IpswichJAFFARunningClubAPI\V4\DataAccess as DataAccess;
 
 class MeetingsDataAccess extends DataAccess
 {
-    public function getMeetings($eventId)
+    public function getMeetings(int $eventId)
     {
         $sql = $this->resultsDatabase->prepare(
             'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate
@@ -19,7 +19,7 @@ class MeetingsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    public function getMeeting($meetingId)
+    public function getMeeting(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
             'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate, r.id as raceId, r.description as description
@@ -30,7 +30,7 @@ class MeetingsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    public function getMeetingById($meetingId)
+    public function getMeetingById(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
             'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate, m.report as report
@@ -40,7 +40,7 @@ class MeetingsDataAccess extends DataAccess
         return $this->executeResultQuery(__METHOD__, $sql);       
     }
 
-    public function getMeetingTeams($meetingId)
+    public function getMeetingTeams(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
             'SELECT tr.id as teamId, tr.county_championship as countyChampionshipResult, tr.team_name as teamName, tr.category as teamCategory, tr.position as teamPosition, tr.result as teamResult
@@ -50,7 +50,7 @@ class MeetingsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);  
     }
 
-    public function getMeetingResults($meetingId)
+    public function getMeetingResults(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
             'SELECT tr.id as teamId, p.name as runnerName, p.id as runnerId, r.result as runnerResult,
@@ -65,7 +65,7 @@ class MeetingsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    public function insertMeeting($meeting, $eventId)
+    public function insertMeeting($meeting, int $eventId)
     {
         $sql = $this->resultsDatabase->prepare('insert into `meeting`(`event_id`, `from_date`, `to_date`, `name`) values(%d, %s, %s, %s)', $eventId, $meeting['fromDate'], $meeting['toDate'], $meeting['name']);
 
@@ -79,7 +79,7 @@ class MeetingsDataAccess extends DataAccess
             'Unknown error in inserting meeting in to the database', array('status' => 500));
     }
 
-    public function updateMeeting($meetingId, $field, $value)
+    public function updateMeeting(int $meetingId, string $field, string $value)
     {
         if ($field == 'name' || $field == 'from_date' || $field == 'to_date') {
             $result = $this->resultsDatabase->update(
@@ -106,14 +106,14 @@ class MeetingsDataAccess extends DataAccess
             'Field in meeting may not be updated', array('status' => 400));
     }
 
-    public function deleteMeeting($meetingId)
+    public function deleteMeeting(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare('DELETE FROM meeting WHERE id = %d', $meetingId);
 
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    public function getMeetingRaces($meetingId)
+    public function getMeetingRaces(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
             'SELECT ra.id, ra.date, ra.description, ra.course_type_id as courseTypeId, ra.report as report
