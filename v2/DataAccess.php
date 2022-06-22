@@ -1,10 +1,10 @@
 <?php
 
-namespace IpswichJAFFARunningClubAPI\V4;
+namespace IpswichJAFFARunningClubAPI\V2;
 
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/Constants/ErrorMessages.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Constants/ErrorMessages.php';
 
-use IpswichJAFFARunningClubAPI\V4\Constants\ErrorMessages as ErrorMessages;
+use IpswichJAFFARunningClubAPI\V2\Constants\ErrorMessages as ErrorMessages;
 
 abstract class DataAccess
 {

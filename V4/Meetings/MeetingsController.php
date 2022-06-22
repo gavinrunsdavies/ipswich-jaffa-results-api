@@ -106,6 +106,7 @@ class MeetingsController extends BaseController implements IRoute
 
 	public function getMeeting(\WP_REST_Request $request)
 	{
+		// Not very RESTful
 		$meeting = $this->dataAccess->getMeetingById($request['meetingId']);
 		$races = $this->dataAccess->getMeetingRaces($request['meetingId']);
 		$teams = $this->dataAccess->getMeetingTeams($request['meetingId']);
