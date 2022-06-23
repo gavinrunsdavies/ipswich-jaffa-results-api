@@ -1,13 +1,13 @@
 <?php
 
-namespace IpswichJAFFARunningClubAPI\V4\Meetings;
+namespace IpswichJAFFARunningClubAPI\V2\Meetings;
 
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/BaseController.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/IRoute.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/IRoute.php';
 require_once 'MeetingsDataAccess.php';
 
-use IpswichJAFFARunningClubAPI\V4\BaseController as BaseController;
-use IpswichJAFFARunningClubAPI\V4\IRoute as IRoute;
+use IpswichJAFFARunningClubAPI\V2\BaseController as BaseController;
+use IpswichJAFFARunningClubAPI\V2\IRoute as IRoute;
 
 class MeetingsController extends BaseController implements IRoute
 {
@@ -18,50 +18,76 @@ class MeetingsController extends BaseController implements IRoute
 
 	public function registerRoutes()
 	{
-		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings', array(
+		register_rest_route($this->namespace, '/events/(?P<eventId>[\d]+)/meetings', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array($this, 'getMeetings'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
-					'validate_callback' => array($this, 'isValidId')
+					'validate_callback' => array($this, 'isValidId'),
 				)
 			)
 		));
 
-		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
+		register_rest_route($this->namespace, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array($this, 'getMeeting'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
-					'validate_callback' => array($this, 'isValidId')
+					'validate_callback' => array($this, 'isValidId'),
 				),
 				'meetingId'           => array(
 					'required'          => true,
-					'validate_callback' => array($this, 'isValidId')
+					'validate_callback' => array($this, 'isValidId'),
 				)
 			)
 		));
 
-		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings', array(
+		register_rest_route($this->namespace, '/meetings/(?P<meetingId>[\d]+)', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array($this, 'getMeetingById'),
+			'args'                => array(
+				'meetingId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId'),
+				)
+			)
+		));
+
+		register_rest_route($this->namespace, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)/races', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array($this, 'getMeetingRaces'),
+			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId'),
+				),
+				'meetingId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId'),
+				)
+			)
+		));
+
+		register_rest_route($this->namespace, '/events/(?P<eventId>[\d]+)/meetings', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
 			'callback'            => array($this, 'saveMeeting'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
-					'validate_callback' => array($this, 'isValidId')
+					'validate_callback' => array($this, 'isValidId'),
 				),
 				'meeting'           => array(
 					'required'          => true,
-					'validate_callback' => array($this, 'validateMeeting')
-				)
+					'validate_callback' => array($this, 'validateMeeting'),
+				),
 			)
 		));
 
 		// Patch - updates
-		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
+		register_rest_route($this->namespace, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
 			'callback'            => array($this, 'updateMeeting'),
@@ -80,7 +106,7 @@ class MeetingsController extends BaseController implements IRoute
 			)
 		));
 
-		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
+		register_rest_route($this->namespace, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
 			'callback'            => array($this, 'deleteMeeting'),
 			'permission_callback' => array($this, 'isAuthorized'),
@@ -91,7 +117,7 @@ class MeetingsController extends BaseController implements IRoute
 				),
 				'meetingId'           => array(
 					'required'          => true,
-					'validate_callback' => array($this, 'isValidId')
+					'validate_callback' => array($this, 'isValidId'),
 				),
 			)
 		));
@@ -99,6 +125,7 @@ class MeetingsController extends BaseController implements IRoute
 
 	public function getMeetings(\WP_REST_Request $request)
 	{
+
 		$response = $this->dataAccess->getMeetings($request['eventId']);
 
 		return rest_ensure_response($response);
@@ -106,7 +133,14 @@ class MeetingsController extends BaseController implements IRoute
 
 	public function getMeeting(\WP_REST_Request $request)
 	{
-		// Not very RESTful
+
+		$response = $this->dataAccess->getMeeting($request['meetingId']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function getMeetingById(\WP_REST_Request $request)
+	{
 		$meeting = $this->dataAccess->getMeetingById($request['meetingId']);
 		$races = $this->dataAccess->getMeetingRaces($request['meetingId']);
 		$teams = $this->dataAccess->getMeetingTeams($request['meetingId']);
@@ -127,6 +161,7 @@ class MeetingsController extends BaseController implements IRoute
 
 		$response = new class($meeting, $races, $teams)
 		{
+
 			public $meeting;
 			public $races;
 			public $teams;
@@ -142,8 +177,17 @@ class MeetingsController extends BaseController implements IRoute
 		return rest_ensure_response($response);
 	}
 
+	public function getMeetingRaces(\WP_REST_Request $request)
+	{
+
+		$response = $this->dataAccess->getMeetingRaces($request['meetingId']);
+
+		return rest_ensure_response($response);
+	}
+
 	public function saveMeeting(\WP_REST_Request $request)
 	{
+
 		$response = $this->dataAccess->insertMeeting($request['meeting'], $request['eventId']);
 
 		return rest_ensure_response($response);
@@ -151,6 +195,7 @@ class MeetingsController extends BaseController implements IRoute
 
 	public function updateMeeting(\WP_REST_Request $request)
 	{
+
 		$response = $this->dataAccess->updateMeeting($request['meetingId'], $request['field'], $request['value']);
 
 		return rest_ensure_response($response);
@@ -158,6 +203,7 @@ class MeetingsController extends BaseController implements IRoute
 
 	public function deleteMeeting(\WP_REST_Request $request)
 	{
+
 		$response = $this->dataAccess->deleteMeeting($request['meetingId']);
 
 		return rest_ensure_response($response);
@@ -170,7 +216,7 @@ class MeetingsController extends BaseController implements IRoute
 		} else {
 			return new \WP_Error(
 				'rest_invalid_param',
-				sprintf('%s %d must be name or from_date or to_date only.', $key, $value),
+				sprintf('%s %d must be name or fromDate or toDate only.', $key, $value),
 				array('status' => 400)
 			);
 		}

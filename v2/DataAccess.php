@@ -43,7 +43,8 @@ abstract class DataAccess
                 ErrorMessages::GENERIC_ERROR_MESSAGE,
                 array(
                     'status' => 500,
-                    'last_query' => $this->resultsDatabase->last_query
+                    'last_query' => $this->resultsDatabase->last_query,
+                    'last_error' => $this->resultsDatabase->last_error
                 )
             );
         }
@@ -65,11 +66,60 @@ abstract class DataAccess
                 ErrorMessages::GENERIC_ERROR_MESSAGE,
                 array(
                     'status' => 500,
-                    'last_query' => $this->resultsDatabase->last_query
+                    'last_query' => $this->resultsDatabase->last_query,
+                    'last_error' => $this->resultsDatabase->last_error
                 )
             );
         }
 
         return $results;
+    }
+
+    protected function insertEntity(string $methodName, $sql, $getEntityFunction)
+    {        
+        $result = $this->resultsDatabase->query($sql);
+
+        if (is_null($result) || !empty($this->resultsDatabase->last_error)) {
+            return new \WP_Error(
+                $methodName,
+                'Unknown error in inserting entity in to the database',
+                array(
+                    'status' => 500,
+                    'last_query' => $this->resultsDatabase->last_query,
+                    'last_error' => $this->resultsDatabase->last_error
+                )
+            );
+        }
+
+        return $getEntityFunction($this->resultsDatabase->insert_id);
+    }
+
+    protected function updateEntity(string $methodName, string $tableName, string $field, string $value, int $id, $getEntityFunction)
+    {        
+        $result = $this->resultsDatabase->update(
+            $tableName,
+            array(
+                $field => $value,
+            ),
+            array('id' => $id),
+            array(
+                '%s',
+            ),
+            array('%d')
+        );
+
+        if (is_null($result) || !empty($this->resultsDatabase->last_error)) {
+            return new \WP_Error(
+                $methodName,
+                'Unknown error in updating entity in to the database',
+                array(
+                    'status' => 500,
+                    'last_query' => $this->resultsDatabase->last_query,
+                    'last_error' => $this->resultsDatabase->last_error
+                )
+            );
+        }                
+
+        return $getEntityFunction($id);
     }
 }

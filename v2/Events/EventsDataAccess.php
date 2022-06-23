@@ -59,51 +59,16 @@ class EventsDataAccess extends DataAccess
     {
         $sql = $this->resultsDatabase->prepare('INSERT INTO events (`name`, `website`) VALUES(%s, %s);', $event['name'], $event['website']);
 
-        $result = $this->resultsDatabase->query($sql);
-
-        if ($result) {
-            return $this->getEvent($this->resultsDatabase->insert_id);
-        }
-
-        return new \WP_Error(
-            __METHOD__,
-            'Unknown error in inserting event in to the database',
-            array('status' => 500)
-        );
+        return $this->insertEntity(__METHOD__, $sql, function ($id) {
+			return $this->getEvent($id);
+		});
     }
 
     public function updateEvent(int $eventId, string $field, string $value)
     {
-        if ($field == 'name' || $field == 'website') {
-            $result = $this->resultsDatabase->update(
-                'events',
-                array(
-                    $field => $value,
-                ),
-                array('id' => $eventId),
-                array(
-                    '%s',
-                ),
-                array('%d')
-            );
-
-            if ($result) {
-                // Get updated event
-                return $this->getEvent($eventId);
-            }
-
-            return new \WP_Error(
-                __METHOD__,
-                'Unknown error in updating event in to the database',
-                array('status' => 500)
-            );
-        }
-
-        return new \WP_Error(
-            __METHOD__,
-            'Field in event may not be updated',
-            array('status' => 500)
-        );
+        return $this->updateEntity(__METHOD__, 'events', $field, $value, $eventId, function ($id) {
+			return $this->getEvent($id);
+		});
     }
 
     public function mergeEvents(int $fromEventId, int $toEventId)
@@ -116,11 +81,15 @@ class EventsDataAccess extends DataAccess
 
         $result = $this->resultsDatabase->query($sql);
 
-        if ($result === false) {
+        if (is_null($result) || !empty($this->resultsDatabase->last_error)) {
             return new \WP_Error(
                 __METHOD__,
                 'Unknown error in merging events from the database',
-                array('status' => 500)
+                array(
+                    'status' => 500,
+                    'last_query' => $this->resultsDatabase->last_query,
+                    'last_error' => $this->resultsDatabase->last_error
+                )
             );
         }
 
@@ -132,15 +101,19 @@ class EventsDataAccess extends DataAccess
 
         $result = $this->resultsDatabase->query($sql);
 
-        if ($result === false) {
+        if (is_null($result) || !empty($this->resultsDatabase->last_error)) {
             return new \WP_Error(
                 __METHOD__,
                 'Unknown error in merging events from the database',
-                array('status' => 500)
+                array(
+                    'status' => 500,
+                    'last_query' => $this->resultsDatabase->last_query,
+                    'last_error' => $this->resultsDatabase->last_error
+                )
             );
         }
 
-        $this->deleteEvent($fromEventId, false);
+        $this->deleteEvent($fromEventId);
 
         return true;
     }
@@ -155,7 +128,11 @@ class EventsDataAccess extends DataAccess
             return new \WP_Error(
                 __METHOD__,
                 'Event cannot be deleted; a number results are associated with this event. Delete the existing results for this event and try again.',
-                array('status' => 500)
+                array(
+                    'status' => 500,
+                    'last_query' => $this->resultsDatabase->last_query,
+                    'last_error' => $this->resultsDatabase->last_error
+                )
             );
         }
 

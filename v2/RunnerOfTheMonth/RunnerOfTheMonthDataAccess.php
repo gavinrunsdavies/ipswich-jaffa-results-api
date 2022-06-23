@@ -51,4 +51,21 @@ class RunnerOfTheMonthDataAccess extends DataAccess
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
+
+    public function getRunner($runnerId)
+    {
+        $sql = $this->resultsDatabase->prepare("select r.id, r.name, r.sex_id as 'sexId', r.dob as 'dateOfBirth', 0 as 'isCurrentMember', s.sex, c.code as 'ageCategory'
+				FROM
+				runners r, category c, sex s
+				WHERE r.id = %d
+				AND r.sex_id = s.id
+				AND r.sex_id = c.sex_id
+				AND (
+					(TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) >= c.age_greater_equal AND TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) < c.age_less_than)
+					OR r.dob= '0000-00-00'
+				)
+				LIMIT 1", $runnerId);
+
+        return $this->executeResultQuery(__METHOD__, $sql);
+    }
 }

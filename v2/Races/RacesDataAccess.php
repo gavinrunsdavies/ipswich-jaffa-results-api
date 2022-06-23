@@ -1,23 +1,13 @@
 <?php
 
-namespace IpswichJAFFARunningClubAPI\V4\Races;
+namespace IpswichJAFFARunningClubAPI\V2\Races;
 
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/DataAccess.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/Results/ResultsDataAccess.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/DataAccess.php';
 
-use IpswichJAFFARunningClubAPI\V4\DataAccess as DataAccess;
-use IpswichJAFFARunningClubAPI\V4\Results\ResultsDataAccess as ResultsDataAccess;
+use IpswichJAFFARunningClubAPI\V2\DataAccess as DataAccess;
 
 class RacesDataAccess extends DataAccess
 {
-    private $resultsDataAccess;
-
-    public function __construct($db)
-    {
-        parent::__construct($db);
-        $this->resultsDataAccess = new ResultsDataAccess($db);
-    }
-
     public function getRace(int $raceId)
     {
         $sql = $this->resultsDatabase->prepare(
@@ -71,13 +61,9 @@ class RacesDataAccess extends DataAccess
             $race['isGrandPrixRace']
         );
 
-        $result = $this->executeQuery(__METHOD__, $sql);
-
-        if (!is_wp_error($result)) {
-            return $this->getRace($this->resultsDatabase->insert_id);
-        }
-
-        return $result;
+        return $this->insertEntity(__METHOD__, $sql, function ($id) {
+			return $this->getRace($id);
+		});
     }
 
     public function deleteRace(int $raceId)
@@ -108,11 +94,11 @@ class RacesDataAccess extends DataAccess
                 $result = $this->resultsDatabase->update(
                     'race',
                     array(
-                        $field => $value, 'county' => null, 'area' => null,
+                        $field => $value, 'county' => null, 'area' => null
                     ),
                     array('id' => $raceId),
                     array(
-                        '%s', '%s', '%s',
+                        '%s', '%s', '%s'
                     ),
                     array('%d')
                 );
@@ -120,11 +106,11 @@ class RacesDataAccess extends DataAccess
                 $result = $this->resultsDatabase->update(
                     'race',
                     array(
-                        $field => $value,
+                        $field => $value
                     ),
                     array('id' => $raceId),
                     array(
-                        '%s',
+                        '%s'
                     ),
                     array('%d')
                 );
@@ -147,5 +133,94 @@ class RacesDataAccess extends DataAccess
             'Field in event may not be updated',
             array('status' => 500, 'Field' => $field, 'Value' => $value)
         );
+    }
+
+    // TODO
+    public function updateRaceDistance($raceId, $distanceId)
+    {
+        $results = $this->getRaceResults($raceId);
+
+        // Update race distance
+        $success = $this->jdb->update(
+            'race',
+            array(
+                'distance_id' => $distanceId,
+            ),
+            array('id' => $raceId),
+            array(
+                '%d'
+            ),
+            array('%d')
+        );
+
+        // For each race result
+        for ($i = 0; $i < count($results); $i++) {
+            // Update result, percentage grading and standard
+            $existingResult = $results[$i]->result;
+
+            $pb = 0;
+            $seasonBest = 0;
+            $standardType = 0;
+            $ageGrading = 0;
+            $ageGrading2015 = 0;
+
+            if ($this->isCertificatedCourseAndResult($results[$i]->raceId, '', $existingResult)) {
+                $pb = $this->isPersonalBest($results[$i]->raceId, $results[$i]->runnerId, $existingResult, $results[$i]->date);
+
+                $seasonBest = $this->isSeasonBest($results[$i]->raceId, $results[$i]->runnerId, $existingResult, $results[$i]->date);
+
+                $ageGrading = $this->getAgeGrading($existingResult, $results[$i]->runnerId, $results[$i]->raceId);
+
+                if ($results[$i]->date >= self::START_OF_2015_AGE_GRADING) {
+                    $ageGrading2015 = $this->get2015FactorsAgeGrading($existingResult, $results[$i]->runnerId, $results[$i]->raceId);
+                }
+
+                $standardType = $this->getResultStandardTypeId($results[$i]->categoryId, $existingResult, $results[$i]->raceId, $ageGrading2015, $results[$i]->date);
+            }
+
+            $success = $this->jdb->update(
+                'results',
+                array(
+                    'personal_best' => $pb,
+                    'season_best' => $seasonBest,
+                    'standard_type_id' => $standardType,
+                    'percentage_grading' => $ageGrading,
+                    'percentage_grading_2015' => $ageGrading2015,
+                ),
+                array('id' => $results[$i]->id),
+                array(
+                    '%d',
+                    '%d',
+                    '%d',
+                    '%f',
+                    '%f',
+                ),
+                array('%d')
+            );
+
+            if ($success) {
+                if ($ageGrading > 0) {
+                    // TODO check response for number of results
+                    $response = $this->updatePercentageGradingPersonalBest($results[$i]->id, $results[$i]->runnerId, $results[$i]->date);
+                    if ($response != true) {
+                        return $response;
+                    }
+
+                    $isNewStandard = $this->isNewStandard($results[$i]->id);
+
+                    if ($isNewStandard) {
+                        $this->saveStandardCertificate($results[$i]->id);
+                    }
+                }
+            }
+        }
+
+        if ($success) {
+            // Get updated race
+            return $this->getRace($raceId);
+        }
+
+        return new \WP_Error(__METHOD__,
+            'Unknown error in updating race in to the database', array('status' => 500));
     }
 }

@@ -1,10 +1,10 @@
 <?php
 
-namespace IpswichJAFFARunningClubAPI\V4\Meetings;
+namespace IpswichJAFFARunningClubAPI\V2\Meetings;
 
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/DataAccess.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/DataAccess.php';
 
-use IpswichJAFFARunningClubAPI\V4\DataAccess as DataAccess;
+use IpswichJAFFARunningClubAPI\V2\DataAccess as DataAccess;
 
 class MeetingsDataAccess extends DataAccess
 {
@@ -69,41 +69,16 @@ class MeetingsDataAccess extends DataAccess
     {
         $sql = $this->resultsDatabase->prepare('insert into `meeting`(`event_id`, `from_date`, `to_date`, `name`) values(%d, %s, %s, %s)', $eventId, $meeting['fromDate'], $meeting['toDate'], $meeting['name']);
 
-        $result = $this->resultsDatabase->query($sql);
-
-        if ($result) {
-            return $this->getMeeting($this->resultsDatabase->insert_id);
-        }
-
-        return new \WP_Error(__METHOD__,
-            'Unknown error in inserting meeting in to the database', array('status' => 500));
+        return $this->insertEntity(__METHOD__, $sql, function ($id) {
+			return $this->getMeeting($id);
+		});
     }
 
     public function updateMeeting(int $meetingId, string $field, string $value)
     {
-        if ($field == 'name' || $field == 'from_date' || $field == 'to_date') {
-            $result = $this->resultsDatabase->update(
-                'meeting',
-                array(
-                    $field => $value,
-                ),
-                array('id' => $meetingId),
-                array(
-                    '%s',
-                ),
-                array('%d')
-            );
-
-            if ($result) {
-                return $this->getMeeting($meetingId);
-            }
-
-            return new \WP_Error(__METHOD__,
-                'Unknown error in updating meeting in to the database', array('status' => 500));
-        }
-
-        return new \WP_Error(__METHOD__,
-            'Field in meeting may not be updated', array('status' => 400));
+        return $this->updateEntity(__METHOD__, 'events', $field, $value, $meetingId, function ($id) {
+			return $this->getMeeting($id);
+		});
     }
 
     public function deleteMeeting(int $meetingId)

@@ -45,50 +45,16 @@ class LeaguesDataAccess extends DataAccess
             $league['courseTypeId']
         );
 
-        $result = $this->resultsDatabase->query($sql);
-
-        if ($result) {
-            return $this->getLeague($this->resultsDatabase->insert_id);
-        }
-
-        return new \WP_Error(
-            __METHOD__,
-            'Unknown error in inserting league in to the database',
-            array('status' => 500)
-        );
+        return $this->insertEntity(__METHOD__, $sql, function ($id) {
+			return $this->getLeague($id);
+		});
     }
 
     public function updateLeague(int $leagueId, string $field, string $value)
     {
-        if ($field == 'name' || $field == 'starting_year') {
-            $result = $this->resultsDatabase->update(
-                'leagues',
-                array(
-                    $field => $value,
-                ),
-                array('id' => $leagueId),
-                array(
-                    '%s',
-                ),
-                array('%d')
-            );
-
-            if ($result) {
-                return $this->getLeague($leagueId);
-            }
-
-            return new \WP_Error(
-                __METHOD__,
-                'Unknown error in updating league in to the database' . $sql,
-                array('status' => 500)
-            );
-        }
-
-        return new \WP_Error(
-            __METHOD__,
-            'Field in league may not be updated',
-            array('status' => 500)
-        );
+        return $this->updateEntity(__METHOD__, 'leagues', $field, $value, $leagueId, function ($id) {
+			return $this->getLeague($id);
+		});
     }
 
     public function deleteLeague(int $leagueId, bool $deleteRaceAssociations)
@@ -110,11 +76,15 @@ class LeaguesDataAccess extends DataAccess
 
             $result = $this->resultsDatabase->query($sql);
 
-            if (!$result) {
+            if (is_null($result) || !empty($this->resultsDatabase->last_error)) {
                 return new \WP_Error(
                     __METHOD__,
                     'Unknown error in deleting league races from the database',
-                    array('status' => 500)
+                    array(
+                        'status' => 500,
+                        'last_query' => $this->resultsDatabase->last_query,
+                        'last_error' => $this->resultsDatabase->last_error
+                    )
                 );
             }
         }
@@ -123,14 +93,16 @@ class LeaguesDataAccess extends DataAccess
 
         $result = $this->resultsDatabase->query($sql);
 
-        if (!$result) {
+        if (is_null($result) || !empty($this->resultsDatabase->last_error)) {
             return new \WP_Error(
                 __METHOD__,
                 'Unknown error in deleting league from the database',
-                array('status' => 500)
+                array(
+                    'status' => 500,
+                    'last_query' => $this->resultsDatabase->last_query,
+                    'last_error' => $this->resultsDatabase->last_error
+                )
             );
         }
-
-        return true;
     }
 }
