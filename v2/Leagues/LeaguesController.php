@@ -1,13 +1,13 @@
 <?php
 
-namespace IpswichJAFFARunningClubAPI\V4\Leagues;
+namespace IpswichJAFFARunningClubAPI\V2\Leagues;
 
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/BaseController.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V4/IRoute.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/IRoute.php';
 require_once 'LeaguesDataAccess.php';
 
-use IpswichJAFFARunningClubAPI\V4\BaseController as BaseController;
-use IpswichJAFFARunningClubAPI\V4\IRoute as IRoute;
+use IpswichJAFFARunningClubAPI\V2\BaseController as BaseController;
+use IpswichJAFFARunningClubAPI\V2\IRoute as IRoute;
 
 class LeaguesController extends BaseController implements IRoute
 {

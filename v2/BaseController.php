@@ -10,7 +10,7 @@ abstract class BaseController
 
     public function __construct($route, $dataAccess)
     {
-        $this->namespace = $route;
+        $this->route = $route;
         $this->dataAccess =  $dataAccess; //new ResultsDataAccess($db);
     }
 

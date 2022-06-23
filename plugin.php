@@ -11,16 +11,18 @@ require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'Config.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'WordPressApiHelper.php';
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Categories/CategoriesController.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/EventsController.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/DistancesController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/CourseTypes/CourseTypesController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Distances/DistancesController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Events/EventsController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Genders/GendersController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Leagues/LeaguesController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Runners/RunnersController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/RunnerOfTheMonth/RunnerOfTheMonthController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Statistics/StatisticsController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/TeamResults/TeamResultsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/MeetingsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/RacesController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/ResultsController.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/RunnerOfTheMonthController.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/RunnersController.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/StatisticsController.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/LeaguesController.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/TeamResultsController.php';
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'v3/ResultsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'v3/RunnerOfTheMonthController.php';
@@ -34,7 +36,7 @@ $resultsDb = new \wpdb(JAFFA_RESULTS_DB_USER, JAFFA_RESULTS_DB_PASSWORD, JAFFA_R
 
 $routeV2 = 'ipswich-jaffa-api/v2'; // base endpoint for our custom API
 $categoriesController = new IpswichJAFFARunningClubAPI\V2\Categories\CategoriesController($routeV2, $resultsDb);
-$courseTypesController = new IpswichJAFFARunningClubAPI\V4\CourseTypes\CourseTypesController($routeV4, $resultsDb);
+$courseTypesController = new IpswichJAFFARunningClubAPI\V2\CourseTypes\CourseTypesController($routeV2, $resultsDb);
 $distancesController = new IpswichJAFFARunningClubAPI\V2\Distances\DistancesController($routeV2, $resultsDb);
 $eventsController = new IpswichJAFFARunningClubAPI\V2\Events\EventsController($routeV2, $resultsDb);
 $gendersController = new IpswichJAFFARunningClubAPI\V2\Genders\GendersController($routeV2, $resultsDb);
@@ -50,7 +52,7 @@ $resultsController = new IpswichJAFFARunningClubAPI\V2\ResultsController($routeV
 
 
 $routeV3 = 'ipswich-jaffa-api/v3';
-$adminV3Controller = new IpswichJAFFARunningClubAPI\V3\AdminController($routeV3, $resultsDb);
+//$adminV3Controller = new IpswichJAFFARunningClubAPI\V3\AdminController($routeV3, $resultsDb);
 $resultsV3Controller = new IpswichJAFFARunningClubAPI\V3\ResultsController($routeV3, $resultsDb);
 $runnerOfTheMonthV3Controller = new IpswichJAFFARunningClubAPI\V3\RunnerOfTheMonthController($routeV3, $resultsDb);
 
@@ -76,7 +78,7 @@ add_action('rest_api_init', array($racesController, 'registerRoutes'));
 add_action('rest_api_init', array($resultsController, 'registerRoutes'));
 
 add_action('rest_api_init', array($resultsV3Controller, 'registerRoutes'));
-add_action('rest_api_init', array($adminV3Controller, 'registerRoutes'));
+//add_action('rest_api_init', array($adminV3Controller, 'registerRoutes'));
 add_action('rest_api_init', array($runnerOfTheMonthV3Controller, 'registerRoutes'));
 
 add_action('rest_api_init', array($v4MeetingsController, 'registerRoutes'));
