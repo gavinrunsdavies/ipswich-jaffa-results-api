@@ -37,6 +37,17 @@ class RacesController extends BaseController implements IRoute
 			)
 		));
 
+		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/races', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array($this, 'getRaces'),
+			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId'),
+				)
+			)
+		));
+
 		// Get Race - two routes
 		register_rest_route($this->route, '/races/(?P<id>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
@@ -129,6 +140,13 @@ class RacesController extends BaseController implements IRoute
 	{
 
 		$response = $this->dataAccess->insertRace($request['race']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function getRaces(\WP_REST_Request $request)
+	{
+		$response = $this->dataAccess->getRaces($request['eventId']);
 
 		return rest_ensure_response($response);
 	}

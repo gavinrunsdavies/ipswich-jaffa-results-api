@@ -23,17 +23,6 @@ class EventsController extends BaseController implements IRoute
 			'callback'            => array($this, 'getEvents')
 		));
 
-		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/races', array(
-			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this, 'getRaces'),
-			'args'                => array(
-				'eventId'           => array(
-					'required'          => true,
-					'validate_callback' => array($this, 'isValidId'),
-				)
-			)
-		));
-
 		register_rest_route($this->route, '/events', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
@@ -134,13 +123,6 @@ class EventsController extends BaseController implements IRoute
 	public function getEvents(\WP_REST_Request $request)
 	{
 		$response = $this->dataAccess->getEvents();
-
-		return rest_ensure_response($response);
-	}
-
-	public function getRaces(\WP_REST_Request $request)
-	{
-		$response = $this->dataAccess->getRaces($request['eventId']);
 
 		return rest_ensure_response($response);
 	}
