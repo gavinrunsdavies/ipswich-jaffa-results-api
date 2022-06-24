@@ -18,17 +18,17 @@ class RecordsController extends BaseController implements IRoute
 
 	public function registerRoutes()
 	{
-		register_rest_route($this->namespace, '/results/records', array(
+		register_rest_route($this->route, '/results/records', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array($this, 'getOverallClubRecords')
 		));
 
-		register_rest_route($this->namespace, '/results/records/holders', array(
+		register_rest_route($this->route, '/results/records/holders', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array($this, 'getTopClubRecordHolders')
 		));
 
-		register_rest_route($this->namespace, '/results/records/distance/(?P<distanceId>[\d]+)', array(
+		register_rest_route($this->route, '/results/records/distance/(?P<distanceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array($this, 'getClubRecords'),
 			'args'                => array(

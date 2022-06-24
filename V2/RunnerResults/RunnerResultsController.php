@@ -18,7 +18,7 @@ class RunnerResultsController extends BaseController implements IRoute
 
 	public function registerRoutes()
 	{
-		register_rest_route( $this->namespace, '/results/runner/(?P<runnerId>[\d]+)', array(
+		register_rest_route( $this->route, '/results/runner/(?P<runnerId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this, 'getMemberResults' ),
 			'args'                => array(
@@ -29,7 +29,7 @@ class RunnerResultsController extends BaseController implements IRoute
 				)		
 		) );
 		
-		register_rest_route( $this->namespace, '/results/runner/(?P<runnerId>[\d]+)/personalbests', array(
+		register_rest_route( $this->route, '/results/runner/(?P<runnerId>[\d]+)/personalbests', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this, 'getMemberPBResults' ),
 			'args'                => array(
@@ -40,7 +40,7 @@ class RunnerResultsController extends BaseController implements IRoute
 				)		
 		) );
 		
-		register_rest_route( $this->namespace, '/results/runner/(?P<runnerId>[\d]+)/insights/distance/(?P<distanceId>[\d]+)', array(
+		register_rest_route( $this->route, '/results/runner/(?P<runnerId>[\d]+)/insights/distance/(?P<distanceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this, 'getMemberInsightsRaceDistance' ),
 			'args'                => array(
@@ -55,7 +55,7 @@ class RunnerResultsController extends BaseController implements IRoute
 				)		
 		) );
 		
-		register_rest_route( $this->namespace, '/results/runner/(?P<runnerId>[\d]+)/insights/numberOfRaces', array(
+		register_rest_route( $this->route, '/results/runner/(?P<runnerId>[\d]+)/insights/numberOfRaces', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this, 'getMemberInsightsNumberOfRaces' ),
 			'args'                => array(
@@ -66,7 +66,7 @@ class RunnerResultsController extends BaseController implements IRoute
 			)
 		) );
 		
-		register_rest_route( $this->namespace, '/results/runner/(?P<runnerId>[\d]+)/insights/totalRaceTime', array(
+		register_rest_route( $this->route, '/results/runner/(?P<runnerId>[\d]+)/insights/totalRaceTime', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this, 'getMemberInsightsTotalRaceTime' ),
 			'args'                => array(
@@ -77,7 +77,7 @@ class RunnerResultsController extends BaseController implements IRoute
 				)
 		) );
 							
-		register_rest_route( $this->namespace, '/results/runner/compare', array(
+		register_rest_route( $this->route, '/results/runner/compare', array(
 			'methods'             => \WP_REST_Server::CREATABLE,				
 			'callback'            => array( $this, 'compareMemberRaces' ),
 			'args'                => array(

@@ -18,7 +18,7 @@ class GrandPrixController extends BaseController implements IRoute
 
 	public function registerRoutes()
 	{
-		register_rest_route( $this->namespace, '/results/grandPrix/(?P<year>[\d]{4})/(?P<sexId>[\d]+)', array(
+		register_rest_route( $this->route, '/results/grandPrix/(?P<year>[\d]{4})/(?P<sexId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this, 'getGrandPrixPoints' ),
 			'args'                => array(

@@ -40,4 +40,22 @@ abstract class BaseController
 
         return true;
     }
+
+    protected function isNotNull($value, $request, $key){
+		if ( $value != null ) {
+			return true;
+		} else {
+			return new \WP_Error( 'rest_invalid_param',
+				sprintf( '%s %d must not be null.', $key, $value ), array( 'status' => 400 ) );
+		} 			
+	}
+
+    protected function processDataResponse($response, $queryFunction)
+    {
+        if (is_wp_error($response)) {
+            return $response;
+        }
+
+        return rest_ensure_response($queryFunction($response));
+    }
 }

@@ -40,7 +40,7 @@ class HistoricRecordsController extends BaseController implements IRoute
 
 	public function registerRoutes()
 	{
-		register_rest_route($this->namespace, '/results/historicrecords/distance/(?P<distanceId>[\d]+)', array(
+		register_rest_route($this->route, '/results/historicrecords/distance/(?P<distanceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array($this, 'getHistoricClubRecords'),
 			'args'                => array(
@@ -51,7 +51,7 @@ class HistoricRecordsController extends BaseController implements IRoute
 			)
 		));
 
-		register_rest_route($this->namespace, '/results/historicrecords/category/(?P<categoryId>[\d]+)', array(
+		register_rest_route($this->route, '/results/historicrecords/category/(?P<categoryId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array($this, 'getHistoricClubRecordsByCategory'),
 			'args'                => array(
@@ -157,12 +157,12 @@ class HistoricRecordsController extends BaseController implements IRoute
 		return rest_ensure_response($flattenedRecords);
 	}
 
-	private function isValidCourseTypeForMeasuredDistance($courseTypeId)
+	private function isValidCourseTypeForMeasuredDistance(int $courseTypeId)
 	{
 		return $courseTypeId == null || !in_array($courseTypeId, $this->invalidCourseTypes);
 	}
 
-	private function isStandardDistance($distanceId)
+	private function isStandardDistance(int $distanceId)
 	{
 		return in_array($distanceId, $this->standardDistances);
 	}
