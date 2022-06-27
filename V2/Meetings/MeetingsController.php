@@ -4,7 +4,7 @@ namespace IpswichJAFFARunningClubAPI\V2\Meetings;
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/IRoute.php';
-require_once 'MeetingsDataAccess.php';
+require_once 'MeetingsCommand.php';
 
 use IpswichJAFFARunningClubAPI\V2\BaseController as BaseController;
 use IpswichJAFFARunningClubAPI\V2\IRoute as IRoute;
@@ -13,14 +13,14 @@ class MeetingsController extends BaseController implements IRoute
 {
 	public function __construct(string $route, $db)
 	{
-		parent::__construct($route, new MeetingsDataAccess($db));
+		parent::__construct($route, new MeetingsCommand($db));
 	}
 
 	public function registerRoutes()
 	{
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this, 'getMeetings'),
+			'callback'            => array($this->command, 'getMeetings'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
@@ -31,7 +31,7 @@ class MeetingsController extends BaseController implements IRoute
 
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this, 'getMeeting'),
+			'callback'            => array($this->command, 'getMeeting'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
@@ -46,7 +46,7 @@ class MeetingsController extends BaseController implements IRoute
 
 		register_rest_route($this->route, '/meetings/(?P<meetingId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this, 'getMeetingById'),
+			'callback'            => array($this->command, 'getMeetingById'),
 			'args'                => array(
 				'meetingId'           => array(
 					'required'          => true,
@@ -57,7 +57,7 @@ class MeetingsController extends BaseController implements IRoute
 
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)/races', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this, 'getMeetingRaces'),
+			'callback'            => array($this->command, 'getMeetingRaces'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
@@ -73,7 +73,7 @@ class MeetingsController extends BaseController implements IRoute
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this, 'saveMeeting'),
+			'callback'            => array($this->command, 'saveMeeting'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
@@ -90,7 +90,7 @@ class MeetingsController extends BaseController implements IRoute
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this, 'updateMeeting'),
+			'callback'            => array($this->command, 'updateMeeting'),
 			'args'                => array(
 				'meetingId'           => array(
 					'required'          => true,
@@ -108,7 +108,7 @@ class MeetingsController extends BaseController implements IRoute
 
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
-			'callback'            => array($this, 'deleteMeeting'),
+			'callback'            => array($this->command, 'deleteMeeting'),
 			'permission_callback' => array($this, 'isAuthorized'),
 			'args'                => array(
 				'eventId'           => array(
@@ -122,93 +122,7 @@ class MeetingsController extends BaseController implements IRoute
 			)
 		));
 	}
-
-	public function getMeetings(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->getMeetings($request['eventId']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function getMeeting(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->getMeeting($request['meetingId']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function getMeetingById(\WP_REST_Request $request)
-	{
-		$meeting = $this->dataAccess->getMeetingById($request['meetingId']);
-		$races = $this->dataAccess->getMeetingRaces($request['meetingId']);
-		$teams = $this->dataAccess->getMeetingTeams($request['meetingId']);
-		$results = $this->dataAccess->getMeetingResults($request['meetingId']);
-
-		if ($teams) {
-			foreach ($teams as $team) {
-				$team->results = array();
-				if ($results) {
-					foreach ($results as $result) {
-						if ($team->teamId == $result->teamId) {
-							$team->results[] = $result;
-						}
-					}
-				}
-			}
-		}
-
-		$response = new class($meeting, $races, $teams)
-		{
-
-			public $meeting;
-			public $races;
-			public $teams;
-
-			public function __construct($meeting, $races, $teams)
-			{
-				$this->meeting = $meeting;
-				$this->races = $races;
-				$this->teams = $teams;
-			}
-		};
-
-		return rest_ensure_response($response);
-	}
-
-	public function getMeetingRaces(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->getMeetingRaces($request['meetingId']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function saveMeeting(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->insertMeeting($request['meeting'], $request['eventId']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function updateMeeting(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->updateMeeting($request['meetingId'], $request['field'], $request['value']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function deleteMeeting(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->deleteMeeting($request['meetingId']);
-
-		return rest_ensure_response($response);
-	}
-
+	
 	public function isValidMeetingUpdateField(string $value, \WP_REST_Request $request, string $key)
 	{
 		if ($value == 'from_date' || $value == 'to_date' || $value == 'name') {
