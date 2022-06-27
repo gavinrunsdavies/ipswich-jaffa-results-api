@@ -141,7 +141,7 @@ class StatisticsDataAccess extends DataAccess
             $sql = "SELECT 
                     YEAR(race.date) as year, 
                     MONTH(race.date) as month, 
-                    DATE_FORMAT(race.date, '%%Y-%%m-01') as monthYear, 
+                    DATE_FORMAT(race.date, '%Y-%m-01') as monthYear, 
                     count(r.id) AS count, 
                     COALESCE(sum(case when race.course_type_id IS NULL OR race.course_type_id = 0 then 1 end), 0) as unknown,
                     COALESCE(sum(case when race.course_type_id = 1 then 1 end), 0) as road,
