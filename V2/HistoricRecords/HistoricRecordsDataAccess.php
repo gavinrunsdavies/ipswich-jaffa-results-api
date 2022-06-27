@@ -31,7 +31,7 @@ class HistoricRecordsDataAccess extends DataAccess
             INNER JOIN events e ON e.id = ra.event_id
             INNER JOIN category c ON c.id = r.category_id
             INNER JOIN distance d ON d.id = ra.distance_id
-            WHERE ra.distance_id = %d AND c.id > 0 AND r.performance IS NOT NULL
+            WHERE ra.distance_id = %d AND c.id > 0 AND r.result <> '00:00:00' AND r.result <> ''
             order by category_id asc, ra.date asc, r.performance asc",
             $distanceId
         );
@@ -64,7 +64,7 @@ class HistoricRecordsDataAccess extends DataAccess
             INNER JOIN events e ON e.id = ra.event_id
             INNER JOIN category c ON c.id = r.category_id
             INNER JOIN distance d ON d.id = ra.distance_id
-            WHERE r.category_id = %d AND r.performance IS NOT NULL
+            WHERE r.category_id = %d AND r.result <> '00:00:00' AND r.result <> ''
             order by d.id asc, ra.date asc, r.performance asc",
             $categoryId
         );
