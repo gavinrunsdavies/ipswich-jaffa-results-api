@@ -66,7 +66,7 @@ class RunnerResultsDataAccess extends DataAccess
 
     public function getMemberResults(int $runnerId)
     {
-        $sql = $this->jdb->prepare("select
+        $sql = $this->resultsDatabase->prepare("select
 					  e.id as eventId,
 					  e.name as eventName,
 					  ra.distance_id as distanceId,
@@ -107,7 +107,7 @@ class RunnerResultsDataAccess extends DataAccess
     public function getMemberPBResults(int $runnerId)
     {
 
-        $sql = $this->jdb->prepare("select
+        $sql = $this->resultsDatabase->prepare("select
 					  e.id as eventId,
 					  e.name as eventName,
 					  ra.distance_id as distanceId,

@@ -34,7 +34,7 @@ class RankingsDataAccess extends DataAccess
 
 		$sql = "SET @cnt := 0;";
 
-		$this->jdb->query($sql);
+		$this->resultsDatabase->query($sql);
 
 		$sql = "
 				SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
@@ -104,7 +104,7 @@ class RankingsDataAccess extends DataAccess
 
 		$sql = "SET @cnt := 0;";
 
-		$this->jdb->query($sql);
+		$this->resultsDatabase->query($sql);
 
 		if (!$distinct) {
 			$sql = "
@@ -220,7 +220,7 @@ class RankingsDataAccess extends DataAccess
 
 		$sql = "set @cnt := 0, @runnerId := 0, @rank := 0;";
 
-		$this->jdb->query($sql);
+		$this->resultsDatabase->query($sql);
 		// If no year specificed the query is across all years.
 		// Prior to 2015 it is for calendar year results
 		// In 2015 the membership year changed to be from 1st March

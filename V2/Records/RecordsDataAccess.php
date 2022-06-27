@@ -57,7 +57,7 @@ class RecordsDataAccess extends DataAccess
 
     public function getClubRecords($distanceId)
     {
-        $sql = $this->jdb->prepare("
+        $sql = $this->resultsDatabase->prepare("
 				SELECT d.distance, r.runner_id as runnerId, p.Name as runnerName, e.id as eventId, e.Name as eventName, ra.date, r.result, c.code as categoryCode, ra.id as raceId, ra.description, ra.venue
 				FROM results AS r
                 INNER JOIN race ra ON r.race_id = ra.id

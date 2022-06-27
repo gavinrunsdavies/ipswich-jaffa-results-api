@@ -186,7 +186,7 @@ class RacesDataAccess extends DataAccess
         $results = $this->getRaceResults($raceId);
 
         // Update race distance
-        $success = $this->jdb->update(
+        $success = $this->resultsDatabase->update(
             'race',
             array(
                 'distance_id' => $distanceId,
@@ -223,7 +223,7 @@ class RacesDataAccess extends DataAccess
                 $standardType = $this->getResultStandardTypeId($results[$i]->categoryId, $existingResult, $results[$i]->raceId, $ageGrading2015, $results[$i]->date);
             }
 
-            $success = $this->jdb->update(
+            $success = $this->resultsDatabase->update(
                 'results',
                 array(
                     'personal_best' => $pb,
