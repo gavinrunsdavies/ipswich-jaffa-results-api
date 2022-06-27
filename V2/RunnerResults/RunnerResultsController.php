@@ -54,28 +54,6 @@ class RunnerResultsController extends BaseController implements IRoute
 					)
 				)		
 		) );
-		
-		register_rest_route( $this->route, '/results/runner/(?P<runnerId>[\d]+)/insights/numberOfRaces', array(
-			'methods'             => \WP_REST_Server::READABLE,				
-			'callback'            => array( $this->command, 'getMemberInsightsNumberOfRaces' ),
-			'args'                => array(
-				'runnerId'           => array(
-					'required'          => true,						
-					'validate_callback' => array( $this, 'isValidId' )
-					)	
-			)
-		) );
-		
-		register_rest_route( $this->route, '/results/runner/(?P<runnerId>[\d]+)/insights/totalRaceTime', array(
-			'methods'             => \WP_REST_Server::READABLE,				
-			'callback'            => array( $this->command, 'getMemberInsightsTotalRaceTime' ),
-			'args'                => array(
-				'runnerId'           => array(
-					'required'          => true,						
-					'validate_callback' => array( $this, 'isValidId' )
-					)	
-				)
-		) );
 							
 		register_rest_route( $this->route, '/results/runner/compare', array(
 			'methods'             => \WP_REST_Server::CREATABLE,				
