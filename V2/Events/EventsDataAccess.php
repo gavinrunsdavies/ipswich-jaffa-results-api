@@ -74,26 +74,6 @@ class EventsDataAccess extends DataAccess
     public function mergeEvents(int $fromEventId, int $toEventId)
     {
         $sql = $this->resultsDatabase->prepare(
-            "update results set event_id = %d WHERE event_id = %d",
-            $toEventId,
-            $fromEventId
-        );
-
-        $result = $this->resultsDatabase->query($sql);
-
-        if (is_null($result) || !empty($this->resultsDatabase->last_error)) {
-            return new \WP_Error(
-                __METHOD__,
-                'Unknown error in merging events from the database',
-                array(
-                    'status' => 500,
-                    'last_query' => $this->resultsDatabase->last_query,
-                    'last_error' => $this->resultsDatabase->last_error
-                )
-            );
-        }
-
-        $sql = $this->resultsDatabase->prepare(
             "update race set event_id = %d WHERE event_id = %d",
             $toEventId,
             $fromEventId

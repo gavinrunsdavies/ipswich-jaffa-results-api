@@ -4,7 +4,7 @@ namespace IpswichJAFFARunningClubAPI\V2\Races;
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/IRoute.php';
-require_once 'RacesDataAccess.php';
+require_once 'RacesCommand.php';
 
 use IpswichJAFFARunningClubAPI\V2\BaseController as BaseController;
 use IpswichJAFFARunningClubAPI\V2\IRoute as IRoute;
@@ -13,7 +13,7 @@ class RacesController extends BaseController implements IRoute
 {
 	public function __construct(string $route, $db)
 	{
-		parent::__construct($route, new RacesDataAccess($db));
+		parent::__construct($route, new RacesCommand($db));
 	}
 
 	public function registerRoutes()
@@ -22,13 +22,13 @@ class RacesController extends BaseController implements IRoute
 		register_rest_route($this->route, '/races', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this, 'saveRace')
+			'callback'            => array($this->command, 'saveRace')
 		));
 
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/races', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this, 'saveRace'),
+			'callback'            => array($this->command, 'saveRace'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
@@ -39,7 +39,7 @@ class RacesController extends BaseController implements IRoute
 
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/races', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this, 'getRaces'),
+			'callback'            => array($this->command, 'getRaces'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
@@ -51,7 +51,7 @@ class RacesController extends BaseController implements IRoute
 		// Get Race - two routes
 		register_rest_route($this->route, '/races/(?P<id>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this, 'getRace'),
+			'callback'            => array($this->command, 'getRace'),
 			'args'                 => array(
 				'id'           => array(
 					'required'          => true,
@@ -62,7 +62,7 @@ class RacesController extends BaseController implements IRoute
 
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/races/(?P<id>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this, 'getRace'),
+			'callback'            => array($this->command, 'getRace'),
 			'args'                 => array(
 				'eventId'           => array(
 					'required'          => true,
@@ -79,7 +79,7 @@ class RacesController extends BaseController implements IRoute
 		register_rest_route($this->route, '/races/(?P<id>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this, 'updateRace'),
+			'callback'            => array($this->command, 'updateRace'),
 			'args'                => array(
 				'id'           => array(
 					'required'          => true,
@@ -98,7 +98,7 @@ class RacesController extends BaseController implements IRoute
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/races/(?P<id>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this, 'updateRace'),
+			'callback'            => array($this->command, 'updateRace'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
@@ -121,7 +121,7 @@ class RacesController extends BaseController implements IRoute
 		// Delete race - one route
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/race/(?P<raceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
-			'callback'            => array($this, 'deleteRace'),
+			'callback'            => array($this->command, 'deleteRace'),
 			'permission_callback' => array($this, 'isAuthorized'),
 			'args'                => array(
 				'eventId'           => array(
@@ -134,49 +134,6 @@ class RacesController extends BaseController implements IRoute
 				)
 			)
 		));
-	}
-
-	public function saveRace(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->insertRace($request['race']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function getRaces(\WP_REST_Request $request)
-	{
-		$response = $this->dataAccess->getRaces($request['eventId']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function getRace(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->getRace($request['id']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function updateRace(\WP_REST_Request $request)
-	{
-
-		if ($request['field'] == "distance_id") {
-			$response = $this->dataAccess->updateRaceDistance($request['id'], $request['value']);
-		} else {
-			$response = $this->dataAccess->updateRace($request['id'], $request['field'], $request['value']);
-		}
-
-		return rest_ensure_response($response);
-	}
-
-	public function deleteRace(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->deleteRace($request['raceId'], false);
-
-		return rest_ensure_response($response);
 	}
 
 	public function isValidRaceUpdateField($value, $request, $key)

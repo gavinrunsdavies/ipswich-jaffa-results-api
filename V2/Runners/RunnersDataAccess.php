@@ -86,7 +86,7 @@ class RunnersDataAccess extends DataAccess
 
     public function getStandardCertificates($runnerId)
     {
-        $sql = $this->resultsDatabase->prepare("SELECT st.name, e.name as 'event', d.distance, r.result, DATE_FORMAT( ra.date, '%%M %%e, %%Y' ) as 'date'
+        $sql = $this->resultsDatabase->prepare("SELECT st.name, e.name as 'event', d.distance, r.result, r.performance, DATE_FORMAT( ra.date, '%%M %%e, %%Y' ) as 'date'
 								  FROM standard_certificates sc
 								  INNER JOIN results r ON sc.result_id = r.id
 								  INNER JOIN standard_type st ON r.standard_type_id = st.id

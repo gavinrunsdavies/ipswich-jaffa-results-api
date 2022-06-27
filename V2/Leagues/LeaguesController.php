@@ -4,7 +4,7 @@ namespace IpswichJAFFARunningClubAPI\V2\Leagues;
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/IRoute.php';
-require_once 'LeaguesDataAccess.php';
+require_once 'LeaguesCommand.php';
 
 use IpswichJAFFARunningClubAPI\V2\BaseController as BaseController;
 use IpswichJAFFARunningClubAPI\V2\IRoute as IRoute;
@@ -13,19 +13,19 @@ class LeaguesController extends BaseController implements IRoute
 {
 	public function __construct(string $route, $db)
 	{
-		parent::__construct($route, new LeaguesDataAccess($db));
+		parent::__construct($route, new LeaguesCommand($db));
 	}
 
 	public function registerRoutes()
 	{
 		register_rest_route($this->route, '/leagues', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this, 'getLeagues')
+			'callback'            => array($this->command, 'getLeagues')
 		));
 
 		register_rest_route($this->route, '/leagues/(?P<leagueId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this, 'getLeague'),
+			'callback'            => array($this->command, 'getLeague'),
 			'args'                => array(
 				'leagueId'           => array(
 					'required'          => true,
@@ -37,7 +37,7 @@ class LeaguesController extends BaseController implements IRoute
 		register_rest_route($this->route, '/leagues', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this, 'saveLeague'),
+			'callback'            => array($this->command, 'saveLeague'),
 			'args'                => array(
 				'league'           => array(
 					'required'          => true,
@@ -50,7 +50,7 @@ class LeaguesController extends BaseController implements IRoute
 		register_rest_route($this->route, '/leagues/(?P<leagueId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this, 'updateLeague'),
+			'callback'            => array($this->command, 'updateLeague'),
 			'args'                => array(
 				'leagueId'           => array(
 					'required'          => true,
@@ -68,7 +68,7 @@ class LeaguesController extends BaseController implements IRoute
 
 		register_rest_route($this->route, '/leagues/(?P<leagueId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
-			'callback'            => array($this, 'deleteLeague'),
+			'callback'            => array($this->command, 'deleteLeague'),
 			'permission_callback' => array($this, 'isAuthorized'),
 			'args'                => array(
 				'leagueId'           => array(
@@ -77,46 +77,6 @@ class LeaguesController extends BaseController implements IRoute
 				)
 			)
 		));
-	}
-
-	public function getLeagues(\WP_REST_Request $request)
-	{
-		$response = $this->dataAccess->getLeagues();
-
-		return rest_ensure_response($response);
-	}
-
-	public function getLeague(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->getLeague($request['leagueId']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function saveLeague(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->insertLeague($request['league']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function updateLeague(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->updateLeague($request['leagueId'], $request['field'], $request['value']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function deleteLeague(\WP_REST_Request $request)
-	{
-		$parameters = $request->get_query_params();
-
-		$response = $this->dataAccess->deleteLeague($request['leagueId'], $parameters['deleteRaceAssociations']);
-
-		return rest_ensure_response($response);
 	}
 
 	public function isValidLeagueUpdateField($value, $request, $key)

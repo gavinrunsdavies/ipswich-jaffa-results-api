@@ -6,12 +6,12 @@ abstract class BaseController
 {
     protected $route;
 
-    protected $dataAccess;
+    protected $command;
 
-    public function __construct($route, $dataAccess)
+    public function __construct($route, $command)
     {
         $this->route = $route;
-        $this->dataAccess =  $dataAccess; //new ResultsDataAccess($db);
+        $this->command =  $command;
     }
 
     public function isValidId(string $value, \WP_REST_Request $request, string $key)
@@ -49,13 +49,4 @@ abstract class BaseController
 				sprintf( '%s %d must not be null.', $key, $value ), array( 'status' => 400 ) );
 		} 			
 	}
-
-    protected function processDataResponse($response, $queryFunction)
-    {
-        if (is_wp_error($response)) {
-            return $response;
-        }
-
-        return rest_ensure_response($queryFunction($response));
-    }
 }

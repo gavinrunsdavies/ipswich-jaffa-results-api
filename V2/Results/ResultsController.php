@@ -4,7 +4,7 @@ namespace IpswichJAFFARunningClubAPI\V2\Results;
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/IRoute.php';
-require_once 'ResultsDataAccess.php';
+require_once 'ResultsCommand.php';
 
 use IpswichJAFFARunningClubAPI\V2\BaseController as BaseController;
 use IpswichJAFFARunningClubAPI\V2\IRoute as IRoute;
@@ -13,7 +13,7 @@ class ResultsController extends BaseController implements IRoute
 {
 	public function __construct(string $route, $db)
 	{
-		parent::__construct($route, new ResultsDataAccess($db));
+		parent::__construct($route, new ResultsCommand($db));
 	}
 
 	public function registerRoutes()
@@ -21,13 +21,13 @@ class ResultsController extends BaseController implements IRoute
 		register_rest_route($this->namespace, '/results', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this, 'getResults')
+			'callback'            => array($this->command, 'getResults')
 		));
 
 		register_rest_route($this->namespace, '/results', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this, 'saveResult'),
+			'callback'            => array($this->command, 'saveResult'),
 			'args'                => array(
 				'result'           => array(
 					'required'          => true,
@@ -38,7 +38,7 @@ class ResultsController extends BaseController implements IRoute
 
 		register_rest_route($this->namespace, '/results/(?P<resultId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
-			'callback'            => array($this, 'deleteResult'),
+			'callback'            => array($this->command, 'deleteResult'),
 			'permission_callback' => array($this, 'isAuthorized'),
 			'args'                => array(
 				'resultId'           => array(
@@ -51,7 +51,7 @@ class ResultsController extends BaseController implements IRoute
 		register_rest_route($this->namespace, '/results/(?P<resultId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this, 'updateResult'),
+			'callback'            => array($this->command, 'updateResult'),
 			'args'                => array(
 				'resultId'           => array(
 					'required'          => true,
@@ -70,7 +70,7 @@ class ResultsController extends BaseController implements IRoute
 		// The following may belong in their own controllers	
 		register_rest_route( $this->namespace, '/results/race/(?P<raceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,				
-			'callback'            => array( $this, 'getRaceResults' ),
+			'callback'            => array( $this->command, 'getRaceResults' ),
 			'args'                => array(
 				'raceId'           => array(
 					'required'          => true,						
@@ -81,76 +81,11 @@ class ResultsController extends BaseController implements IRoute
     
         register_rest_route( $this->namespace, '/results/county', array(
 			'methods'             => \WP_REST_Server::READABLE,				
-			'callback'            => array( $this, 'getCountyChampions' )
+			'callback'            => array( $this->command, 'getCountyChampions' )
 		) );
 	}
-
-	public function getResults(\WP_REST_Request $request)
-	{
-		// TODO, eventID, fromDate, toDate and limit. All optional.
-		// Sanitization needed before
-		$parameters = $request->get_query_params();
-		$response = $this->dataAccess->getResults($parameters['eventId'], $parameters['fromDate'], $parameters['toDate'], $parameters['numberOfResults']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function saveResult(\WP_REST_Request $request)
-	{
-		$response = $this->dataAccess->insertResult($request['result']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function deleteResult(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->deleteResult($request['resultId'], false);
-
-		return rest_ensure_response($response);
-	}
-
-	public function updateResult(\WP_REST_Request $request)
-	{
-
-		$response = $this->dataAccess->updateResult($request['resultId'], $request['field'], $request['value']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function getRaceResults( \WP_REST_Request $request ) {
-		$response = $this->dataAccess->getRaceResults($request['raceId']);
-      
-		$pbRunners = array();
-		foreach ($response as $result) {
-		  if (!in_array($result->runnerId, $pbRunners)) {  
-			$pbRunners[] = $result->runnerId;
-		  }
-		}   
-		
-		$runnerIds = implode (", ", $pbRunners);
-		
-		$previousPersonalBestResults = $this->dataAccess->getPreviousPersonalBest($runnerIds, $request['raceId']);
-		
-		foreach ($response as $result) {
-		  foreach ($previousPersonalBestResults as $previousBestResult) {
-			if ($result->runnerId == $previousBestResult->runnerId) {
-			  $result->previousPersonalBestResult = $previousBestResult->previousBest;
-			  break;
-			}
-		  }          
-		}
-		
-		return rest_ensure_response( $response );
-	}	
 	
-  	public function getCountyChampions( \WP_REST_Request $request ) {
-		    $response = $this->dataAccess->getCountyChampions();
-
-			return rest_ensure_response( $response );
-	}
-
-	public function validateResult($result, $request, $key)
+	public function validateResult($result, $request, string $key)
 	{
 		$invalid = false;
 		if (

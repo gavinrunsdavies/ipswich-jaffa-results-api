@@ -35,16 +35,16 @@ class RacesDataAccess extends DataAccess
             l.starting_year as leagueStartingYear, 
             count(r.id) as count, 
             ra.report as report
-				FROM `events` e
-				INNER JOIN `race` ra ON ra.event_id = e.id
-                LEFT JOIN `results` r ON ra.id = r.race_id
-				LEFT JOIN `distance` d ON ra.distance_id = d.id
-				LEFT JOIN `course_type` c ON ra.course_type_id = c.id
-                LEFT JOIN `leagues` l ON ra.league_id = l.id
-                LEFT JOIN `meeting` m ON ra.meeting_id = m.id
-				WHERE e.id = %d
-				GROUP BY ra.id, eventId, name, ra.date, ra.description, courseTypeId, courseType, ra.area, ra.county, countryCode, ra.conditions, ra.venue, d.distance, isGrandPrixRace
-				ORDER BY ra.date DESC, ra.description',
+            FROM `events` e
+            INNER JOIN `race` ra ON ra.event_id = e.id
+            LEFT JOIN `results` r ON ra.id = r.race_id
+            LEFT JOIN `distance` d ON ra.distance_id = d.id
+            LEFT JOIN `course_type` c ON ra.course_type_id = c.id
+            LEFT JOIN `leagues` l ON ra.league_id = l.id
+            LEFT JOIN `meeting` m ON ra.meeting_id = m.id
+            WHERE e.id = %d
+            GROUP BY ra.id, eventId, name, ra.date, ra.description, courseTypeId, courseType, ra.area, ra.county, countryCode, ra.conditions, ra.venue, d.distance, isGrandPrixRace
+            ORDER BY ra.date DESC, ra.description',
             $eventId
         );
 
@@ -57,12 +57,13 @@ class RacesDataAccess extends DataAccess
             'SELECT
 				ra.id,
 				 e.id AS eventId,
-				  e.Name as eventName,
+				  e.name as eventName,
 				   ra.description as description,
 				    ra.date,
 					 ra.course_type_id AS courseTypeId,
 					  c.description AS courseType,
-					   ra.area, ra.county,
+					   ra.area, 
+                       ra.county,
 					    ra.country_code AS countryCode,
 						 ra.conditions,
 						  ra.venue,

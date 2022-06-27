@@ -53,7 +53,7 @@ class MeetingsDataAccess extends DataAccess
     public function getMeetingResults(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
-            'SELECT tr.id as teamId, p.name as runnerName, p.id as runnerId, r.result as runnerResult,
+            'SELECT tr.id as teamId, p.name as runnerName, p.id as runnerId, r.result as runnerResult, r.performance as runnerPerformance,
 				r.position as runnerPosition, trr.order as teamOrder
 				FROM `team_results` tr
 				INNER JOIN `team_results_runners` trr ON tr.id = trr.team_result_id
@@ -92,9 +92,9 @@ class MeetingsDataAccess extends DataAccess
     {
         $sql = $this->resultsDatabase->prepare(
             'SELECT ra.id, ra.date, ra.description, ra.course_type_id as courseTypeId, ra.report as report
-					FROM `race` ra
-					WHERE ra.meeting_id = %d
-					ORDER BY ra.date, ra.description', $meetingId);
+            FROM `race` ra
+            WHERE ra.meeting_id = %d
+            ORDER BY ra.date, ra.description', $meetingId);
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }

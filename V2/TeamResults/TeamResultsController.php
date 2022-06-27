@@ -19,7 +19,7 @@ class TeamResultsController extends BaseController implements IRoute {
 	{										
 		register_rest_route( $this->route, '/team-results/(?P<teamResultId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array( $this, 'getTeamResult' ),
+			'callback'            => array( $this->command, 'getTeamResult' ),
 			'args'                => array(
 				'teamResultId'           => array(
 					'required'          => true,												
@@ -31,7 +31,7 @@ class TeamResultsController extends BaseController implements IRoute {
 		register_rest_route( $this->route, '/team-results', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array( $this, 'isAuthorized' ),
-			'callback'            => array( $this, 'saveTeamResult' ),				
+			'callback'            => array( $this->command, 'saveTeamResult' ),				
 			'args'                => array(
 				'name'           => array(
 					'required'          => true,												
@@ -50,7 +50,7 @@ class TeamResultsController extends BaseController implements IRoute {
 		
 		register_rest_route( $this->route, '/team-results/(?P<teamResultId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
-			'callback'            => array( $this, 'deleteTeamResult' ),
+			'callback'            => array( $this->command, 'deleteTeamResult' ),
 			'permission_callback' => array( $this, 'isAuthorized' ),
 			'args'                => array(
 				'teamResultId'           => array(
@@ -60,31 +60,4 @@ class TeamResultsController extends BaseController implements IRoute {
 				)
 		) );
 	}	
-
-	public function getTeamResult( \WP_REST_Request $request ) {
-	
-		$response = $this->dataAccess->getTeamResult($request['teamResultId']);
-		
-		return $this->processDataResponse($response, function($response) {
-			return $response;
-		});	
-	}
-
-	public function saveTeamResult( \WP_REST_Request $request ) {
-
-		$response = $this->dataAccess->insertTeamResult($request);
-		
-		return $this->processDataResponse($response, function($response) {
-			return $response;
-		});	
-	}
-
-	public function deleteTeamResult( \WP_REST_Request $request ) {
-		
-		$response = $this->dataAccess->deleteTeamResult($request['teamResultId']);
-		
-		return $this->processDataResponse($response, function($response) {
-			return $response;
-		});	
-	}
 }
