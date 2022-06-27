@@ -142,7 +142,8 @@ class RunnerResultsDataAccess extends DataAccess
 						where
 						  r.runner_id = %d
 						  and r.personal_best = 1
-						  and r.performance IS NOT NULL
+						  and r.result != '00:00:00'
+						  and r.result != ''
 						group by ra.distance_id
 					) t on r.result = t.pb and ra.distance_id = t.distanceId
 					where
