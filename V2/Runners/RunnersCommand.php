@@ -18,7 +18,7 @@ class RunnersCommand extends BaseCommand
 
 	public function getRunners(\WP_REST_Request $request)
 	{
-		$loggedIn = $this->isAuthorized($request);
+		$loggedIn = $this->isLoggedInAsEditor($request);
 		$response = $this->dataAccess->getRunners($loggedIn);
 
 		return rest_ensure_response($response);
@@ -109,4 +109,9 @@ class RunnersCommand extends BaseCommand
 			return true;
 		}
 	}
+
+	private function isLoggedInAsEditor()
+    {
+        return (current_user_can('editor') || current_user_can('administrator'));
+    }
 }

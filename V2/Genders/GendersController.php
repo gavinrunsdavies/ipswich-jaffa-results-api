@@ -20,7 +20,6 @@ class GendersController extends BaseController implements IRoute
 	{
 		register_rest_route($this->route, '/genders', array(
 			'methods' => \WP_REST_Server::READABLE,
-			'permission_callback' => array($this, 'isAuthorized'),
 			'callback' => array($this->command, 'getGenders')
 		));
 	}
