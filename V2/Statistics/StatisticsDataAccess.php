@@ -104,7 +104,7 @@ class StatisticsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    public function getResultCountByRunnerByYear(int $year, int $limit)
+    public function getResultCountByRunnerByYear(?int $year, int $limit)
     {
         if ($year > 0) {
             $sql = "SELECT p.id as runnerId, p.name, count(r.id) as count 
@@ -125,7 +125,7 @@ class StatisticsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    public function getClubResultsCount(int $year, int $limit)
+    public function getClubResultsCount(?int $year, int $limit)
     {
         if ($year > 0) {
             $sql = "SELECT e.id as eventId, e.name, race.date, race.description, count(r.id) AS count
