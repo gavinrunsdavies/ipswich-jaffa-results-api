@@ -3,7 +3,7 @@ namespace IpswichJAFFARunningClubAPI\V2\TeamResults;
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V2/BaseController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH .'V2/IRoute.php';
-require_once 'TeamResultsDataAccess.php';
+require_once 'TeamResultsCommand.php';
 
 use IpswichJAFFARunningClubAPI\V2\BaseController as BaseController;
 use IpswichJAFFARunningClubAPI\V2\IRoute as IRoute;
@@ -12,7 +12,7 @@ class TeamResultsController extends BaseController implements IRoute {
 	
 	public function __construct(string $route, $db) 
 	{        
-		parent::__construct($route, new TeamResultsDataAccess($db));
+		parent::__construct($route, new TeamResultsCommand($db));
 	}
 	
 	public function registerRoutes() 
