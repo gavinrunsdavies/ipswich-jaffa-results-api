@@ -18,13 +18,13 @@ class ResultsController extends BaseController implements IRoute
 
 	public function registerRoutes()
 	{
-		register_rest_route($this->namespace, '/results', array(
+		register_rest_route($this->route, '/results', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
 			'callback'            => array($this->command, 'getResults')
 		));
 
-		register_rest_route($this->namespace, '/results', array(
+		register_rest_route($this->route, '/results', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
 			'callback'            => array($this->command, 'saveResult'),
@@ -36,7 +36,7 @@ class ResultsController extends BaseController implements IRoute
 			)
 		));
 
-		register_rest_route($this->namespace, '/results/(?P<resultId>[\d]+)', array(
+		register_rest_route($this->route, '/results/(?P<resultId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
 			'callback'            => array($this->command, 'deleteResult'),
 			'permission_callback' => array($this, 'isAuthorized'),
@@ -48,7 +48,7 @@ class ResultsController extends BaseController implements IRoute
 			)
 		));
 
-		register_rest_route($this->namespace, '/results/(?P<resultId>[\d]+)', array(
+		register_rest_route($this->route, '/results/(?P<resultId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
 			'callback'            => array($this->command, 'updateResult'),
@@ -68,7 +68,7 @@ class ResultsController extends BaseController implements IRoute
 		));
 
 		// The following may belong in their own controllers	
-		register_rest_route( $this->namespace, '/results/race/(?P<raceId>[\d]+)', array(
+		register_rest_route( $this->route, '/results/race/(?P<raceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this->command, 'getRaceResults' ),
 			'args'                => array(
@@ -79,7 +79,7 @@ class ResultsController extends BaseController implements IRoute
 				)
 		) );
     
-        register_rest_route( $this->namespace, '/results/county', array(
+        register_rest_route( $this->route, '/results/county', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this->command, 'getCountyChampions' )
 		) );

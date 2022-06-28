@@ -18,7 +18,7 @@ class RankingsController extends BaseController implements IRoute
 
 	public function registerRoutes()
 	{
-		register_rest_route( $this->namespace, '/results/ranking/distance/(?P<distanceId>[\d]+)', array(
+		register_rest_route( $this->route, '/results/ranking/distance/(?P<distanceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this->command, 'getResultRankings' ),
 			'args'                => array(
@@ -29,12 +29,12 @@ class RankingsController extends BaseController implements IRoute
 				)		
 		) );
 		
-		register_rest_route( $this->namespace, '/results/ranking/averageWMA', array(
+		register_rest_route( $this->route, '/results/ranking/averageWMA', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this->command, 'getAveragePercentageRankings' )
 		) );
 		
-		register_rest_route( $this->namespace, '/results/ranking/wma', array(
+		register_rest_route( $this->route, '/results/ranking/wma', array(
 			'methods'             => \WP_REST_Server::READABLE,				
 			'callback'            => array( $this->command, 'getWMAPercentageRankings' )				
 		) );

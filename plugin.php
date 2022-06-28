@@ -25,7 +25,6 @@ require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Records/RecordsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Results/ResultsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/RunnerResults/RunnerResultsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Runners/RunnersController.php';
-require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Results/ResultsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/RunnerOfTheMonth/RunnerOfTheMonthController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Statistics/StatisticsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/TeamResults/TeamResultsController.php';
