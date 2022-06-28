@@ -113,7 +113,7 @@ class EventsController extends BaseController implements IRoute
 		} else {
 			return new \WP_Error(
 				'rest_invalid_param',
-				sprintf('%s %d must be name or website only.', $key, $value),
+				sprintf('%s %s must be name or website only.', $key, $value),
 				array('status' => 400)
 			);
 		}

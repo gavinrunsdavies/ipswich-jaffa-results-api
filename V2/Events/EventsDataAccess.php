@@ -93,9 +93,7 @@ class EventsDataAccess extends DataAccess
             );
         }
 
-        $this->deleteEvent($fromEventId);
-
-        return true;
+        return $this->deleteEvent($fromEventId);
     }
 
     public function deleteEvent(int $eventId)

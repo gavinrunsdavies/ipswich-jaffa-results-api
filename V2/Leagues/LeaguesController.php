@@ -86,7 +86,7 @@ class LeaguesController extends BaseController implements IRoute
 		} else {
 			return new \WP_Error(
 				'rest_invalid_param',
-				sprintf('%s %d must be name only.', $key, $value),
+				sprintf('%s %s must be name only.', $key, $value),
 				array('status' => 400)
 			);
 		}
@@ -99,7 +99,7 @@ class LeaguesController extends BaseController implements IRoute
 		} else {
 			return new \WP_Error(
 				'rest_invalid_param',
-				sprintf('%s %d invalid.', $key, $value),
+				sprintf('%s %s invalid.', $key, $value),
 				array('status' => 400)
 			);
 		}
