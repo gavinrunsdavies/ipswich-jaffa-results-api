@@ -130,12 +130,12 @@ class HistoricRecordsCommand extends BaseCommand
 		return rest_ensure_response($flattenedRecords);
 	}
 
-	private function isValidCourseTypeForMeasuredDistance(int $courseTypeId)
+	private function isValidCourseTypeForMeasuredDistance(?int $courseTypeId)
 	{
 		return $courseTypeId == null || !in_array($courseTypeId, $this->invalidCourseTypes);
 	}
 
-	private function isStandardDistance(int $distanceId)
+	private function isStandardDistance(?int $distanceId)
 	{
 		return in_array($distanceId, $this->standardDistances);
 	}
