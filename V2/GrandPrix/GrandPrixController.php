@@ -25,10 +25,10 @@ class GrandPrixController extends BaseController implements IRoute
 				'sexId'           => array(
 					'required'          => true,
 					'validate_callback' => array($this, 'isValidId')
+				),
+				'year'           => array(
+					'required'          => true
 				)
-			),
-			'year'           => array(
-				'required'          => true
 			)
 		));
 	}
