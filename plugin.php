@@ -15,6 +15,7 @@ require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/CourseTypes/CourseTypesControll
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Distances/DistancesController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Events/EventsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Genders/GendersController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/GrandPrix/GrandPrixController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/HistoricRecords/HistoricRecordsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Leagues/LeaguesController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Meetings/MeetingsController.php';
@@ -41,6 +42,7 @@ $courseTypesController = new IpswichJAFFARunningClubAPI\V2\CourseTypes\CourseTyp
 $distancesController = new IpswichJAFFARunningClubAPI\V2\Distances\DistancesController($routeV2, $resultsDb);
 $eventsController = new IpswichJAFFARunningClubAPI\V2\Events\EventsController($routeV2, $resultsDb);
 $gendersController = new IpswichJAFFARunningClubAPI\V2\Genders\GendersController($routeV2, $resultsDb);
+$grandPrixController = new IpswichJAFFARunningClubAPI\V2\GrandPrix\GrandPrixController($routeV2, $resultsDb);
 $historicRecordsController = new IpswichJAFFARunningClubAPI\V2\HistoricRecords\HistoricRecordsController($routeV2, $resultsDb);
 $leaguesController = new IpswichJAFFARunningClubAPI\V2\Leagues\LeaguesController($routeV2, $resultsDb);
 $meetingsController = new IpswichJAFFARunningClubAPI\V2\Meetings\MeetingsController($routeV2, $resultsDb);
@@ -65,6 +67,7 @@ add_action('rest_api_init', array($courseTypesController, 'registerRoutes'));
 add_action('rest_api_init', array($distancesController, 'registerRoutes'));
 add_action('rest_api_init', array($eventsController, 'registerRoutes'));
 add_action('rest_api_init', array($gendersController, 'registerRoutes'));
+add_action('rest_api_init', array($grandPrixController, 'registerRoutes'));
 add_action('rest_api_init', array($historicRecordsController, 'registerRoutes'));
 add_action('rest_api_init', array($leaguesController, 'registerRoutes'));
 add_action('rest_api_init', array($meetingsController, 'registerRoutes'));
