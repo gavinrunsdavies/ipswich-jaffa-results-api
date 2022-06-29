@@ -32,3 +32,4 @@ jobs:
           **/.git*
           **/.git*/**          
           Config.php   
+          Tests/**
