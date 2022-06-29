@@ -1,0 +1,451 @@
+{
+	"info": {
+		"_postman_id": "391f146f-3169-f6bd-c0cd-29f7c72deee1",
+		"name": "Ipswich JAFFA Results API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1305764"
+	},
+	"item": [
+		{
+			"name": "V2",
+			"item": [
+				{
+					"name": "Categories",
+					"item": [
+						{
+							"name": "Read categories",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/categories",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"categories"
+									]
+								},
+								"description": "Get events"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "CourseTypes",
+					"item": [
+						{
+							"name": "Read course types",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/coursetypes",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"coursetypes"
+									]
+								},
+								"description": "Get events"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Distances",
+					"item": [
+						{
+							"name": "Read distances",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.globals.set(\"schema\", pm.globals.get(\"distanceReadSchema\"));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/distances",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"distances"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Events",
+					"item": [
+						{
+							"name": "Read events",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.globals.set(\"schema\", pm.globals.get(\"eventReadSchema\"));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events"
+									]
+								},
+								"description": "Get events"
+							},
+							"response": []
+						},
+						{
+							"name": "Read event top attendees",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/203/topAttendees",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"203",
+										"topAttendees"
+									]
+								},
+								"description": "Get events"
+							},
+							"response": []
+						},
+						{
+							"name": "Read event insights",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/203/insights",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"203",
+										"insights"
+									]
+								},
+								"description": "Get events"
+							},
+							"response": []
+						},												
+						{
+							"name": "Create event",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"var loginToken = pm.environment.get(\"loginToken\");",
+											"console.log(\"loginToken: \" +pm.environment.get('loginToken'));",
+											"",
+											"if (loginToken) {",
+											"    // Validate current Token - do we need to login?",
+											"    pm.sendRequest({",
+											"        url: pm.environment.get(\"protocol\")+\"://\"+pm.environment.get(\"host\")+\"/wp-json/jwt-auth/v1/token/validate\",",
+											"        method: 'POST',",
+											"        header: {",
+											"            \"Authorization\": \"Bearer \" + loginToken,",
+											"            \"content-type\": \"application/json\",",
+											"        }",
+											"    }, function (error, response) {",
+											"        if (error) {",
+											"            console.log(\"Token validation error: \" + error);",
+											"            postman.setNextRequest(null);",
+											"        } else if (response.code != 200) {",
+											"            console.log(\"Token validation failed: \" + response.json());",
+											"            postman.setNextRequest(null);",
+											"        } else {",
+											"            console.log(\"Token validation passed.\");",
+											"        }",
+											"    });",
+											"}",
+											"",
+											"if (!loginToken) {",
+											"    // Login and set Bearer Token",
+											"    pm.sendRequest({",
+											"        url: pm.environment.get(\"protocol\")+\"://\"+pm.environment.get(\"host\")+\"/wp-json/jwt-auth/v1/token\",",
+											"        method: 'POST',",
+											"        header: {",
+											"            'content-type': 'application/json',",
+											"        },",
+											"        body: {",
+											"            mode: 'raw',",
+											"            raw: JSON.stringify({ 'username': pm.environment.get(\"username\"), 'password': pm.environment.get(\"password\") })",
+											"        }",
+											"    }, function (error, response) {",
+											"        if (error) {",
+											"            console.log(\"Login request error: \" + error);",
+											"            postman.setNextRequest(null);",
+											"        } else if (response.code != 200) {",
+											"            console.log(\"Login request failed: \" + res.json());",
+											"            postman.setNextRequest(null);",
+											"        } else {",
+											"            console.log(\"Login request passed. Setting authorization bearer token: \" + response.json().token);",
+											"            pm.environment.set(\"loginToken\", response.json().token);",
+											"        }",
+											"    });",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\" : \"Test event. To be deleted.\",\n    \"website\" : \"www.test.co.uk\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}						
+					]
+				}				
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.test(\"Status code is 200\", function () {",
+					"    pm.response.to.have.status(200);",
+					"});",
+					"",
+					"var schema = pm.globals.get(\"schema\");",
+					"if (schema) {",
+					"    const schemaJson = JSON.parse(schema);",
+					"    ",
+					"    pm.test('Schema Validation', function() {",
+					"        ",
+					"        var result = tv4.validateResult(pm.response.json(), schemaJson);",
+					"     ",
+					"        if (!result.valid) {",
+					"            console.log(result);",
+					"        }",
+					"     ",
+					"        pm.expect(result.valid).to.be.true;",
+					"    });",
+					"}"
+				]
+			}
+		}
+	]
+}
