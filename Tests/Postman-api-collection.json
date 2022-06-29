@@ -386,7 +386,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"name\" : \"Test event. To be deleted.\",\n    \"website\" : \"www.test.co.uk\"\n}"
+									"raw": "{\n  \"event\": {  \"name\" : \"Test event. To be deleted.\",\n    \"website\" : \"www.test.co.uk\"\n}}"
 								},
 								"url": {
 									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events",
