@@ -248,7 +248,7 @@ class ResultsDataAccess extends DataAccess
         return $this->getResult($resultId);
     }
 
-    public function getResults(int $eventId, string $fromDate = null, string $toDate = null, int $numberOfResults = null)
+    public function getResults(int $eventId = null, string $fromDate = null, string $toDate = null, int $numberOfResults = null)
     {
         if (empty($eventId)) {
             $whereEvent = '';
