@@ -10,7 +10,7 @@ use IpswichJAFFARunningClubAPI\V2\DataAccess as DataAccess;
 
 class RankingsDataAccess extends DataAccess
 {
-	public function getResultRankings(int $distanceId, int $year = 0, int $sexId = 0, int $categoryId = 0)
+	public function getResultRankings(int $distanceId, ?int $year = 0, ?int $sexId = 0, ?int $categoryId = 0)
 	{
 		if ($year != 0) {
 			$dateQuery1 = "  WHERE ra1.date >= '$year-01-01' and ra1.date <= '$year-12-31'";
@@ -76,7 +76,7 @@ class RankingsDataAccess extends DataAccess
 		return $this->executeResultsQuery(__METHOD__, $sql);
 	}
 
-	public function getWMAPercentageRankings(int $sexId = 0, int $distanceId = 0, int $year = 0, bool $distinct = false)
+	public function getWMAPercentageRankings(?int $sexId = 0, ?int $distanceId = 0, ?int $year = 0, ?bool $distinct = false)
 	{
 		if ($distanceId != 0) {
 			$distanceQuery1 = " AND ra1.distance_id = $distanceId";
@@ -215,7 +215,7 @@ class RankingsDataAccess extends DataAccess
 		return $this->executeResultsQuery(__METHOD__, $sql);
 	}
 
-	public function getAveragePercentageRankings($sexId, $year = 0, $numberOfRaces = 5, $numberOfResults = 200)
+	public function getAveragePercentageRankings(?int $sexId = 2, ?int $year = 0, ?int $numberOfRaces = 5, ?int $numberOfResults = 200)
 	{
 
 		$sql = "set @cnt := 0, @runnerId := 0, @rank := 0;";
