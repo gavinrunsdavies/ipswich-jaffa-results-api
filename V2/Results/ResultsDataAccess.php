@@ -61,36 +61,6 @@ class ResultsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    public function getMemberInsightsRaceDistance(int $distanceId)
-    {
-        $sql = $this->resultsDatabase->prepare("
-        SELECT FLOOR(TIME_TO_SEC(cast(result as TIME))/60) as timeBand, count(r.id) as count 
-        FROM results r 
-        INNER JOIN race a ON a.id = r.race_id 
-        WHERE a.distance_id = %d AND r.result != '00:00:00' AND r.result != '' 
-        GROUP BY TimeBand 
-        ORDER BY TimeBand Asc", $distanceId);
-
-        return $this->executeResultsQuery(__METHOD__, $sql);
-    }
-
-    public function getRunnerDistanceResultMinMaxAverage(int $runnerId, int $distanceId)
-    {
-        $sql = $this->resultsDatabase->prepare("
-        select 
-            MIN(result) as fastest, 
-            MAX(result) as slowest, 
-            SUBSTR(SEC_TO_TIME(AVG(substring(result, 1, 2) * 3600) + (substring(result, 4, 2) * 60) + (substring(result, 7, 2))), 1, 8) as mean 
-        from results r 
-            inner join race a on a.id = r.race_id 
-        where 
-            runner_id = %d 
-            and a.distance_id = %d 
-            and result != '00:00:00'", $runnerId, $distanceId);
-
-        return $this->executeResultQuery(__METHOD__, $sql);
-    }
-
     public function getResult(int $resultId)
     {
         $sql =  $this->resultsDatabase->prepare("SELECT r.id, 0 as 'eventId', r.runner_id as 'runnerId', r.position, ra.date as 'date', r.result as 'time', r.result as 'result', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult',
