@@ -89,7 +89,7 @@ class ResultsController extends BaseController implements IRoute
 	{
 		$invalid = false;
 		if (
-			intval($result['eventId']) < 1 ||
+			intval($result['raceId']) < 1 ||
 			intval($result['runnerId']) < 1 ||
 			intval($result['position']) < 0 ||
 			intval($result['team']) < 0 ||
