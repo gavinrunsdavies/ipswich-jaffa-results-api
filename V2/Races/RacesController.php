@@ -118,7 +118,24 @@ class RacesController extends BaseController implements IRoute
 			)
 		));
 
-		// Delete race - one route
+		// Delete race
+		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/races/(?P<raceId>[\d]+)', array(
+			'methods'             => \WP_REST_Server::DELETABLE,
+			'callback'            => array($this->command, 'deleteRace'),
+			'permission_callback' => array($this, 'isAuthorized'),
+			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId')
+				),
+				'raceId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId'),
+				)
+			)
+		));
+
+		// TODO "race" not "races" in URL
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/race/(?P<raceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
 			'callback'            => array($this->command, 'deleteRace'),
