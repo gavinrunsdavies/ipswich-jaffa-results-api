@@ -78,7 +78,7 @@ class RankingsDataAccess extends DataAccess
 
 	public function getWMAPercentageRankings(?int $sexId = 0, ?int $distanceId = 0, ?int $year = 0, ?bool $distinct = false)
 	{
-		if ($distanceId != 0) {
+		if ($distanceId) {
 			$distanceQuery1 = " AND ra1.distance_id = $distanceId";
 			$distanceQuery2 = " AND ra2.distance_id = $distanceId";
 		} else {
@@ -86,7 +86,7 @@ class RankingsDataAccess extends DataAccess
 			$distanceQuery1 = "";
 		}
 
-		if ($sexId != 0) {
+		if ($sexId) {
 			$sexQuery0 = " AND p.sex_id = $sexId";
 			$sexQuery1 = " AND p2.sex_id = $sexId";
 		} else {
@@ -94,12 +94,13 @@ class RankingsDataAccess extends DataAccess
 			$sexQuery1 = "";
 		}
 
-		if ($year != 0) {
+		if ($year) {
 			$yearQuery1 = " AND YEAR(ra1.date) >= $year AND YEAR(ra1.date) < ($year +1)";
 			$yearQuery2 = " AND YEAR(ra2.date) >= $year AND YEAR(ra2.date) < ($year +1)";
 		} else {
 			$yearQuery1 = "";
 			$yearQuery2 = "";
+			$year = 0; // if null is explicitly passed then default value is not set.
 		}
 
 		$sql = "SET @cnt := 0;";
