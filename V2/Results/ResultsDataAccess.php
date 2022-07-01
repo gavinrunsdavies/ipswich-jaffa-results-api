@@ -84,7 +84,7 @@ class ResultsDataAccess extends DataAccess
     public function updateResult(int $resultId, string $field, string $value)
     {
         // TODO Changing raceId could mean new results generation for PBs etc
-        if ($field == 'info' || $field == 'position' || $field == "scoring_team" || $field == 'race_id') {
+        if ($field == 'info' || $field == 'position' || $field == "scoring_team" || $field == 'race_id' || $field == 'county_champion') {
             return $this->updateEntity(__METHOD__, 'results', $field, $value, $resultId, function ($id) {
                 return $this->getResult($id);
             });
