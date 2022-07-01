@@ -126,7 +126,7 @@ class ResultsController extends BaseController implements IRoute
 	}
 
 	public function isValidResultUpdateField(string $value, $request, string $key){
-		if ( $value == 'info' || $value == 'position' || $value == 'result' || $value == 'grandprix' || $value == 'scoring_team' || $value == 'race_id') {
+		if ( $value == 'info' || $value == 'position' || $value == 'result' || $value == 'scoring_team' || $value == 'race_id') {
 			return true;
 		} else {
 			return new \WP_Error( 'rest_invalid_param',
