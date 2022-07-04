@@ -133,7 +133,8 @@ class RacesDataAccess extends DataAccess
             $field == 'conditions' ||
             $field == 'meeting_id' ||
             $field == 'league_id' ||
-            $field == 'grand_prix'
+            $field == 'grand_prix' ||
+            $field == 'report'
         ) {
             if ($field == 'country_code' && $value != 'GB') {
                 $result = $this->resultsDatabase->update(

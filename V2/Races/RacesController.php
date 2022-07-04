@@ -153,7 +153,7 @@ class RacesController extends BaseController implements IRoute
 		));
 	}
 
-	public function isValidRaceUpdateField($value, $request, $key)
+	public function isValidRaceUpdateField(string $value, $request, string $key)
 	{
 		if (
 			$value == 'event_id' ||
@@ -168,7 +168,8 @@ class RacesController extends BaseController implements IRoute
 			$value == 'conditions' ||
 			$value == 'meeting_id' ||
 			$value == 'league_id' ||
-			$value == 'grand_prix'
+			$value == 'grand_prix' ||
+			$value == 'report'
 		) {
 			return true;
 		} else {
