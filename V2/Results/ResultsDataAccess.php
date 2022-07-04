@@ -185,7 +185,7 @@ class ResultsDataAccess extends DataAccess
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    public function insertResult($result)
+    public function insertResult($result, float $performance)
     {
         $categoryId = $this->getCategoryId($result['runnerId'], $result['date']);
         $pb = 0;
@@ -194,7 +194,7 @@ class ResultsDataAccess extends DataAccess
         $ageGrading = 0;
         $ageGrading2015 = 0;  
 
-        if ($this->isCertificatedCourseAndResult($result['raceId'], $result['performance'])) {
+        if ($this->isCertificatedCourseAndResult($result['raceId'], $performance)) {
             $pb = $this->isPersonalBest($result['raceId'], $result['runnerId'], $result['result'], $result['date']);
 
             $seasonBest = $this->isSeasonBest($result['raceId'], $result['runnerId'], $result['result'], $result['date']);
@@ -213,7 +213,7 @@ class ResultsDataAccess extends DataAccess
 			INSERT INTO results (`result`, `performance`, `info`, `runner_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `scoring_team`, `race_id`, `percentage_grading`, `percentage_grading_2015`)
 			VALUES(%s, %f, %s, %d, %d, %d, %d, %d, %d, %d, %d, %f, %f)',
             $result['result'],
-            $result['performance'],
+            $performance,
             $result['info'],
             $result['runnerId'],
             $result['position'],

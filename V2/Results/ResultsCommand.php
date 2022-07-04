@@ -27,8 +27,8 @@ class ResultsCommand extends BaseCommand
 	public function saveResult(\WP_REST_Request $request)
 	{
 		$seconds = $this->calculateSecondsFromTime($request['result']['result']);
-		$request['result']['performance'] = $seconds;
-		$response = $this->dataAccess->insertResult($request['result']);
+		
+		$response = $this->dataAccess->insertResult($request['result'], $seconds);
 
 		return rest_ensure_response($response);
 	}
