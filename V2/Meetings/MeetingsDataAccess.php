@@ -76,7 +76,7 @@ class MeetingsDataAccess extends DataAccess
 
     public function updateMeeting(int $meetingId, string $field, string $value)
     {
-        return $this->updateEntity(__METHOD__, 'events', $field, $value, $meetingId, function ($id) {
+        return $this->updateEntity(__METHOD__, 'meeting', $field, $value, $meetingId, function ($id) {
 			return $this->getMeeting($id);
 		});
     }
