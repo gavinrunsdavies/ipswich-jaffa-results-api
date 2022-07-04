@@ -95,12 +95,12 @@ class ResultsCommand extends BaseCommand
 				$seconds = $timeExploded[0] * 3600 + $timeExploded[1] * 60 + $timeExploded[2];
 			}
 
-			if (isset($timeExploded[1])) {
-				// hh:mm:ss.mmmm
+			elseif (isset($timeExploded[1])) {
+				// mm:ss.mmmm
 				$seconds = $timeExploded[0] * 60 + $timeExploded[1];
 			}
 			
-			if (isset($timeExploded[0])) {
+			elseif (isset($timeExploded[0])) {
 				// ss.mmmm
 				$seconds = $timeExploded[0];
 			}
