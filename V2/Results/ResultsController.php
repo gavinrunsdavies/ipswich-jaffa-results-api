@@ -92,9 +92,7 @@ class ResultsController extends BaseController implements IRoute
 			intval($result['raceId']) < 1 ||
 			intval($result['runnerId']) < 1 ||
 			intval($result['position']) < 0 ||
-			intval($result['team']) < 0 ||
-			$result['isGrandPrixResult'] < 0 ||
-			$result['isGrandPrixResult'] > 1
+			intval($result['team']) < 0
 		) {
 			$invalid = true;
 		}
@@ -130,7 +128,7 @@ class ResultsController extends BaseController implements IRoute
 			return true;
 		} else {
 			return new \WP_Error( 'rest_invalid_param',
-				sprintf( '%s %s must be info or position or result or grandprix or scoring_team only.', $key, $value ), array( 'status' => 400 ) );
+				sprintf( '%s %s must be info or position or result or scoring_team only.', $key, $value ), array( 'status' => 400 ) );
 		} 			
 	}	
 }

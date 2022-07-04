@@ -63,7 +63,19 @@ class ResultsDataAccess extends DataAccess
 
     public function getResult(int $resultId)
     {
-        $sql =  $this->resultsDatabase->prepare("SELECT r.id, 0 as 'eventId', r.runner_id as 'runnerId', r.position, ra.date as 'date', r.result as 'time', r.result as 'result', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult',
+        $sql =  $this->resultsDatabase->prepare(
+            "SELECT 
+            r.id, 0 as 'eventId',
+            r.runner_id as 'runnerId',
+            r.position,
+            ra.date as 'date',
+            r.result as 'time',
+            r.result as 'result',
+            r.info,           
+            r.standard_type_id as 'standardTypeId',
+            r.category_id as 'categoryId',
+            r.personal_best as 'isPersonalBest',
+            r.season_best as 'isSeasonBest',
 			r.scoring_team as 'team', ra.id as 'raceId', p.sex_id, e.name as 'eventName',
 			CASE
 			   WHEN ra.date >= '%s' THEN r.percentage_grading_2015
@@ -180,7 +192,7 @@ class ResultsDataAccess extends DataAccess
         $seasonBest = 0;
         $standardType = 0;
         $ageGrading = 0;
-        $ageGrading2015 = 0;
+        $ageGrading2015 = 0;  
 
         if ($this->isCertificatedCourseAndResult($result['raceId'], $result['result'])) {
             $pb = $this->isPersonalBest($result['raceId'], $result['runnerId'], $result['result'], $result['date']);
@@ -198,9 +210,10 @@ class ResultsDataAccess extends DataAccess
 
         $sql = $this->resultsDatabase->prepare(
             '
-			INSERT INTO results (`result`, `info`, `runner_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `grandprix`, `scoring_team`, `race_id`, `percentage_grading`, `percentage_grading_2015`)
-			VALUES(%s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %d, %f, %f)',
+			INSERT INTO results (`result`, `performance`, `info`, `runner_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `scoring_team`, `race_id`, `percentage_grading`, `percentage_grading_2015`)
+			VALUES(%s, %f, %s, %d, %d, %d, %d, %d, %d, %d, %d, %f, %f)',
             $result['result'],
+            $result['performance'],
             $result['info'],
             $result['runnerId'],
             $result['position'],
@@ -208,7 +221,6 @@ class ResultsDataAccess extends DataAccess
             $pb,
             $seasonBest,
             $standardType,
-            $result['isGrandPrixResult'],
             $result['team'] != null ? $result['team'] : 0,
             $result['raceId'],
             $ageGrading,
@@ -273,7 +285,7 @@ class ResultsDataAccess extends DataAccess
             $limit = 100;
         }
 
-        $sql = $this->resultsDatabase->prepare("SELECT r.id, ra.event_id as 'eventId', r.runner_id as 'runnerId', r.position, ra.date as 'date', r.result as 'result', r.performance as 'performance', r.info, r.event_division_id as 'eventDivisionId', r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest', r.grandprix as 'isGrandPrixResult',
+        $sql = $this->resultsDatabase->prepare("SELECT r.id, ra.event_id as 'eventId', r.runner_id as 'runnerId', r.position, ra.date as 'date', r.result as 'result', r.performance as 'performance', r.info, r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest',
 			r.scoring_team as 'team',
 			CASE
 			   WHEN ra.date >= '%s' THEN r.percentage_grading_2015
@@ -781,23 +793,23 @@ class ResultsDataAccess extends DataAccess
         $sql = $this->resultsDatabase->prepare(
             'SELECT
 				ra.id,
-				 e.id AS eventId,
-				  e.Name as eventName,
-				   ra.description as description,
-				    ra.date,
-					 ra.course_type_id AS courseTypeId,
-					  c.description AS courseType,
-					   ra.area, ra.county,
-					    ra.country_code AS countryCode,
-						 ra.conditions,
-						  ra.venue,
-						   d.distance,
-						    ra.grand_prix as isGrandPrixRace,
-							 ra.course_number as courseNumber,
-							  ra.league_id as leagueId,
-							   ra.meeting_id as meetingId,
-							    d.result_measurement_unit_type_id as resultMeasurementUnitTypeId,
-                                 ra.report as report
+				e.id AS eventId,
+				e.Name as eventName,
+				ra.description as description,
+				ra.date,
+				ra.course_type_id AS courseTypeId,
+				c.description AS courseType,
+				ra.area, ra.county,
+				ra.country_code AS countryCode,
+				ra.conditions,
+				ra.venue,
+				d.distance,
+				ra.grand_prix as isGrandPrixRace,
+				ra.course_number as courseNumber,
+				ra.league_id as leagueId,
+				ra.meeting_id as meetingId,
+				d.result_measurement_unit_type_id as resultMeasurementUnitTypeId,
+                ra.report as report
 				FROM `events` e
 				INNER JOIN `race` ra ON ra.event_id = e.id
 				LEFT JOIN `distance` d ON ra.distance_id = d.id

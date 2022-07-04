@@ -26,6 +26,8 @@ class ResultsCommand extends BaseCommand
 
 	public function saveResult(\WP_REST_Request $request)
 	{
+		$seconds = $this->calculateSecondsFromTime($request['result']['result']);
+		$request['result']['performance'] = $seconds;
 		$response = $this->dataAccess->insertResult($request['result']);
 
 		return rest_ensure_response($response);
@@ -47,35 +49,63 @@ class ResultsCommand extends BaseCommand
 		return rest_ensure_response($response);
 	}
 
-	public function getRaceResults( \WP_REST_Request $request ) {
+	public function getRaceResults(\WP_REST_Request $request)
+	{
 		$response = $this->dataAccess->getRaceResults($request['raceId']);
-      
+
 		$pbRunners = array();
 		foreach ($response as $result) {
-		  if (!in_array($result->runnerId, $pbRunners)) {  
-			$pbRunners[] = $result->runnerId;
-		  }
-		}   
-		
-		$runnerIds = implode (", ", $pbRunners);
-		
-		$previousPersonalBestResults = $this->dataAccess->getPreviousPersonalBest($runnerIds, $request['raceId']);
-		
-		foreach ($response as $result) {
-		  foreach ($previousPersonalBestResults as $previousBestResult) {
-			if ($result->runnerId == $previousBestResult->runnerId) {
-			  $result->previousPersonalBestResult = $previousBestResult->previousBest;
-			  break;
+			if (!in_array($result->runnerId, $pbRunners)) {
+				$pbRunners[] = $result->runnerId;
 			}
-		  }          
 		}
-		
-		return rest_ensure_response( $response );
-	}	
-	
-  	public function getCountyChampions( \WP_REST_Request $request ) {
-		    $response = $this->dataAccess->getCountyChampions();
 
-			return rest_ensure_response( $response );
-	}	
+		$runnerIds = implode(", ", $pbRunners);
+
+		$previousPersonalBestResults = $this->dataAccess->getPreviousPersonalBest($runnerIds, $request['raceId']);
+
+		foreach ($response as $result) {
+			foreach ($previousPersonalBestResults as $previousBestResult) {
+				if ($result->runnerId == $previousBestResult->runnerId) {
+					$result->previousPersonalBestResult = $previousBestResult->previousBest;
+					break;
+				}
+			}
+		}
+
+		return rest_ensure_response($response);
+	}
+
+	public function getCountyChampions(\WP_REST_Request $request)
+	{
+		$response = $this->dataAccess->getCountyChampions();
+
+		return rest_ensure_response($response);
+	}
+
+	private function calculateSecondsFromTime(string $result) : float
+	{
+		$seconds = 0;
+		if (!empty($result)) {
+
+			$timeExploded = explode(':', $result);
+
+			if (isset($timeExploded[2])) {
+				// hh:mm:ss.mmmm
+				$seconds = $timeExploded[0] * 3600 + $timeExploded[1] * 60 + $timeExploded[2];
+			}
+
+			if (isset($timeExploded[1])) {
+				// hh:mm:ss.mmmm
+				$seconds = $timeExploded[0] * 60 + $timeExploded[1];
+			}
+			
+			if (isset($timeExploded[0])) {
+				// ss.mmmm
+				$seconds = $timeExploded[0];
+			}
+		}
+
+		return $seconds;
+	}
 }
