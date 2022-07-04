@@ -128,7 +128,7 @@ class ResultsController extends BaseController implements IRoute
 			return true;
 		} else {
 			return new \WP_Error( 'rest_invalid_param',
-				sprintf( '%s %s must be info or position or result or scoring_team only.', $key, $value ), array( 'status' => 400 ) );
+				sprintf( '%s %s must be info, position, result, scoring_team, race_id or county_champion only.', $key, $value ), array( 'status' => 400 ) );
 		} 			
 	}	
 }
