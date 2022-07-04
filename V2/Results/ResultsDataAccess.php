@@ -69,7 +69,7 @@ class ResultsDataAccess extends DataAccess
             r.runner_id as 'runnerId',
             r.position,
             ra.date as 'date',
-            r.result as 'time',
+            r.performance as 'performance',
             r.result as 'result',
             r.info,           
             r.standard_type_id as 'standardTypeId',
@@ -194,7 +194,7 @@ class ResultsDataAccess extends DataAccess
         $ageGrading = 0;
         $ageGrading2015 = 0;  
 
-        if ($this->isCertificatedCourseAndResult($result['raceId'], $result['result'])) {
+        if ($this->isCertificatedCourseAndResult($result['raceId'], $result['performance'])) {
             $pb = $this->isPersonalBest($result['raceId'], $result['runnerId'], $result['result'], $result['date']);
 
             $seasonBest = $this->isSeasonBest($result['raceId'], $result['runnerId'], $result['result'], $result['date']);
@@ -456,11 +456,9 @@ class ResultsDataAccess extends DataAccess
         return $result;
     }
 
-    private function isCertificatedCourseAndResult($raceId, $result)
+    private function isCertificatedCourseAndResult(int $raceId, float $performance) : bool
     {
-        // TODO
-        // First determine if a valid event and result to get a PB
-        if ($result == "00:00:00" || $result == "00:00" || $result == "" || $result == null) {
+        if (!isset($performance)) {
             return false;
         }
 
@@ -486,9 +484,9 @@ class ResultsDataAccess extends DataAccess
                 ra1.distance_id = ra2.distance_id AND
                 ra2.id = %d AND
                 ra1.distance_id <> 0 AND
-								r.result != '00:00:00' AND
-                				r.result != '' AND
-								r.result <= '%s' AND
+                r.result != '00:00:00' AND
+                r.result != '' AND
+                r.result <= '%s' AND
                 r.runner_id = %d AND
                 r.race_id <> %d AND
                 ra1.date < '%s' AND
