@@ -10,16 +10,6 @@ use IpswichJAFFARunningClubAPI\V2\DataAccess as DataAccess;
 
 class RunnerResultsDataAccess extends DataAccess
 {
-    public function getRunnerResults()
-    {
-        $sql = 'SELECT id, code, description, sex_id as sexId, default_category as isDefault					 
-			    FROM category
-                WHERE id > 0
-                ORDER BY sex_id, default_category desc, age_greater_equal';
-
-        return $this->executeResultsQuery(__METHOD__, $sql);
-    }
-
     public function getHeadToHeadResults($runnerIds)
     {
         $sql = "select
@@ -76,6 +66,7 @@ class RunnerResultsDataAccess extends DataAccess
 					  ra.id as raceId,
 					  r.position as position,
 					  r.result as result,
+					  r.result as time,
 					  r.performance as performance,
 					  r.personal_best as isPersonalBest,
 					  r.season_best as isSeasonBest,
@@ -118,6 +109,7 @@ class RunnerResultsDataAccess extends DataAccess
 					  ra.id as raceId,
 					  r.position as position,
 					  r.result as result,
+					  r.result as time,
 					  r.performance as performance,
 					  r.info as info,
 					  CASE
