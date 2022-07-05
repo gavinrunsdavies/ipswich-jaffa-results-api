@@ -18,6 +18,7 @@ class ResultsDataAccess extends DataAccess
 			r.id, r.runner_id as 'runnerId',
 			r.position, 
             r.result as 'result',
+            r.result as 'time',
 			r.performance as 'performance',
 			r.info, s.name as standardType,
 			c.code as categoryCode,
@@ -71,6 +72,7 @@ class ResultsDataAccess extends DataAccess
             ra.date as 'date',
             r.performance as 'performance',
             r.result as 'result',
+            r.result as 'time',
             r.info,           
             r.standard_type_id as 'standardTypeId',
             r.category_id as 'categoryId',
@@ -248,7 +250,7 @@ class ResultsDataAccess extends DataAccess
             $limit = 100;
         }
 
-        $sql = $this->resultsDatabase->prepare("SELECT r.id, ra.event_id as 'eventId', r.runner_id as 'runnerId', r.position, ra.date as 'date', r.result as 'result', r.performance as 'performance', r.info, r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest',
+        $sql = $this->resultsDatabase->prepare("SELECT r.id, ra.event_id as 'eventId', r.runner_id as 'runnerId', r.position, ra.date as 'date', r.result as 'time', r.result as 'result', r.performance as 'performance', r.info, r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest',
 			r.scoring_team as 'team',
 			CASE
 			   WHEN ra.date >= '%s' THEN r.percentage_grading_2015
