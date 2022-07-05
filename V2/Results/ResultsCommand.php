@@ -102,7 +102,7 @@ class ResultsCommand extends BaseCommand
 
             $isSeasonBest = $this->dataAccess->isSeasonBest($resultRequest['raceId'], $resultRequest['runnerId'], $performance, $resultRequest['date']);
 
-            $ageGrading = $this->dataAccess->getAgeGrading($resultRequest['result'], $resultRequest['runnerId'], $resultRequest['raceId']);
+            $ageGrading = $this->dataAccess->getAgeGrading($performance, $resultRequest['runnerId'], $resultRequest['raceId']);
 
             if ($resultRequest['date'] >= Rules::START_OF_2015_AGE_GRADING) {
                 $ageGrading2015 = $this->dataAccess->get2015FactorsAgeGrading($performance, $resultRequest['runnerId'], $resultRequest['raceId']);
