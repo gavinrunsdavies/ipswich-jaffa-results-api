@@ -111,14 +111,14 @@ class ResultsDataAccess extends DataAccess
             $ageGrading2015 = 0;
 
             if ($this->isCertificatedCourseAndResult($existingResult->raceId, $newResult)) {
-                $pb = $this->isPersonalBest($existingResult->raceId, $existingResult->runnerId, $newResult, $existingResult->date);
+                $pb = $this->isPersonalBest_Old($existingResult->raceId, $existingResult->runnerId, $newResult, $existingResult->date);
 
-                $seasonBest = $this->isSeasonBest($existingResult->raceId, $existingResult->runnerId, $newResult, $existingResult->date);
+                $seasonBest = $this->isSeasonBest_Old($existingResult->raceId, $existingResult->runnerId, $newResult, $existingResult->date);
 
-                $ageGrading = $this->getAgeGrading($newResult, $existingResult->runnerId, $existingResult->raceId);
+                $ageGrading = $this->getAgeGrading_Old($newResult, $existingResult->runnerId, $existingResult->raceId);
 
                 if ($existingResult->date >= Rules::START_OF_2015_AGE_GRADING) {
-                    $ageGrading2015 = $this->get2015FactorsAgeGrading($newResult, $existingResult->runnerId, $existingResult->raceId);
+                    $ageGrading2015 = $this->get2015FactorsAgeGrading_Old($newResult, $existingResult->runnerId, $existingResult->raceId);
                 }
 
                 $standardType = $this->getResultStandardTypeId($existingResult->categoryId, $newResult, $existingResult->raceId, $ageGrading2015, $existingResult->date);
@@ -185,78 +185,41 @@ class ResultsDataAccess extends DataAccess
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    public function insertResult($result, float $performance)
+    public function insertResult($resultRequest, float $performance, int $categoryId, bool $isPersonalBest, bool $isSeasonBest, int $standardTypeId, float $ageGrading, float $ageGrading2015)
     {
-        $categoryId = $this->getCategoryId($result['runnerId'], $result['date']);
-        $pb = 0;
-        $seasonBest = 0;
-        $standardType = 0;
-        $ageGrading = 0;
-        $ageGrading2015 = 0;  
-
-        if ($this->isCertificatedCourseAndResult($result['raceId'], $performance)) {
-            $pb = $this->isPersonalBest($result['raceId'], $result['runnerId'], $result['result'], $result['date']);
-
-            $seasonBest = $this->isSeasonBest($result['raceId'], $result['runnerId'], $result['result'], $result['date']);
-
-            $ageGrading = $this->getAgeGrading($result['result'], $result['runnerId'], $result['raceId']);
-
-            if ($result['date'] >= Rules::START_OF_2015_AGE_GRADING) {
-                $ageGrading2015 = $this->get2015FactorsAgeGrading($result['result'], $result['runnerId'], $result['raceId']);
-            }
-
-            $standardType = $this->getResultStandardTypeId($categoryId, $result['result'], $result['raceId'], $ageGrading2015, $result['date']);
-        }
-
         $sql = $this->resultsDatabase->prepare(
-            '
-			INSERT INTO results (`result`, `performance`, `info`, `runner_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `scoring_team`, `race_id`, `percentage_grading`, `percentage_grading_2015`)
+            'INSERT INTO results (`result`, `performance`, `info`, `runner_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `scoring_team`, `race_id`, `percentage_grading`, `percentage_grading_2015`)
 			VALUES(%s, %f, %s, %d, %d, %d, %d, %d, %d, %d, %d, %f, %f)',
-            $result['result'],
+            $resultRequest['result'],
             $performance,
-            $result['info'],
-            $result['runnerId'],
-            $result['position'],
+            $resultRequest['info'],
+            $resultRequest['runnerId'],
+            $resultRequest['position'],
             $categoryId,
-            $pb,
-            $seasonBest,
-            $standardType,
-            $result['team'] != null ? $result['team'] : 0,
-            $result['raceId'],
+            $isPersonalBest ? 1 : 0,
+            $isSeasonBest ? 1 : 0,
+            $standardTypeId,
+            $resultRequest['team'] != null ? $resultRequest['team'] : 0,
+            $resultRequest['raceId'],
             $ageGrading,
             $ageGrading2015
         );
 
-        $success = $this->resultsDatabase->query($sql);
+        $result = $this->resultsDatabase->query($sql);
 
-        if ($success === FALSE) {
+        if (is_null($result) || !empty($this->resultsDatabase->last_error)) {
             return new \WP_Error(
                 __METHOD__,
-                'Unknown error in inserting results in to the database : ',
-                array('status' => 500, 'sql' => $sql)
+                'Unknown error in inserting entity in to the database',
+                array(
+                    'status' => 500,
+                    'last_query' => $this->resultsDatabase->last_query,
+                    'last_error' => $this->resultsDatabase->last_error
+                )
             );
         }
 
-        // Get the ID of the inserted event
-        $resultId = $this->resultsDatabase->insert_id;
-
-        if ($ageGrading > 0) {
-            // TODO check response for number of results
-            $this->updatePercentageGradingPersonalBest($resultId, $result['runnerId'], $result['date']);
-
-            $isNewStandard = $this->isNewStandard($resultId);
-
-            if ($isNewStandard) {
-                $this->saveStandardCertificate($resultId);
-            }
-        }
-
-        // If a PB query to see whether a new certificate is required and if we need to re-evaluate later PB
-        if ($pb) {
-            $this->checkAndUpdatePersonalBest($result['runnerId']);
-        }
-
-        return $this->getResult($resultId);
+        return $this->resultsDatabase->insert_id;
     }
 
     public function getResults(int $eventId = null, string $fromDate = null, string $toDate = null, int $numberOfResults = null)
@@ -318,7 +281,7 @@ class ResultsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    private function getResultStandardTypeId($catgeoryId, $result, $raceId, $percentageGrading2015, $resultDate)
+    public function getResultStandardTypeId(int $catgeoryId, string $resultInHourMinutesSeconds, int $raceId, float $percentageGrading2015, string $resultDate) : int
     {
         if ($percentageGrading2015 > 0 && $resultDate >= Rules::START_OF_2015_AGE_GRADING) {
             if ($percentageGrading2015 >= 86) {
@@ -352,7 +315,7 @@ class ResultsDataAccess extends DataAccess
             }
         }
 
-        return $this->getStarStandardTypeIdBefore2015($catgeoryId, $result, $raceId);
+        return $this->getStarStandardTypeIdBefore2015($catgeoryId, $resultInHourMinutesSeconds, $raceId);
     }
 
     private function getStarStandardTypeIdBefore2015(int $catgeoryId, string $resultInHourMinutesSeconds, int $raceId)
@@ -384,9 +347,8 @@ class ResultsDataAccess extends DataAccess
         return $standard;
     }
 
-    private function getAgeGrading(string $result, int $runnerId, int $raceId)
+    private function getAgeGrading_Old(string $result, int $runnerId, int $raceId)
     {
-
         $sql = $this->resultsDatabase->prepare("
 			select
 			CASE
@@ -420,7 +382,67 @@ class ResultsDataAccess extends DataAccess
         return $result;
     }
 
-    private function get2015FactorsAgeGrading(string $result, int $runnerId, int $raceId)
+    public function getAgeGrading(float $performance, int $runnerId, int $raceId)
+    {
+        $sql = $this->resultsDatabase->prepare("
+			select			
+			ROUND((record.record * 100) / (%f * grade.grading_percentage), 2) as percentageGrading
+			FROM
+			 wma_age_grading grade
+			 INNER JOIN wma_records record ON grade.distance_id = record.distance_id
+			 INNER JOIN distance d ON record.distance_id = d.id
+			 INNER JOIN race race ON d.id = race.distance_id,
+			 runners p
+            WHERE
+            race.id = %d 
+            AND p.id = %d
+			AND p.dob <> '0000-00-00'
+			AND p.dob IS NOT NULL
+			AND grade.age = (YEAR(race.date) - YEAR(p.dob) - IF(DATE_FORMAT(p.dob, '%%j') > DATE_FORMAT(race.date, '%%j'), 1, 0))
+			AND grade.sex_id = p.sex_id
+			AND grade.sex_id = record.sex_id
+			", $performance, $raceId, $runnerId);
+
+        $result = $this->resultsDatabase->get_var($sql);
+
+        if ($result === false) {
+            return 0;
+        }
+
+        return $result;
+    }
+
+    public function get2015FactorsAgeGrading(float $performance, int $runnerId, int $raceId)
+    {
+        $sql = $this->resultsDatabase->prepare("
+			select
+			ROUND((record.record * 100) / (%f * grade.grading_percentage), 2) as percentageGrading
+			FROM
+			 wma_age_grading_2015 grade
+			 INNER JOIN wma_records_2015 record ON grade.distance_id = record.distance_id
+			 INNER JOIN distance d ON record.distance_id = d.id
+			 INNER JOIN race race ON d.id = race.distance_id AND race.course_type_id = grade.course_type_id	AND race.course_type_id = record.course_type_id,
+			 runners p
+			WHERE
+			race.id = %d
+			AND p.id = %d
+			AND p.dob <> '0000-00-00'
+			AND p.dob IS NOT NULL
+			AND grade.age = (YEAR(race.date) - YEAR(p.dob) - IF(DATE_FORMAT(p.dob, '%%j') > DATE_FORMAT(race.date, '%%j'), 1, 0))
+			AND grade.sex_id = p.sex_id
+			AND grade.sex_id = record.sex_id
+			", $performance, $raceId, $runnerId);
+
+        $result = $this->resultsDatabase->get_var($sql);
+
+        if ($result === false) {
+            return 0;
+        }
+
+        return $result;
+    }
+
+    private function get2015FactorsAgeGrading_Old(string $result, int $runnerId, int $raceId)
     {
 
         $sql = $this->resultsDatabase->prepare("
@@ -467,7 +489,49 @@ class ResultsDataAccess extends DataAccess
         return $race && $race->distance != null && in_array($race->courseTypeId, array(1, 3, 6));
     }
 
-    private function isPersonalBest($raceId, $runnerId, $result, $date)
+    public function isPersonalBest(int $raceId, int $runnerId, float $performance, string $date) : bool
+    {
+        $sql = $this->resultsDatabase->prepare(
+            "select
+                count(r.id)
+                from
+                race ra1,
+                race ra2,
+                results r
+                where
+                ra1.id = r.race_id AND
+                ra1.distance_id = ra2.distance_id AND
+                ra2.id = %d AND
+                ra1.distance_id <> 0 AND
+                r.performance != 0 AND
+                r.performance IS NOT NULL AND
+                r.performance <= %f AND
+                r.runner_id = %d AND
+                r.race_id <> %d AND
+                ra1.date < '%s' AND
+                ra1.course_type_id IN (%d, %d, %d) AND
+                ra2.course_type_id IN (%d, %d, %d)
+                ORDER BY result
+                LIMIT 1",
+            $raceId,
+            $performance,
+            $runnerId,
+            $raceId,
+            $date,
+            CourseTypes::ROAD,
+            CourseTypes::TRACK,
+            CourseTypes::INDOOR,
+            CourseTypes::ROAD,
+            CourseTypes::TRACK,
+            CourseTypes::INDOOR
+        );
+
+        $count = $this->resultsDatabase->get_var($sql);
+
+        return ($count == 0);
+    }
+
+    private function isPersonalBest_Old($raceId, $runnerId, $result, $date)
     {
         // TODO
         // IF the latest result check all (previous) results
@@ -512,7 +576,7 @@ class ResultsDataAccess extends DataAccess
         return ($count == 0);
     }
 
-    private function checkAndUpdatePersonalBest(int $resultId)
+    public function checkAndUpdatePersonalBestResults(int $resultId)
     {
         // If no later PBs, nothing to do
         // If a later PB (at distance) reset
@@ -605,7 +669,7 @@ class ResultsDataAccess extends DataAccess
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    private function updatePercentageGradingPersonalBest($resultId, $runnerId, $date)
+    public function updatePercentageGradingPersonalBest(int $resultId, int $runnerId, string $date)
     {
         // IF the latest result check all results
         // ELSE reset all for valid result (e.g. grading > 0)
@@ -691,7 +755,7 @@ class ResultsDataAccess extends DataAccess
         return true;
     }
 
-    private function isSeasonBest(int $raceId, int $runnerId, string $result, string $date)
+    public function isSeasonBest(int $raceId, int $runnerId, string $result, string $date) : bool
     {
         $sql = $this->resultsDatabase->prepare(
             "select
@@ -735,7 +799,51 @@ class ResultsDataAccess extends DataAccess
         return ($count == 0);
     }
 
-    private function isNewStandard(int $resultId)
+    private function isSeasonBest_Old(int $raceId, int $runnerId, string $result, string $date)
+    {
+        $sql = $this->resultsDatabase->prepare(
+            "select
+                count(r.id)
+                from
+                race ra,
+                race ra2,
+                results r
+                where
+                ra.id = r.race_id AND
+                ra.distance_id = ra2.distance_id AND
+                ra2.id = %d AND
+                ra.distance_id <> 0 AND
+								r.result != '00:00:00' AND
+                                r.result != '' AND
+								r.result <= %s AND
+                r.runner_id = %d AND
+                YEAR(ra.date) = YEAR('%s') AND
+                ra.date < '%s' AND
+                r.race_id <> %d AND
+                ra.course_type_id IN (%d, %d, %d) AND
+                ra2.course_type_id IN (%d, %d, %d)
+                ORDER BY result
+                LIMIT 1",
+            $raceId,
+            $result,
+            $runnerId,
+            $date,
+            $date,
+            $raceId,
+            CourseTypes::ROAD,
+            CourseTypes::TRACK,
+            CourseTypes::INDOOR,
+            CourseTypes::ROAD,
+            CourseTypes::TRACK,
+            CourseTypes::INDOOR
+        );
+
+        $count = $this->resultsDatabase->get_var($sql);
+
+        return ($count == 0);
+    }
+
+    public function isNewStandard(int $resultId) : bool
     {
         // 7 Star standards - from January 1st 2017
         // -- Match results of the same runner
@@ -764,14 +872,14 @@ class ResultsDataAccess extends DataAccess
         return ($count == 0);
     }
 
-    private function saveStandardCertificate(int $resultId)
+    public function saveStandardCertificate(int $resultId)
     {
         $sql = $this->resultsDatabase->prepare("insert into standard_certificates set result_id=%d, issued = 0", $resultId);
 
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    private function getCategoryId(int $runnerId, string $date)
+    public function getCategoryId(int $runnerId, string $date) : int
     {
         $sql = $this->resultsDatabase->prepare("select c.id
 					FROM
@@ -785,7 +893,7 @@ class ResultsDataAccess extends DataAccess
         return $this->resultsDatabase->get_var($sql);
     }
 
-    private function getRace(int $raceId)
+    public function getRace(int $raceId)
     {
 
         $sql = $this->resultsDatabase->prepare(
