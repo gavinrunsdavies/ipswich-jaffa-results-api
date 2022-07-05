@@ -3,7 +3,9 @@
 Plugin Name: Ipswich JAFFA RC Results WP REST API
 */
 
-if (!defined('ABSPATH')) die('restricted access');
+if (!defined('ABSPATH')) {
+    die('restricted access');
+}
 
 define('IPSWICH_JAFFA_API_PLUGIN_PATH', plugin_dir_path(__FILE__));
 
