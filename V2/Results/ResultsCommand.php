@@ -134,7 +134,7 @@ class ResultsCommand extends BaseCommand
 				'position' => $existingResult->position,
 				'info' => $existingResult->info,
 				'team' => $existingResult->team);
-			$this->insertResult($resultRequest);			
+			return $this->insertResult($resultRequest);			
 		}
 	}
 
