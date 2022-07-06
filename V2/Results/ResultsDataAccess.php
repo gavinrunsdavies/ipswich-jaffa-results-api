@@ -103,8 +103,8 @@ class ResultsDataAccess extends DataAccess
 
     public function updateResult(int $resultId, string $field, string $value)
     {
-        return $this->dataAccess->updateEntity(__METHOD__, 'results', $field, $value, $resultId, function ($id) {
-            return $this->dataAccess->getResult($id);
+        return $this->updateEntity(__METHOD__, 'results', $field, $value, $resultId, function ($id) {
+            return $this->getResult($id);
         });
     }
 
@@ -418,7 +418,7 @@ class ResultsDataAccess extends DataAccess
 			pbResult.runner_id = laterResults.runner_id AND
 			pbResult.race_id = pbRace.id AND
 			laterResults.race_id = laterRaces.id AND
-			ralaterRacesce2.date > pbRace.date AND
+			laterRaces.date > pbRace.date AND
 			pbRace.distance_id = laterRaces.distance_id",
             $resultId
         );
