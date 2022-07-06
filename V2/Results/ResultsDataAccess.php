@@ -78,7 +78,10 @@ class ResultsDataAccess extends DataAccess
             r.category_id as 'categoryId',
             r.personal_best as 'isPersonalBest',
             r.season_best as 'isSeasonBest',
-			r.scoring_team as 'team', ra.id as 'raceId', p.sex_id, e.name as 'eventName',
+			r.scoring_team as 'team', 
+            ra.id as 'raceId', 
+            p.sex_id, 
+            e.name as 'eventName',
 			CASE
 			   WHEN ra.date >= '%s' THEN r.percentage_grading_2015
 			   ELSE r.percentage_grading
@@ -93,91 +96,6 @@ class ResultsDataAccess extends DataAccess
 			ORDER BY ra.date DESC, ra.id, r.position ASC, r.result ASC", Rules::START_OF_2015_AGE_GRADING, $resultId);
 
         return $this->executeResultQuery(__METHOD__, $sql);
-    }
-
-    public function updateResult(int $resultId, string $field, string $value)
-    {
-        // TODO Changing raceId could mean new results generation for PBs etc
-        if ($field == 'info' || $field == 'position' || $field == "scoring_team" || $field == 'race_id' || $field == 'county_champion') {
-            return $this->updateEntity(__METHOD__, 'results', $field, $value, $resultId, function ($id) {
-                return $this->getResult($id);
-            });
-        } else if ($field == 'result') {
-            // Update result, percentage grading and standard
-            $existingResult = $this->getResult($resultId);
-            $newResult = $value;
-            $pb = 0;
-            $seasonBest = 0;
-            $standardType = 0;
-            $ageGrading = 0;
-            $ageGrading2015 = 0;
-
-            if ($this->isCertificatedCourseAndResult($existingResult->raceId, $newResult)) {
-                $pb = $this->isPersonalBest_Old($existingResult->raceId, $existingResult->runnerId, $newResult, $existingResult->date);
-
-                $seasonBest = $this->isSeasonBest_Old($existingResult->raceId, $existingResult->runnerId, $newResult, $existingResult->date);
-
-                $ageGrading = $this->getAgeGrading_Old($newResult, $existingResult->runnerId, $existingResult->raceId);
-
-                if ($existingResult->date >= Rules::START_OF_2015_AGE_GRADING) {
-                    $ageGrading2015 = $this->get2015FactorsAgeGrading_Old($newResult, $existingResult->runnerId, $existingResult->raceId);
-                }
-
-                $standardType = $this->getResultStandardTypeId($existingResult->categoryId, $newResult, $existingResult->raceId, $ageGrading2015, $existingResult->date);
-            }
-
-            $result = $this->resultsDatabase->update(
-                'results',
-                array(
-                    'result' => $value,
-                    'personal_best' => $pb,
-                    'season_best' => $seasonBest,
-                    'standard_type_id' => $standardType,
-                    'percentage_grading' => $ageGrading,
-                    'percentage_grading_2015' => $ageGrading2015,
-                ),
-                array('id' => $resultId),
-                array(
-                    '%s',
-                    '%d',
-                    '%d',
-                    '%d',
-                    '%f',
-                    '%f',
-                ),
-                array('%d')
-            );
-
-            if ($result !== false) {
-                if ($ageGrading > 0) {
-                    // TODO check response for number of results
-                    $response = $this->updatePercentageGradingPersonalBest($resultId, $existingResult->runnerId, $existingResult->date);
-                    if (!$response) {
-                        return $response;
-                    }
-
-                    $isNewStandard = $this->isNewStandard($resultId);
-
-                    if ($isNewStandard) {
-                        $this->saveStandardCertificate($resultId);
-                    }
-                }
-
-                return $this->getResult($resultId);
-            }
-
-            return new \WP_Error(
-                __METHOD__,
-                'Unknown error in updating result in to the database',
-                array('status' => 500, 'code' => 002)
-            );
-        }
-
-        return new \WP_Error(
-            __METHOD__,
-            'Field in result may not be updated',
-            array('status' => 500, 'code' => 003)
-        );
     }
 
     public function deleteResult(int $resultId)
@@ -349,41 +267,6 @@ class ResultsDataAccess extends DataAccess
         return $standard;
     }
 
-    private function getAgeGrading_Old(string $result, int $runnerId, int $raceId)
-    {
-        $sql = $this->resultsDatabase->prepare("
-			select
-			CASE
-				WHEN d.result_measurement_unit_type_id >= 2 THEN
-				 (ROUND((record.record * 100) / ('%s' * grade.grading_percentage), 2))
-				ELSE
-				  (ROUND((record.record * 100) / (((substring('%s', 1, 2) * 3600) +  (substring('%s', 4, 2) * 60) + (substring('%s', 7, 2))) * grade.grading_percentage), 2))
-			END as percentageGrading
-			FROM
-			 wma_age_grading grade
-			 INNER JOIN wma_records record ON grade.distance_id = record.distance_id
-			 INNER JOIN distance d ON record.distance_id = d.id
-			 INNER JOIN race race ON d.id = race.distance_id,
-			 runners p
-            WHERE
-            race.id = %d 
-            AND p.id = %d
-			AND p.dob <> '0000-00-00'
-			AND p.dob IS NOT NULL
-			AND grade.age = (YEAR(race.date) - YEAR(p.dob) - IF(DATE_FORMAT(p.dob, '%%j') > DATE_FORMAT(race.date, '%%j'), 1, 0))
-			AND grade.sex_id = p.sex_id
-			AND grade.sex_id = record.sex_id
-			", $result, $result, $result, $result, $raceId, $runnerId);
-
-        $result = $this->resultsDatabase->get_var($sql);
-
-        if ($result === false) {
-            return 0;
-        }
-
-        return $result;
-    }
-
     public function getAgeGrading(float $performance, int $runnerId, int $raceId)
     {
         $sql = $this->resultsDatabase->prepare("
@@ -444,53 +327,6 @@ class ResultsDataAccess extends DataAccess
         return $result;
     }
 
-    private function get2015FactorsAgeGrading_Old(string $result, int $runnerId, int $raceId)
-    {
-
-        $sql = $this->resultsDatabase->prepare("
-			select
-			CASE
-				WHEN d.result_measurement_unit_type_id >= 2 THEN
-				 (ROUND((record.record * 100) / ('%s' * grade.grading_percentage), 2))
-				ELSE
-				  (ROUND((record.record * 100) / (((substring('%s', 1, 2) * 3600) +  (substring('%s', 4, 2) * 60) + (substring('%s', 7, 2))) * grade.grading_percentage), 2))
-			END as percentageGrading
-			FROM
-			 wma_age_grading_2015 grade
-			 INNER JOIN wma_records_2015 record ON grade.distance_id = record.distance_id
-			 INNER JOIN distance d ON record.distance_id = d.id
-			 INNER JOIN race race ON d.id = race.distance_id AND race.course_type_id = grade.course_type_id	AND race.course_type_id = record.course_type_id,
-			 runners p
-			WHERE
-			race.id = %d
-			AND p.id = %d
-			AND p.dob <> '0000-00-00'
-			AND p.dob IS NOT NULL
-			AND grade.age = (YEAR(race.date) - YEAR(p.dob) - IF(DATE_FORMAT(p.dob, '%%j') > DATE_FORMAT(race.date, '%%j'), 1, 0))
-			AND grade.sex_id = p.sex_id
-			AND grade.sex_id = record.sex_id
-			", $result, $result, $result, $result, $raceId, $runnerId);
-
-        $result = $this->resultsDatabase->get_var($sql);
-
-        if ($result === false) {
-            return 0;
-        }
-
-        return $result;
-    }
-
-    private function isCertificatedCourseAndResult(int $raceId, float $performance) : bool
-    {
-        if (!isset($performance)) {
-            return false;
-        }
-
-        $race = $this->getRace($raceId);
-
-        return $race && $race->distance != null && in_array($race->courseTypeId, array(1, 3, 6));
-    }
-
     public function isPersonalBest(int $raceId, int $runnerId, float $performance, string $date) : bool
     {
         $sql = $this->resultsDatabase->prepare(
@@ -517,51 +353,6 @@ class ResultsDataAccess extends DataAccess
                 LIMIT 1",
             $raceId,
             $performance,
-            $runnerId,
-            $raceId,
-            $date,
-            CourseTypes::ROAD,
-            CourseTypes::TRACK,
-            CourseTypes::INDOOR,
-            CourseTypes::ROAD,
-            CourseTypes::TRACK,
-            CourseTypes::INDOOR
-        );
-
-        $count = $this->resultsDatabase->get_var($sql);
-
-        return ($count == 0);
-    }
-
-    private function isPersonalBest_Old($raceId, $runnerId, $result, $date)
-    {
-        // TODO
-        // IF the latest result check all (previous) results
-        // ELSE reset all for valid result (e.g. course type, result)
-        $sql = $this->resultsDatabase->prepare(
-            "select
-                count(r.id)
-                from
-                race ra1,
-                race ra2,
-                results r
-                where
-                ra1.id = r.race_id AND
-                ra1.distance_id = ra2.distance_id AND
-                ra2.id = %d AND
-                ra1.distance_id <> 0 AND
-                r.result != '00:00:00' AND
-                r.result != '' AND
-                r.result <= '%s' AND
-                r.runner_id = %d AND
-                r.race_id <> %d AND
-                ra1.date < '%s' AND
-                ra1.course_type_id IN (%d, %d, %d) AND
-                ra2.course_type_id IN (%d, %d, %d)
-								ORDER BY result
-								LIMIT 1",
-            $raceId,
-            $result,
             $runnerId,
             $raceId,
             $date,
@@ -758,50 +549,6 @@ class ResultsDataAccess extends DataAccess
     }
 
     public function isSeasonBest(int $raceId, int $runnerId, string $result, string $date) : bool
-    {
-        $sql = $this->resultsDatabase->prepare(
-            "select
-                count(r.id)
-                from
-                race ra,
-                race ra2,
-                results r
-                where
-                ra.id = r.race_id AND
-                ra.distance_id = ra2.distance_id AND
-                ra2.id = %d AND
-                ra.distance_id <> 0 AND
-								r.result != '00:00:00' AND
-                                r.result != '' AND
-								r.result <= %s AND
-                r.runner_id = %d AND
-                YEAR(ra.date) = YEAR('%s') AND
-                ra.date < '%s' AND
-                r.race_id <> %d AND
-                ra.course_type_id IN (%d, %d, %d) AND
-                ra2.course_type_id IN (%d, %d, %d)
-                ORDER BY result
-                LIMIT 1",
-            $raceId,
-            $result,
-            $runnerId,
-            $date,
-            $date,
-            $raceId,
-            CourseTypes::ROAD,
-            CourseTypes::TRACK,
-            CourseTypes::INDOOR,
-            CourseTypes::ROAD,
-            CourseTypes::TRACK,
-            CourseTypes::INDOOR
-        );
-
-        $count = $this->resultsDatabase->get_var($sql);
-
-        return ($count == 0);
-    }
-
-    private function isSeasonBest_Old(int $raceId, int $runnerId, string $result, string $date)
     {
         $sql = $this->resultsDatabase->prepare(
             "select

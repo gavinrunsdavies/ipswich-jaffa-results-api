@@ -21,13 +21,13 @@ class ResultsController extends BaseController implements IRoute
 		register_rest_route($this->route, '/results', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this->command, 'getResults')
+			'callback'            => array($this, 'getResults')
 		));
 
 		register_rest_route($this->route, '/results', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this->command, 'saveResult'),
+			'callback'            => array($this, 'saveResult'),
 			'args'                => array(
 				'result'           => array(
 					'required'          => true,
@@ -38,7 +38,7 @@ class ResultsController extends BaseController implements IRoute
 
 		register_rest_route($this->route, '/results/(?P<resultId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
-			'callback'            => array($this->command, 'deleteResult'),
+			'callback'            => array($this, 'deleteResult'),
 			'permission_callback' => array($this, 'isAuthorized'),
 			'args'                => array(
 				'resultId'           => array(
@@ -51,7 +51,7 @@ class ResultsController extends BaseController implements IRoute
 		register_rest_route($this->route, '/results/(?P<resultId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this->command, 'updateResult'),
+			'callback'            => array($this, 'updateResult'),
 			'args'                => array(
 				'resultId'           => array(
 					'required'          => true,
@@ -70,7 +70,7 @@ class ResultsController extends BaseController implements IRoute
 		// The following may belong in their own controllers	
 		register_rest_route( $this->route, '/results/race/(?P<raceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,				
-			'callback'            => array( $this->command, 'getRaceResults' ),
+			'callback'            => array( $this, 'getRaceResults' ),
 			'args'                => array(
 				'raceId'           => array(
 					'required'          => true,						
@@ -81,8 +81,53 @@ class ResultsController extends BaseController implements IRoute
     
         register_rest_route( $this->route, '/results/county', array(
 			'methods'             => \WP_REST_Server::READABLE,				
-			'callback'            => array( $this->command, 'getCountyChampions' )
+			'callback'            => array( $this, 'getCountyChampions' )
 		) );
+	}
+
+	public function getResults(\WP_REST_Request $request)
+	{
+		// TODO, eventID, fromDate, toDate and limit. All optional.
+		// Sanitization needed before
+		$parameters = $request->get_query_params();
+		$response = $this->command->getResults($parameters['eventId'], $parameters['fromDate'], $parameters['toDate'], $parameters['numberOfResults']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function saveResult(\WP_REST_Request $request)
+	{
+		$response = $this->command->insertResult($request['result']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function deleteResult(\WP_REST_Request $request)
+	{
+		$response = $this->command->deleteResult($request['resultId']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function updateResult(\WP_REST_Request $request)
+	{
+		$response = $this->command->updateResult($request['resultId'], $request['field'], $request['value']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function getRaceResults(\WP_REST_Request $request)
+	{
+		$response = $this->command->getRaceResults($request['raceId']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function getCountyChampions(\WP_REST_Request $request)
+	{
+		$response = $this->command->getCountyChampions();
+
+		return rest_ensure_response($response);
 	}
 	
 	public function validateResult($result, $request, string $key)
