@@ -460,7 +460,7 @@ class ResultsDataAccess extends DataAccess
 				WHERE
 				existingResultsWithPB.PBTime = existingResultsWithPB.result
 			) pbResults
-			set pbResults.personal_best = 1
+			set r.personal_best = 1
 			where pbResults.id = r.id
 			",
             $resultId,
