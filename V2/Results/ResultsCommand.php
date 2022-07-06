@@ -115,9 +115,7 @@ class ResultsCommand extends BaseCommand
 	{
 		// TODO Changing raceId could mean new results generation for PBs etc
 		if ($field == 'info' || $field == 'position' || $field == "scoring_team" || $field == 'race_id' || $field == 'county_champion') {
-			return $this->dataAccess->updateEntity(__METHOD__, 'results', $field, $value, $resultId, function ($id) {
-				return $this->dataAccess->getResult($id);
-			});
+			return $this->dataAccess->updateResult($resultId, $field, $value);
 		} else if ($field == 'result') {
 			// Get old, delete and insert. Reuses exitsing logic
 			$existingResult = $this->dataAccess->getResult($resultId);

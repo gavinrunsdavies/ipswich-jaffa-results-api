@@ -93,9 +93,19 @@ class ResultsDataAccess extends DataAccess
 			INNER JOIN race ra ON r.race_id = ra.id
 			INNER JOIN events e ON ra.event_id = e.id
 			WHERE r.id = %d
-			ORDER BY ra.date DESC, ra.id, r.position ASC, r.result ASC", Rules::START_OF_2015_AGE_GRADING, $resultId);
+			ORDER BY ra.date DESC, ra.id, r.position ASC, r.result ASC",
+            Rules::START_OF_2015_AGE_GRADING,
+            $resultId
+        );
 
         return $this->executeResultQuery(__METHOD__, $sql);
+    }
+
+    public function updateResult(int $resultId, string $field, string $value)
+    {
+        return $this->dataAccess->updateEntity(__METHOD__, 'results', $field, $value, $resultId, function ($id) {
+            return $this->dataAccess->getResult($id);
+        });
     }
 
     public function deleteResult(int $resultId)
@@ -201,7 +211,7 @@ class ResultsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    public function getResultStandardTypeId(int $catgeoryId, string $resultInHourMinutesSeconds, int $raceId, float $percentageGrading2015, string $resultDate) : int
+    public function getResultStandardTypeId(int $catgeoryId, string $resultInHourMinutesSeconds, int $raceId, float $percentageGrading2015, string $resultDate): int
     {
         if ($percentageGrading2015 > 0 && $resultDate >= Rules::START_OF_2015_AGE_GRADING) {
             if ($percentageGrading2015 >= 86) {
@@ -327,7 +337,7 @@ class ResultsDataAccess extends DataAccess
         return $result;
     }
 
-    public function isPersonalBest(int $raceId, int $runnerId, float $performance, string $date) : bool
+    public function isPersonalBest(int $raceId, int $runnerId, float $performance, string $date): bool
     {
         $sql = $this->resultsDatabase->prepare(
             "select
@@ -548,7 +558,7 @@ class ResultsDataAccess extends DataAccess
         return true;
     }
 
-    public function isSeasonBest(int $raceId, int $runnerId, string $result, string $date) : bool
+    public function isSeasonBest(int $raceId, int $runnerId, string $result, string $date): bool
     {
         $sql = $this->resultsDatabase->prepare(
             "select
@@ -592,7 +602,7 @@ class ResultsDataAccess extends DataAccess
         return ($count == 0);
     }
 
-    public function isNewStandard(int $resultId) : bool
+    public function isNewStandard(int $resultId): bool
     {
         // 7 Star standards - from January 1st 2017
         // -- Match results of the same runner
@@ -628,7 +638,7 @@ class ResultsDataAccess extends DataAccess
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    public function getCategoryId(int $runnerId, string $date) : int
+    public function getCategoryId(int $runnerId, string $date): int
     {
         $sql = $this->resultsDatabase->prepare("select c.id
 					FROM
