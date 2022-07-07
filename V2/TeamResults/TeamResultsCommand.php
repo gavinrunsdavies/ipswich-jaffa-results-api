@@ -13,18 +13,18 @@ class TeamResultsCommand extends BaseCommand
 		parent::__construct(new TeamResultsDataAccess($db));
 	}
 	
-	public function getTeamResult( \WP_REST_Request $request ) {
+	public function getTeamResult(int $teamResultId) {
 	
-		return $this->dataAccess->getTeamResult($request['teamResultId']);
+		return $this->dataAccess->getTeamResult($teamResultId);
 	}
 
-	public function saveTeamResult( \WP_REST_Request $request ) {
+	public function saveTeamResult(string $name, string $category, string $result, int $position, int $meetingId, $resultIds) {
 
-		return $this->dataAccess->insertTeamResult($request);		
+		return $this->dataAccess->insertTeamResult($name, $category, $result, $position, $meetingId, $resultIds);		
 	}
 
-	public function deleteTeamResult( \WP_REST_Request $request ) {
+	public function deleteTeamResult(int $teamResultId) {
 		
-		return $this->dataAccess->deleteTeamResult($request['teamResultId']);
+		return $this->dataAccess->deleteTeamResult($teamResultId);
 	}
 }

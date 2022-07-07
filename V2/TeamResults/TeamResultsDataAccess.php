@@ -37,15 +37,15 @@ class TeamResultsDataAccess extends DataAccess
         return $this->executeResultQuery(__METHOD__, $sql);
     }
 
-    public function insertTeamResult(int $teamResult)
+    public function insertTeamResult(string $name, string $category, string $result, int $position, int $meetingId, $resultIds)
     {
         $sql = $this->resultsDatabase->prepare(
             'INSERT INTO team_results (`team_name`, `category`, `result`, `position`, `meeting_id`) VALUES(%s, %s, %s, %d, %d);',
-            $teamResult['name'],
-            $teamResult['category'],
-            $teamResult['result'],
-            $teamResult['position'],
-            $teamResult['meetingId']
+            $name,
+            $category,
+            $result,
+            $position,
+            $meetingId
         );
 
         $result = $this->executeQuery(__METHOD__, $sql);
@@ -58,7 +58,7 @@ class TeamResultsDataAccess extends DataAccess
 
         $values = array();
         $order = 1;
-        foreach ($teamResult['resultIds'] as $resultId) {
+        foreach ($resultIds as $resultId) {
             $values[] = "($teamResultId, $resultId, $order)";
             $order++;
         }
