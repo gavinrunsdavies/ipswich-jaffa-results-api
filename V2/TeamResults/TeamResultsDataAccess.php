@@ -10,12 +10,11 @@ class TeamResultsDataAccess extends DataAccess
 {
     public function deleteTeamResult(int $teamResultId)
     {
-        $sql = $this->resultsDatabase->prepare(
-            'DELETE FROM team_results WHERE id = %d;
-			DELETE FROM team_results_runners WHERE team_result_id = %d;',
-            $teamResultId,
-            $teamResultId
-        );
+        $sql = $this->resultsDatabase->prepare('DELETE FROM team_results WHERE id = %d', $teamResultId);
+
+        $this->executeQuery(__METHOD__, $sql);
+
+        $sql = $this->resultsDatabase->prepare('DELETE FROM team_results_runners WHERE team_result_id = %d', $teamResultId);
 
         return $this->executeQuery(__METHOD__, $sql);
     }
