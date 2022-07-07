@@ -638,7 +638,7 @@ class ResultsDataAccess extends DataAccess
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    public function getCategoryId(int $runnerId, string $date): int
+    public function getCategoryId(int $runnerId, string $date): ?int
     {
         $sql = $this->resultsDatabase->prepare("select c.id
 					FROM
