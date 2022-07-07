@@ -78,7 +78,7 @@ class TeamResultsController extends BaseController implements IRoute {
 
 	public function saveTeamResult( \WP_REST_Request $request ) {
 
-		return rest_ensure_response($this->command->insertTeamResult(
+		return rest_ensure_response($this->command->saveTeamResult(
 			$request['name'],
 			$request['category'],
 			$request['result'], 
