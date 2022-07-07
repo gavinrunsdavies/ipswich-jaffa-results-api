@@ -41,7 +41,7 @@ abstract class BaseController
         return true;
     }
 
-    protected function isNotNull($value, $request, $key){
+    public function isNotNull($value, $request, $key){
 		if ( $value != null ) {
 			return true;
 		} else {
