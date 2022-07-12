@@ -39,15 +39,17 @@ class ResultsCommand extends BaseCommand
 			}
 		}
 
-		$runnerIds = implode(", ", $pbRunners);
+		if (!empty($pbRunners)) {
+			$runnerIds = implode(", ", $pbRunners);
 
-		$previousPersonalBestResults = $this->dataAccess->getPreviousPersonalBest($runnerIds, $raceId);
+			$previousPersonalBestResults = $this->dataAccess->getPreviousPersonalBest($runnerIds, $raceId);
 
-		foreach ($response as $result) {
-			foreach ($previousPersonalBestResults as $previousBestResult) {
-				if ($result->runnerId == $previousBestResult->runnerId) {
-					$result->previousPersonalBestResult = $previousBestResult->previousBest;
-					break;
+			foreach ($response as $result) {
+				foreach ($previousPersonalBestResults as $previousBestResult) {
+					if ($result->runnerId == $previousBestResult->runnerId) {
+						$result->previousPersonalBestResult = $previousBestResult->previousBest;
+						break;
+					}
 				}
 			}
 		}
@@ -128,13 +130,14 @@ class ResultsCommand extends BaseCommand
 
 			$resultRequest = array(
 				'runnerId' => $existingResult->runnerId,
-			 	'date' => $existingResult->date,
-				'result' => $value, 
-				'raceId' => $existingResult->raceId, 
+				'date' => $existingResult->date,
+				'result' => $value,
+				'raceId' => $existingResult->raceId,
 				'position' => $existingResult->position,
 				'info' => $existingResult->info,
-				'team' => $existingResult->team);
-			return $this->insertResult($resultRequest);			
+				'team' => $existingResult->team
+			);
+			return $this->insertResult($resultRequest);
 		}
 	}
 
