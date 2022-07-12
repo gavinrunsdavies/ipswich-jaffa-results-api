@@ -118,7 +118,7 @@ class RacesDataAccess extends DataAccess
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    public function updateRace(int $raceId, string $field, string $value)
+    public function updateRace(int $raceId, string $field, ?string $value)
     {
         return $this->updateEntity(__METHOD__, 'race', $field, $value, $raceId, function ($id) {
 			return $this->getRace($id);
