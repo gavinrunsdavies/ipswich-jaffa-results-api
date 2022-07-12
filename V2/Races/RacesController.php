@@ -155,7 +155,7 @@ class RacesController extends BaseController implements IRoute
 
 	public function saveRace(\WP_REST_Request $request)
 	{
-		return rest_ensure_response($this->command->insertRace($request['race']));
+		return rest_ensure_response($this->command->saveRace($request['race']));
 	}
 
 	public function getRaces(\WP_REST_Request $request)
