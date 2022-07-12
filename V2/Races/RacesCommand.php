@@ -3,56 +3,62 @@
 namespace IpswichJAFFARunningClubAPI\V2\Races;
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseCommand.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Results/ResultsCommand.php';
 require_once 'RacesDataAccess.php';
 
 use IpswichJAFFARunningClubAPI\V2\BaseCommand as BaseCommand;
+use IpswichJAFFARunningClubAPI\V2\Results\ResultsCommand as ResultsCommand;
 
 class RacesCommand extends BaseCommand
 {
+	private $resultsCommand;
+
 	public function __construct($db)
 	{
 		parent::__construct(new RacesDataAccess($db));
+
+		$this->resultsCommand = new ResultsCommand($db);
 	}
 
-	public function saveRace(\WP_REST_Request $request)
+	public function saveRace($race)
 	{
-		$response = $this->dataAccess->insertRace($request['race']);
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->insertRace($race);
 	}
 
-	public function getRaces(\WP_REST_Request $request)
+	public function getRaces(int $eventId)
 	{
-		$response = $this->dataAccess->getRaces($request['eventId']);
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->getRaces($eventId);
 	}
 
-	public function getRace(\WP_REST_Request $request)
+	public function getRace(int $id)
 	{
-
-		$response = $this->dataAccess->getRace($request['id']);
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->getRace($id);
 	}
 
-	public function updateRace(\WP_REST_Request $request)
+	public function updateRace(int $raceId, string $field, string $value)
 	{
+		$response = $this->dataAccess->updateRace($raceId, $field, $value);
 
-		if ($request['field'] == "distance_id") {
-			$response = $this->dataAccess->updateRaceDistance($request['id'], $request['value']);
-		} else {
-			$response = $this->dataAccess->updateRace($request['id'], $request['field'], $request['value']);
+		if ($field == 'country_code' && $value != 'GB') {
+			$this->dataAccess->updateRace($raceId, 'county', null);
+			$response = $this->dataAccess->updateRace($raceId, 'area', null);			
 		}
 
-		return rest_ensure_response($response);
+		if ($field == "distance_id") {
+			$results = $this->resultsCommand->getRaceResults($raceId);
+     
+        	for ($i = 0; $i < count($results); $i++) {
+           
+				$this->resultsCommand->updateResult($results[$i]->id, 'result', $results[$i]->result);
+				// TODO - add error handling				
+			}
+		}
+
+		return $response;
 	}
 
-	public function deleteRace(\WP_REST_Request $request)
+	public function deleteRace(int $raceId)
 	{
-
-		$response = $this->dataAccess->deleteRace($request['raceId'], false);
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->deleteRace($raceId, false);
 	}
 }
