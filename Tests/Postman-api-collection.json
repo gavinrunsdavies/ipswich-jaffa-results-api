@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "391f146f-3169-f6bd-c0cd-29f7c72deee1",
-		"name": "Ipswich JAFFA Results API",
+		"_postman_id": "6982b186-3419-49ea-ba0a-f49e244f8738",
+		"name": "Ipswich JAFFA Results API Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "1305764"
 	},
@@ -174,7 +174,7 @@
 									"listen": "prerequest",
 									"script": {
 										"exec": [
-											"pm.globals.set(\"schema\", pm.globals.get(\"eventReadSchema\"));"
+											""
 										],
 										"type": "text/javascript"
 									}
@@ -289,9 +289,747 @@
 								"description": "Get events"
 							},
 							"response": []
-						},												
+						},
 						{
 							"name": "Create event",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();    \r",
+											"pm.environment.set(\"eventId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"// Reset eventId in event of failure",
+											"pm.environment.unset(\"eventId\");",
+											"",
+											"//Evaluate the script to login to WP that is stored as an environment variable.",
+											"eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"event\": {\n        \"name\": \"Test event. To be deleted.\",\n        \"website\": \"www.test.co.uk\"\n    }\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Create second event",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();    \r",
+											"pm.environment.set(\"eventId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"// Reset eventId in event of failure",
+											"pm.environment.unset(\"eventId\");",
+											"",
+											"//Evaluate the script to login to WP that is stored as an environment variable.",
+											"eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"event\": {\n        \"name\": \"Test event. To be deleted.\",\n        \"website\": \"www.test.co.uk\"\n    }\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Merge events",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.environment.unset(\"eventId2\");"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"eventId\") && pm.environment.get(\"eventId2\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"fromEventId\": {{eventId2}},\n    \"toEventId\": {{eventId}}\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/merge",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"merge"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update event - change name",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"eventId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"name\",\n \"value\" : \"Test event. To be deleted. Changed.\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/{{eventId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"{{eventId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update event - invalid change Copy",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 400\", function () {\r",
+											"    pm.response.to.have.status(400);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"eventId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"invalid\",\n \"value\" : \"I should not change\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/{{eventId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"{{eventId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete event",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.environment.unset(\"eventId\");"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"eventId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/{{eventId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"{{eventId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Genders",
+					"item": [
+						{
+							"name": "Read genders",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/genders",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"genders"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "GrandPrix",
+					"item": [
+						{
+							"name": "Read Grand Prix scores",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/grandPrix/2018/2",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"grandPrix",
+										"2018",
+										"2"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "HistoricRecords",
+					"item": [
+						{
+							"name": "Read historic club records by distance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/historicrecords/distance/1",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"historicrecords",
+										"distance",
+										"1"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read historic club records by category",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/historicrecords/category/1",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"historicrecords",
+										"category",
+										"1"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Leagues",
+					"item": [
+						{
+							"name": "Read leagues",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/leagues",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"leagues"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read league races",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/leagues/32",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"leagues",
+										"32"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Create league",
 							"event": [
 								{
 									"listen": "test",
@@ -386,10 +1124,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"event\": {  \"name\" : \"Test event. To be deleted.\",\n    \"website\" : \"www.test.co.uk\"\n}}"
+									"raw": "{\n\t\"league\" : {\n\t\t\"name\" : \"53-12 Cross-country League\",\n\t\t\"startingYear\" : 2009,\n\t\t\"courseTypeId\" : 5\n\t}\n}"
 								},
 								"url": {
-									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events",
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/leagues",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{host}}"
@@ -398,15 +1136,4054 @@
 										"wp-json",
 										"ipswich-jaffa-api",
 										"v2",
-										"events"
+										"leagues"
 									]
 								},
 								"description": "Get distances. Tested."
 							},
 							"response": []
-						}						
+						},
+						{
+							"name": "Update league - name",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"leagueId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"name\",\n \"value\" : \"Test League - to be deleted. Updated.\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/leagues/{{leagueId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"leagues",
+										"{{leagueId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete league",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.environment.unset(\"leagueId\");"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"leagueId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/leagues/{{leagueId}}?deleteRaceAssociations=false",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"leagues",
+										"{{leagueId}}"
+									],
+									"query": [
+										{
+											"key": "deleteRaceAssociations",
+											"value": "false"
+										}
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}
 					]
-				}				
+				},
+				{
+					"name": "Meetings",
+					"item": [
+						{
+							"name": "Read  meetings",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/203/meetings",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"203",
+										"meetings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read Event Meeting",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/353/meetings/391",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"353",
+										"meetings",
+										"391"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read Meeting",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/353/meetings/391",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"353",
+										"meetings",
+										"391"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read Meeting races",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/353/meetings/391",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"353",
+										"meetings",
+										"391"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Event Meeting",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();    \r",
+											"pm.environment.set(\"meetingId\", jsonData[0].id);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"// Reset eventId in event of failure",
+											"pm.environment.unset(\"meetingId\");",
+											"",
+											"//Evaluate the script to login to WP that is stored as an environment variable.",
+											"eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"meeting\":{\"name\":\"1988\",\"fromDate\":\"1988-09-25\",\"toDate\":\"1988-09-25\"}}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/353/meetings/",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"353",
+										"meetings",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Event Meeting - invalid fromDate",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 400\", function () {\r",
+											"    pm.response.to.have.status(400);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"// Reset eventId in event of failure",
+											"pm.environment.unset(\"meetingId\");",
+											"",
+											"//Evaluate the script to login to WP that is stored as an environment variable.",
+											"eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"meeting\":{\"name\":\"1988\",\"fromDate\":\"1988-09-31\",\"toDate\":\"1988-10-25\"}}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/353/meetings/",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"353",
+										"meetings",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Event Meeting - invalid to date",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 400\", function () {\r",
+											"    pm.response.to.have.status(400);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"// Reset eventId in event of failure",
+											"pm.environment.unset(\"meetingId\");",
+											"",
+											"//Evaluate the script to login to WP that is stored as an environment variable.",
+											"eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"meeting\": {\r\n        \"name\": \"1988\",\r\n        \"fromDate\": \"1988-12-31\",\r\n        \"toDate\": \"1988-02-32\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/353/meetings/",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"353",
+										"meetings",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update meeting - change from date",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"meetingId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"from_date\",\n \"value\" : \"2010-12-31\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/353/meetings/{{meetingId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"353",
+										"meetings",
+										"{{meetingId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update meeting - change to date",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"raceId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"to_date\",\n \"value\" : \"35\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/353/meetings/{{meetingId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"353",
+										"meetings",
+										"{{meetingId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update meeting - change name",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"raceId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"name\",\n \"value\" : \"Meeting name changed\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/353/meetings/{{meetingId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"353",
+										"meetings",
+										"{{meetingId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete meeting",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.environment.unset(\"meetingId\");"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"meetingId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/353/meetings/{{meetingId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"353",
+										"meetings",
+										"{{meetingId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Races",
+					"item": [
+						{
+							"name": "Read event races",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/1/races",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"1",
+										"races"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read event race",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/races/4",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"races",
+										"4"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Create race",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();    \r",
+											"pm.environment.set(\"raceId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"// Reset eventId in event of failure",
+											"pm.environment.unset(\"raceId\");",
+											"",
+											"//Evaluate the script to login to WP that is stored as an environment variable.",
+											"eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"race\": {\r\n        \"eventId\": \"1\",\r\n        \"date\": \"1999-07-25\",\r\n        \"courseNumber\": null,\r\n        \"conditions\": null,\r\n        \"description\": \"test race\",\r\n        \"venue\": null,\r\n        \"countryCode\": \"GB\",\r\n        \"county\": \"Suffolk\",\r\n        \"isGrandPrixRace\": \"0\",\r\n        \"area\": \"South\",\r\n        \"courseTypeId\": \"2\",\r\n        \"distanceId\": \"1\"\r\n    }\r\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/races",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"races"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update race - add league",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"raceId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"league_id\",\n \"value\" : \"35\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/races/{{raceId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"races",
+										"{{raceId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update race - add report",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"raceId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"report\",\n \"value\" : \"My report\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/races/{{raceId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"races",
+										"{{raceId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete race",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.environment.unset(\"raceId\");"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"raceId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/races/{{raceId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"races",
+										"{{raceId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Rankings",
+					"item": [
+						{
+							"name": "Read result rankings by distance only",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/distance/1?year=2019",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"ranking",
+										"distance",
+										"1"
+									],
+									"query": [
+										{
+											"key": "year",
+											"value": "2019"
+										},
+										{
+											"key": "sexId",
+											"value": "2",
+											"disabled": true
+										},
+										{
+											"key": "categoryId",
+											"value": "1",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read result rankings by distance, year, gender, category",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/distance/1?year=2019&sexId=2&categoryId=1",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"ranking",
+										"distance",
+										"1"
+									],
+									"query": [
+										{
+											"key": "year",
+											"value": "2019"
+										},
+										{
+											"key": "sexId",
+											"value": "2"
+										},
+										{
+											"key": "categoryId",
+											"value": "1"
+										}
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read result rankings by distance and year",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/distance/1?year=2019",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"ranking",
+										"distance",
+										"1"
+									],
+									"query": [
+										{
+											"key": "year",
+											"value": "2019"
+										},
+										{
+											"key": "sexId",
+											"value": "2",
+											"disabled": true
+										},
+										{
+											"key": "categoryId",
+											"value": "1",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read result rankings by distance and gender",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/distance/1?year=2019",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"ranking",
+										"distance",
+										"1"
+									],
+									"query": [
+										{
+											"key": "year",
+											"value": "2019"
+										},
+										{
+											"key": "sexId",
+											"value": "2",
+											"disabled": true
+										},
+										{
+											"key": "categoryId",
+											"value": "1",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read result rankings by distance and category",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/distance/1?year=2019",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"ranking",
+										"distance",
+										"1"
+									],
+									"query": [
+										{
+											"key": "year",
+											"value": "2019"
+										},
+										{
+											"key": "sexId",
+											"value": "2",
+											"disabled": true
+										},
+										{
+											"key": "categoryId",
+											"value": "1",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read average percentage rankings",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/averageWMA?sexId=2&numberOfRaces=5&year=2019",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"ranking",
+										"averageWMA"
+									],
+									"query": [
+										{
+											"key": "sexId",
+											"value": "2"
+										},
+										{
+											"key": "numberOfRaces",
+											"value": "5"
+										},
+										{
+											"key": "year",
+											"value": "2019"
+										}
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read WMA percentage rankings by gender, distance, year and distinct runners",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/wma?sexId=2&distanceId=1&year=2019&distinct=true",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"ranking",
+										"wma"
+									],
+									"query": [
+										{
+											"key": "sexId",
+											"value": "2"
+										},
+										{
+											"key": "distanceId",
+											"value": "1"
+										},
+										{
+											"key": "year",
+											"value": "2019"
+										},
+										{
+											"key": "distinct",
+											"value": "true"
+										}
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read WMA percentage rankings - all results",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/wma",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"ranking",
+										"wma"
+									],
+									"query": [
+										{
+											"key": "sexId",
+											"value": "2",
+											"disabled": true
+										},
+										{
+											"key": "distanceId",
+											"value": "1",
+											"disabled": true
+										},
+										{
+											"key": "year",
+											"value": "2019",
+											"disabled": true
+										},
+										{
+											"key": "distinct",
+											"value": "true",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read WMA percentage rankings by distinct runners only",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/ranking/wma?distinct=true",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"ranking",
+										"wma"
+									],
+									"query": [
+										{
+											"key": "sexId",
+											"value": "2",
+											"disabled": true
+										},
+										{
+											"key": "distanceId",
+											"value": "1",
+											"disabled": true
+										},
+										{
+											"key": "year",
+											"value": "2019",
+											"disabled": true
+										},
+										{
+											"key": "distinct",
+											"value": "true"
+										}
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Records",
+					"item": [
+						{
+							"name": "Read overall club records",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/historicrecords/distance/1",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"historicrecords",
+										"distance",
+										"1"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read top individual records holders",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/records/holders",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"records",
+										"holders"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read club records by distance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/records/distance/1",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"records",
+										"distance",
+										"1"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Results",
+					"item": [
+						{
+							"name": "Search for results by events and date",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");\r",
+											"\r",
+											"//Evaluate the script to login to WP that is stored as an environment variable.\r",
+											"eval(pm.variables.get(\"executeLoginRequest\"));\r",
+											"\r",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results?eventId=1&fromDate=2001-01-01&toDate=2009-01-09&numberOfResults=27",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results"
+									],
+									"query": [
+										{
+											"key": "eventId",
+											"value": "1"
+										},
+										{
+											"key": "fromDate",
+											"value": "2001-01-01"
+										},
+										{
+											"key": "toDate",
+											"value": "2009-01-09"
+										},
+										{
+											"key": "numberOfResults",
+											"value": "27"
+										}
+									]
+								},
+								"description": "Get results"
+							},
+							"response": []
+						},
+						{
+							"name": "Search for any results by date",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");\r",
+											"\r",
+											"//Evaluate the script to login to WP that is stored as an environment variable.\r",
+											"eval(pm.variables.get(\"executeLoginRequest\"));\r",
+											"\r",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results?eventId=1&fromDate=2001-01-01&toDate=2009-01-09&numberOfResults=27",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results"
+									],
+									"query": [
+										{
+											"key": "eventId",
+											"value": "1"
+										},
+										{
+											"key": "fromDate",
+											"value": "2001-01-01"
+										},
+										{
+											"key": "toDate",
+											"value": "2009-01-09"
+										},
+										{
+											"key": "numberOfResults",
+											"value": "27"
+										}
+									]
+								},
+								"description": "Get results"
+							},
+							"response": []
+						},
+						{
+							"name": "Search for results by events and from date",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");\r",
+											"\r",
+											"//Evaluate the script to login to WP that is stored as an environment variable.\r",
+											"eval(pm.variables.get(\"executeLoginRequest\"));\r",
+											"\r",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results?eventId=1&fromDate=2001-01-01&toDate=2009-01-09&numberOfResults=27",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results"
+									],
+									"query": [
+										{
+											"key": "eventId",
+											"value": "1"
+										},
+										{
+											"key": "fromDate",
+											"value": "2001-01-01"
+										},
+										{
+											"key": "toDate",
+											"value": "2009-01-09"
+										},
+										{
+											"key": "numberOfResults",
+											"value": "27"
+										}
+									]
+								},
+								"description": "Get results"
+							},
+							"response": []
+						},
+						{
+							"name": "Search for results by events and to date. Limit results to 10.",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");\r",
+											"\r",
+											"//Evaluate the script to login to WP that is stored as an environment variable.\r",
+											"eval(pm.variables.get(\"executeLoginRequest\"));\r",
+											"\r",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results?toDate=1980-01-01&numberOfResults=10&eventId=1623",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results"
+									],
+									"query": [
+										{
+											"key": "fromDate",
+											"value": "2001-01-01",
+											"disabled": true
+										},
+										{
+											"key": "toDate",
+											"value": "1980-01-01"
+										},
+										{
+											"key": "numberOfResults",
+											"value": "10"
+										},
+										{
+											"key": "eventId",
+											"value": "1623"
+										}
+									]
+								},
+								"description": "Get results"
+							},
+							"response": []
+						},
+						{
+							"name": "Search for results by events. Limit to 2.",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");\r",
+											"\r",
+											"//Evaluate the script to login to WP that is stored as an environment variable.\r",
+											"eval(pm.variables.get(\"executeLoginRequest\"));\r",
+											"\r",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results?eventId=1&fromDate=2001-01-01&toDate=2009-01-09&numberOfResults=27",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results"
+									],
+									"query": [
+										{
+											"key": "eventId",
+											"value": "1"
+										},
+										{
+											"key": "fromDate",
+											"value": "2001-01-01"
+										},
+										{
+											"key": "toDate",
+											"value": "2009-01-09"
+										},
+										{
+											"key": "numberOfResults",
+											"value": "27"
+										}
+									]
+								},
+								"description": "Get results"
+							},
+							"response": []
+						},
+						{
+							"name": "Save result",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();    \r",
+											"pm.environment.set(\"resultId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"// Reset eventId in event of failure",
+											"pm.environment.unset(\"resultId\");",
+											"",
+											"//Evaluate the script to login to WP that is stored as an environment variable.",
+											"eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"result\": {\n        \"raceId\": 1,\n        \"runnerId\": \"116\",\n        \"date\": \"1990-01-01\",\n        \"info\": \"test\",\n        \"result\": \"05:01:02\",\n        \"position\": 999\n    }\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update results - position",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"resultId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"position\",\n \"value\" : \"9999\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/{{resultId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"{{resultId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update results - info",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"resultId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"info\",\n \"value\" : \"This is test result\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/{{resultId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"{{resultId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update results - result",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"resultId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"result\",\n \"value\" : \"04:59:59\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/{{resultId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"{{resultId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update results - scoring team",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"resultId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"scoring_team\",\n \"value\" : \"99\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/{{resultId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"{{resultId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update results - set county champion",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"resultId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"county_champion\",\n \"value\" : \"1\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/{{resultId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"{{resultId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update results - change race (same event)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"resultId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"race_id\",\n \"value\" : \"3\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/{{resultId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"{{resultId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update results - invalid field",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 400\", function () {\r",
+											"    pm.response.to.have.status(400);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"resultId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"invalid\",\n \"value\" : \"invalid\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/{{resultId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"{{resultId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete result",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.environment.unset(\"resultId\");"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"resultId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/{{resultId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"{{resultId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Runners",
+					"item": [
+						{
+							"name": "Read runners (logged out)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Date of birth is not returned for logged out users.\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData[0].dateOfBirth).to.equal(undefined);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.globals.set(\"schema\", pm.globals.get(\"runnerReadSchema\"));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/runners",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"runners"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read runners (logged in)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Date of birth is returned for logged in users with correct permissions.\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData[0].dateOfBirth).not.equal(null);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");\r",
+											"\r",
+											"//Evaluate the script to login to WP that is stored as an environment variable.\r",
+											"eval(pm.variables.get(\"executeLoginRequest\"));\r",
+											"\r",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/runners",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"runners"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Save runner",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");\r",
+											"\r",
+											"// Reset eventId in event of failure\r",
+											"pm.environment.unset(\"runnerId\");\r",
+											"\r",
+											"//Evaluate the script to login to WP that is stored as an environment variable.\r",
+											"eval(pm.variables.get(\"executeLoginRequest\"));\r",
+											"\r",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();    \r",
+											"pm.environment.set(\"runnerId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"runner\":{\"name\":\"zzz Test entry\",\"sexId\":\"2\",\"dateOfBirth\":\"1950-01-01\"}}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/runners",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"runners"
+									]
+								},
+								"description": "Add runners. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update runner - name",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"eventId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"name\",\n \"value\" : \"Test name changed\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/{{eventId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"events",
+										"{{eventId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete runner",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation\r",
+											"pm.globals.unset(\"schema\");\r",
+											"\r",
+											"if (pm.environment.get(\"runnerId\")) {\r",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.\r",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));\r",
+											"\r",
+											"    executeLoginRequest();\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.environment.unset(\"runnerId\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/runners/{{runnerId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"runners",
+										"{{runnerId}}"
+									]
+								},
+								"description": "Delete a runner. Tests when no results and with results :)"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "RunnerOfTheMonth",
+					"item": []
+				},
+				{
+					"name": "RunnerResults",
+					"item": [
+						{
+							"name": "Read runner results",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/runner/116",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"runner",
+										"116"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read runner personal best results",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/runner/116/personalBests",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"runner",
+										"116",
+										"personalBests"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read runner insights by distance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/runner/116/insights/distance/1",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"runner",
+										"116",
+										"insights",
+										"distance",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read runner comparison",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"runnerIds\": [\"116\", \"137\"]}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/results/runner/compare",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"results",
+										"runner",
+										"compare"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Statistics",
+					"item": [
+						{
+							"name": "Read statistics: Yearly county results count",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/1",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"statistics",
+										"type",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read statistics: Yearly country results count",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/2",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"statistics",
+										"type",
+										"2"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read statistics: Yearly results count",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/3",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"statistics",
+										"type",
+										"3"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read statistics: Peronsal Best leaders",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/4",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"statistics",
+										"type",
+										"4"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read statistics: Event with most results",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/6",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"statistics",
+										"type",
+										"6"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read statistics: Runners with most results",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/7",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"statistics",
+										"type",
+										"7"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Read statistics: Runners with most results in a year",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/8",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"statistics",
+										"type",
+										"8"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "TeamResults",
+					"item": [
+						{
+							"name": "Save team result",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();    \r",
+											"pm.environment.set(\"teamResultId\", jsonData.teamId);"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"// Reset eventId in event of failure",
+											"pm.environment.unset(\"teamResultId\");",
+											"",
+											"//Evaluate the script to login to WP that is stored as an environment variable.",
+											"eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"executeLoginRequest();"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Test team result\",\r\n    \"category\" : \"test category\",\r\n    \"position\" : 999,\r\n    \"result\" : \"12:13:14\",\r\n    \"resultIds\": [1,2,3],\r\n    \"meetingId\": 1\r\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/team-results",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"team-results"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Read team result",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/team-results/{{teamResultId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"team-results",
+										"{{teamResultId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete team result",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.environment.unset(\"teamResultId\");"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"teamResultId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/team-results/{{teamResultId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"team-results",
+										"{{teamResultId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						}
+					]
+				}
 			]
 		}
 	],

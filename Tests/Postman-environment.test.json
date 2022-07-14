@@ -20,16 +20,23 @@
 		{
 			"key": "password",
 			"value": "",
+			"type": "secret",
+			"enabled": true
+		},
+		{
+			"key": "executeLoginRequest",
+			"value": "function exceuteLoginRequest() {\n\n\tvar loginToken = pm.environment.get(\"loginToken\");\n\n\tif (loginToken) {\n\t\tconsole.log(\"loginToken is set: \" +pm.environment.get('loginToken'));\n\t\tconsole.log(\"Validate token...\")\n\t\t// Validate current Token - do we need to login?\n\t\tpm.sendRequest({\n\t\t\turl: pm.environment.get(\"protocol\")+\"://\"+pm.environment.get(\"host\")+\"/wp-json/jwt-auth/v1/token/Validate\",\n\t\t\tmethod: 'POST',\n\t\t\theader: {\n\t\t\t\t\"Authorization\": \"Bearer \" + loginToken,\n\t\t\t\t\"content-type\": \"application/json\",\n\t\t\t}\n\t\t}, function (error, response) {\n\t\t\tif (error) {\n\t\t\t\tconsole.log(\"Token validation error: \" + error);\n\t\t\t\tpostman.setNextRequest(null);\n\t\t\t} else if (response.code != 200) {\n\t\t\t\tconsole.log(\"Token validation failed: \" + response.json());\n\t\t\t\tpostman.setNextRequest(null);\n\t\t\t} else {\n\t\t\t\tconsole.log(\"Token validation passed.\");\n\t\t\t}\n\t\t});\n\t}\n\n\tif (!loginToken) {\n\t\tconsole.log(\"Login token is empty. Login and get token...\")\n\t\t// Login and set Bearer Token\n\t\tpm.sendRequest({\n\t\t\turl: pm.environment.get(\"protocol\")+\"://\"+pm.environment.get(\"host\")+\"/wp-json/jwt-auth/v1/token\",\n\t\t\tmethod: 'POST',\n\t\t\theader: {\n\t\t\t\t'content-type': 'application/json',\n\t\t\t},\n\t\t\tbody: {\n\t\t\t\tmode: 'raw',\n\t\t\t\traw: JSON.stringify({ 'username': pm.environment.get(\"username\"), 'password': pm.environment.get(\"password\") })\n\t\t\t}\n\t\t}, function (error, response) {\n\t\t\tif (error) {\n\t\t\t\tconsole.log(\"Login request error: \" + error);\n\t\t\t\tpostman.setNextRequest(null);\n\t\t\t} else if (response.code != 200) {\n\t\t\t\tconsole.log(\"Login request failed: \" + res.json());\n\t\t\t\tpostman.setNextRequest(null);\n\t\t\t} else {\n\t\t\t\tconsole.log(\"Login request passed. Setting authorization bearer token: \" + response.json().token);\n\t\t\t\tpm.environment.set(\"loginToken\", response.json().token);\n\t\t\t}\n\t\t});\n\t}\n}",
+			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "loginToken",
 			"value": "",
-			"type": "any",
+			"type": "default",
 			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2022-06-29T09:35:05.915Z",
+	"_postman_exported_at": "2022-06-29T14:30:58.554Z",
 	"_postman_exported_using": "Postman/9.21.3"
 }

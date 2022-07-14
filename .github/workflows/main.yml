@@ -35,5 +35,6 @@ jobs:
         dry-run: false
         exclude: |
           **/.git*
-          **/.git*/**          
+          **/.git*/**   
+          Tests/**      
           Config.php
