@@ -48,6 +48,7 @@ class ResultsCommand extends BaseCommand
 				foreach ($previousPersonalBestResults as $previousBestResult) {
 					if ($result->runnerId == $previousBestResult->runnerId) {
 						$result->previousPersonalBestResult = $previousBestResult->previousBest;
+						$result->previousPersonalBestPerformance = $previousBestResult->previousBestPerformance;
 						break;
 					}
 				}
