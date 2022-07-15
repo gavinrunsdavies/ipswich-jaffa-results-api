@@ -2316,6 +2316,150 @@
 							"response": []
 						},
 						{
+							"name": "Update race - change country",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"raceId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"country_code\",\n \"value\" : \"IE\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/races/{{raceId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"races",
+										"{{raceId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
+							"name": "Update race - change distance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"// No schema - no validation",
+											"pm.globals.unset(\"schema\");",
+											"",
+											"if (pm.environment.get(\"raceId\")) {",
+											"    //Evaluate the script to login to WP that is stored as an environment variable.",
+											"    eval(pm.variables.get(\"executeLoginRequest\"));",
+											"",
+											"    executeLoginRequest();",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{loginToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"field\" : \"distance_id\",\n \"value\" : \"2\"\n}"
+								},
+								"url": {
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/races/{{raceId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"wp-json",
+										"ipswich-jaffa-api",
+										"v2",
+										"races",
+										"{{raceId}}"
+									]
+								},
+								"description": "Get distances. Tested."
+							},
+							"response": []
+						},
+						{
 							"name": "Delete race",
 							"event": [
 								{
@@ -2366,7 +2510,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/races/{{raceId}}",
+									"raw": "{{protocol}}://{{host}}/wp-json/ipswich-jaffa-api/v2/events/1/races/{{raceId}}",
 									"protocol": "{{protocol}}",
 									"host": [
 										"{{host}}"
@@ -2375,6 +2519,8 @@
 										"wp-json",
 										"ipswich-jaffa-api",
 										"v2",
+										"events",
+										"1",
 										"races",
 										"{{raceId}}"
 									]
