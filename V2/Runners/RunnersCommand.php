@@ -46,7 +46,7 @@ class RunnersCommand extends BaseCommand
 
 	public function saveRunner($runnerRequest)
 	{
-		return $this->dataAccess->insertRunner($runnerRequest['runner']);
+		return $this->dataAccess->insertRunner($runnerRequest);
 	}
 
 	public function deleteRunner(int $runnerId)
