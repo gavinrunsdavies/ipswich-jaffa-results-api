@@ -16,9 +16,9 @@ class RunnersCommand extends BaseCommand
 		parent::__construct(new RunnersDataAccess($db));
 	}
 
-	public function getRunners($request)
+	public function getRunners()
 	{
-		$loggedIn = $this->isLoggedInAsEditor($request);
+		$loggedIn = $this->isLoggedInAsEditor();
 		return $this->dataAccess->getRunners($loggedIn);
 	}
 

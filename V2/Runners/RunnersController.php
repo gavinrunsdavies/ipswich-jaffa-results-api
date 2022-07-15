@@ -80,7 +80,7 @@ class RunnersController extends BaseController implements IRoute
 
 	public function getRunners(\WP_REST_Request $request)
 	{
-		return rest_ensure_response($this->commmand->getRunners($request));
+		return rest_ensure_response($this->commmand->getRunners());
 	}
 
 	public function getRunner(\WP_REST_Request $request)
