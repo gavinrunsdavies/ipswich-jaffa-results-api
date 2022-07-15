@@ -16,18 +16,16 @@ class RunnersCommand extends BaseCommand
 		parent::__construct(new RunnersDataAccess($db));
 	}
 
-	public function getRunners(\WP_REST_Request $request)
+	public function getRunners($request)
 	{
 		$loggedIn = $this->isLoggedInAsEditor($request);
-		$response = $this->dataAccess->getRunners($loggedIn);
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->getRunners($loggedIn);
 	}
 
-	public function getRunner(\WP_REST_Request $request)
+	public function getRunner(int $runnerId)
 	{
-		$response = $this->dataAccess->getRunner($request['runnerId']);
-		$certificates = $this->dataAccess->getStandardCertificates($request['runnerId']);
+		$response = $this->dataAccess->getRunner($runnerId);
+		$certificates = $this->dataAccess->getStandardCertificates($runnerId);
 		$distances = array(
 			Distances::FIVE_KILOMETRES,
 			Distances::FIVE_MILES,
@@ -38,33 +36,27 @@ class RunnersCommand extends BaseCommand
 			Distances::MARATHON
 		);
 
-		$rankings = $this->dataAccess->getRunnerRankings($request['runnerId'], $response->sexId, $distances);
+		$rankings = $this->dataAccess->getRunnerRankings($runnerId, $response->sexId, $distances);
 
 		$response->certificates = $certificates;
 		$response->rankings = $rankings;
 
-		return rest_ensure_response($response);
+		return $response;
 	}
 
-	public function saveRunner(\WP_REST_Request $request)
+	public function saveRunner($runnerRequest)
 	{
-		$response = $this->dataAccess->insertRunner($request['runner']);
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->insertRunner($runnerRequest['runner']);
 	}
 
-	public function deleteRunner(\WP_REST_Request $request)
+	public function deleteRunner(int $runnerId)
 	{
-		$response = $this->dataAccess->deleteRunner($request['runnerId']);
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->deleteRunner($runnerId);
 	}
 
-	public function updateRunner(\WP_REST_Request $request)
+	public function updateRunner(int $runnerId, string $field, string $value)
 	{
-		$response = $this->dataAccess->updateRunner($request['runnerId'], $request['field'], $request['value']);
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->updateRunner($runnerId, $field, $value);
 	}
 
 	public function isValidRunnerUpdateField($value, $request, $key)
@@ -77,36 +69,6 @@ class RunnersCommand extends BaseCommand
 				sprintf('%s %s must be name only.', $key, $value),
 				array('status' => 400)
 			);
-		}
-	}
-
-	public function validateRunner($runner, $request, $key)
-	{
-		if (empty($runner['name'])) {
-			return new \WP_Error(
-				'rest_invalid_param',
-				sprintf('%s %s has invalid name value.', $key, json_encode($runner)),
-				array('status' => 400)
-			);
-		}
-
-		if (intval($runner['sexId']) < 0) {
-			return new \WP_Error(
-				'rest_invalid_param',
-				sprintf('%s %s has invalid sexId value', $key, json_encode($runner)),
-				array('status' => 400)
-			);
-		}
-
-		$date = date_parse($runner['dateOfBirth']);
-		if (checkdate($date['month'], $date['day'], $date['year']) === false) {
-			return new \WP_Error(
-				'rest_invalid_param',
-				sprintf('%s %s has invalid dateOfBirth value', $key, json_encode($runner)),
-				array('status' => 400)
-			);
-		} else {
-			return true;
 		}
 	}
 

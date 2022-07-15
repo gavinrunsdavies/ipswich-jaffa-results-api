@@ -20,12 +20,12 @@ class RunnersController extends BaseController implements IRoute
 	{
 		register_rest_route($this->route, '/runners', array(
 			'methods' => \WP_REST_Server::READABLE,
-			'callback' => array($this->command, 'getRunners')
+			'callback' => array($this, 'getRunners')
 		));
 
 		register_rest_route($this->route, '/runners/(?P<runnerId>[\d]+)', array(
 			'methods' => \WP_REST_Server::READABLE,
-			'callback' => array($this->command, 'getRunner'),
+			'callback' => array($this, 'getRunner'),
 			'args' => array(
 				'runnerId' => array(
 					'required' => true,
@@ -37,7 +37,7 @@ class RunnersController extends BaseController implements IRoute
 		register_rest_route($this->route, '/runners', array(
 			'methods' => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback' => array($this->command, 'saveRunner'),
+			'callback' => array($this, 'saveRunner'),
 			'args' => array(
 				'runner' => array(
 					'required' => true,
@@ -49,7 +49,7 @@ class RunnersController extends BaseController implements IRoute
 		register_rest_route($this->route, '/runners/(?P<runnerId>[\d]+)', array(
 			'methods' => \WP_REST_Server::DELETABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback' => array($this->command, 'deleteRunner'),
+			'callback' => array($this, 'deleteRunner'),
 			'args' => array(
 				'runnerId' => array(
 					'required' => true,
@@ -61,7 +61,7 @@ class RunnersController extends BaseController implements IRoute
 		register_rest_route($this->route, '/runners/(?P<runnerId>[\d]+)', array(
 			'methods' => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback' => array($this->command, 'updateRunner'),
+			'callback' => array($this, 'updateRunner'),
 			'args' => array(
 				'runnerId' => array(
 					'required' => true,
@@ -77,6 +77,31 @@ class RunnersController extends BaseController implements IRoute
 			)
 		));
 	}	
+
+	public function getRunners(\WP_REST_Request $request)
+	{
+		return rest_ensure_response($this->commmand->getRunners($request));
+	}
+
+	public function getRunner(\WP_REST_Request $request)
+	{
+		return rest_ensure_response($this->commmand->getRunner($request['runnerId']));
+	}
+
+	public function saveRunner(\WP_REST_Request $request)
+	{
+		return rest_ensure_response($this->commmand->saveRunner($request['runner']));
+	}
+
+	public function deleteRunner(\WP_REST_Request $request)
+	{
+		return rest_ensure_response($this->command->deleteRunner($request['runnerId']));
+	}
+
+	public function updateRunner(\WP_REST_Request $request)
+	{
+		return rest_ensure_response($this->command->updateRunner($request['runnerId'], $request['field'], $request['value']));
+	}
 
 	public function isValidRunnerUpdateField($value, $request, $key)
 	{
