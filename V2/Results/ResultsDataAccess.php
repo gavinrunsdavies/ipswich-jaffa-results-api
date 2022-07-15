@@ -47,7 +47,7 @@ class ResultsDataAccess extends DataAccess
 
     public function getPreviousPersonalBest($runnerIds, int $newRaceId)
     {
-        $sql = "SELECT r1.runner_id as runnerId, MIN(r2.result) as previousBest
+        $sql = "SELECT r1.runner_id as runnerId, MIN(r2.result) as previousBest, MIN(r2.performance) as previousBestPerformance
               FROM `results` r1
               INNER JOIN `race` ra1 ON r1.race_id = ra1.id              
               inner join `results` r2 on r1.runner_id = r2.runner_id   
