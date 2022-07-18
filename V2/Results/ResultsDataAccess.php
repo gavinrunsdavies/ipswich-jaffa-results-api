@@ -115,7 +115,7 @@ class ResultsDataAccess extends DataAccess
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    public function insertResult($resultRequest, float $performance, int $categoryId, bool $isPersonalBest, bool $isSeasonBest, int $standardTypeId, float $ageGrading, float $ageGrading2015)
+    public function insertResult($resultRequest, float $performance, int $categoryId, bool $isPersonalBest, bool $isSeasonBest, int $standardTypeId, ?float $ageGrading, ?float $ageGrading2015)
     {
         $sql = $this->resultsDatabase->prepare(
             'INSERT INTO results (`result`, `performance`, `info`, `runner_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `scoring_team`, `race_id`, `percentage_grading`, `percentage_grading_2015`)
@@ -131,8 +131,8 @@ class ResultsDataAccess extends DataAccess
             $standardTypeId,
             $resultRequest['team'] != null ? $resultRequest['team'] : 0,
             $resultRequest['raceId'],
-            $ageGrading,
-            $ageGrading2015
+            $ageGrading ?? 0,
+            $ageGrading2015 ?? 0
         );
 
         $result = $this->resultsDatabase->query($sql);
