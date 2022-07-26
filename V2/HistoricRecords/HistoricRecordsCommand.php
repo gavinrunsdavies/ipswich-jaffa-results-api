@@ -40,7 +40,7 @@ class HistoricRecordsCommand extends BaseCommand
 	{
 		$response = $this->dataAccess->getAllRaceResults($request['distanceId']);
 
-		// Group data in to catgeories and pick best times
+		// Group data in to catgeories and pick best performances
 		$distanceMeasurementUnitTypes = array(3, 4, 5);
 		$categoryCode = 0;
 		$records = array();
@@ -51,22 +51,22 @@ class HistoricRecordsCommand extends BaseCommand
 
 			$categoryCode = $item->categoryCode;
 			if (!array_key_exists($categoryCode, $records)) {
-				$result = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "date" => $item->date);
+				$result = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "performance" => $item->performance, "position" => $item->position, "date" => $item->date);
 				$records[$categoryCode] = array("id" => $item->categoryId, "code" => $item->categoryCode, "records" => array($result));
 
 				continue;
 			}
 
-			$currentResult = $item->result;
+			$currentResult = $item->performance;
 			$count = count($records[$categoryCode]['records']);
-			$previousRecord = $records[$categoryCode]['records'][$count - 1]['time'];
+			$previousRecord = $records[$categoryCode]['records'][$count - 1]['performance'];
 			if (in_array($item->resultMeasurementUnitTypeId, $distanceMeasurementUnitTypes)) {
 				if ($currentResult > $previousRecord) {
-					$records[$categoryCode]['records'][] = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "date" => $item->date);
+					$records[$categoryCode]['records'][] = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "performance" => $item->performance, "position" => $item->position, "date" => $item->date);
 				}
 			} else {
 				if ($currentResult < $previousRecord) {
-					$records[$categoryCode]['records'][] = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "date" => $item->date);
+					$records[$categoryCode]['records'][] = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "performance" => $item->performance, "position" => $item->position, "date" => $item->date);
 				}
 			}
 		}
