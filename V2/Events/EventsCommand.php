@@ -14,30 +14,26 @@ class EventsCommand extends BaseCommand
 		parent::__construct(new EventsDataAccess($db));
 	}
 
-	public function getEventRaceInsights(\WP_REST_Request $request)
+	public function getEventRaceInsights(int $eventId)
 	{
-		$distanceMetrics = $this->dataAccess->getEventRaceInsightsByDistance($request['eventId']);
+		$distanceMetrics = $this->dataAccess->getEventRaceInsightsByDistance($eventId);
 
-		$yearlyMetrics = $this->dataAccess->getEventRaceInsightsByYear($request['eventId']);
+		$yearlyMetrics = $this->dataAccess->getEventRaceInsightsByYear($eventId);
 
-		$response = array(
+		return array(
 			"years" => $yearlyMetrics,
 			"distance" => $distanceMetrics
 		);
-
-		return rest_ensure_response($response);
 	}
 
-	public function getEvents(\WP_REST_Request $request)
+	public function getEvents()
 	{
-		$response = $this->dataAccess->getEvents();
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->getEvents();
 	}
 
-	public function getTopAttendees(\WP_REST_Request $request)
+	public function getTopAttendees(int $eventId)
 	{
-		$response = $this->dataAccess->getEventTopAttendees($request['eventId']);
+		$response = $this->dataAccess->getEventTopAttendees($eventId);
 
 		// Array: year, name, count
 		// Transform to JSON of form:
@@ -75,47 +71,26 @@ class EventsCommand extends BaseCommand
 			$topAttendeesByYear[$item->year]->{$item->name} = $item->runningTotal;
 		}
 
-		return rest_ensure_response($topAttendeesByYear);
+		return $topAttendeesByYear;
 	}
 
-	public function saveEvent(\WP_REST_Request $request)
+	public function saveEvent($event)
 	{
-		$response = $this->dataAccess->insertEvent($request['event']);
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->insertEvent($event);
 	}
 
-	public function updateEvent(\WP_REST_Request $request)
+	public function updateEvent(int $eventId, string $field, ?string $value)
 	{
-		$response = $this->dataAccess->updateEvent($request['eventId'], $request['field'], $request['value']);
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->updateEvent($eventId, $field, $value);
 	}
 
-	public function mergeEvents(\WP_REST_Request $request)
+	public function mergeEvents(int $fromEventId, int $toEventId)
 	{
-		$response = $this->dataAccess->mergeEvents($request['fromEventId'], $request['toEventId']);
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->mergeEvents($fromEventId, $toEventId);
 	}
 
-	public function deleteEvent(\WP_REST_Request $request)
+	public function deleteEvent(int $eventId)
 	{
-		$response = $this->dataAccess->deleteEvent($request['eventId']);
-
-		return rest_ensure_response($response);
-	}
-
-	public function isValidEventUpdateField(string $value, $request, string $key)
-	{
-		if ($value == 'name' || $value == 'website') {
-			return true;
-		} else {
-			return new \WP_Error(
-				'rest_invalid_param',
-				sprintf('%s %d must be name or website only.', $key, $value),
-				array('status' => 400)
-			);
-		}
+		return $this->dataAccess->deleteEvent($eventId);
 	}
 }

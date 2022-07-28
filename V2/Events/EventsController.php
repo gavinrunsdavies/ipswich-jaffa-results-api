@@ -20,13 +20,13 @@ class EventsController extends BaseController implements IRoute
 	{
 		register_rest_route($this->route, '/events', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this->command, 'getEvents')
+			'callback'            => array($this, 'getEvents')
 		));
 
 		register_rest_route($this->route, '/events', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this->command, 'saveEvent'),
+			'callback'            => array($this, 'saveEvent'),
 			'args'                => array(
 				'event'           => array(
 					'required'          => true,
@@ -39,7 +39,7 @@ class EventsController extends BaseController implements IRoute
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this->command, 'updateEvent'),
+			'callback'            => array($this, 'updateEvent'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
@@ -58,7 +58,7 @@ class EventsController extends BaseController implements IRoute
 		register_rest_route($this->route, '/events/merge', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this->command, 'mergeEvents'),
+			'callback'            => array($this, 'mergeEvents'),
 			'args'                => array(
 				'fromEventId'           => array(
 					'required'          => true,
@@ -73,7 +73,7 @@ class EventsController extends BaseController implements IRoute
 
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::DELETABLE,
-			'callback'            => array($this->command, 'deleteEvent'),
+			'callback'            => array($this, 'deleteEvent'),
 			'permission_callback' => array($this, 'isAuthorized'),
 			'args'                => array(
 				'eventId'           => array(
@@ -85,7 +85,7 @@ class EventsController extends BaseController implements IRoute
 
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/topAttendees', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this->command, 'getTopAttendees'),
+			'callback'            => array($this, 'getTopAttendees'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
@@ -96,7 +96,7 @@ class EventsController extends BaseController implements IRoute
 
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/insights', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this->command, 'getEventRaceInsights'),
+			'callback'            => array($this, 'getEventRaceInsights'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
@@ -104,6 +104,55 @@ class EventsController extends BaseController implements IRoute
 				)
 			)
 		));
+	}
+
+	public function getEventRaceInsights(\WP_REST_Request $request)
+	{
+		$response = $this->command->getEventRaceInsights($request['eventId']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function getEvents(\WP_REST_Request $request)
+	{
+		$response = $this->command->getEvents();
+
+		return rest_ensure_response($response);
+	}
+
+	public function getTopAttendees(\WP_REST_Request $request)
+	{
+		$response = $this->command->getEventTopAttendees($request['eventId']);		
+
+		return rest_ensure_response($response);
+	}
+
+	public function saveEvent(\WP_REST_Request $request)
+	{
+		$response = $this->command->insertEvent($request['event']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function updateEvent(\WP_REST_Request $request)
+	{
+		$response = $this->command->updateEvent($request['eventId'], $request['field'], $request['value']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function mergeEvents(\WP_REST_Request $request)
+	{
+		$response = $this->command->mergeEvents($request['fromEventId'], $request['toEventId']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function deleteEvent(\WP_REST_Request $request)
+	{
+		$response = $this->command->deleteEvent($request['eventId']);
+
+		return rest_ensure_response($response);
 	}
 
 	public function isValidEventUpdateField(string $value, $request, string $key)
