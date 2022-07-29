@@ -33,7 +33,7 @@ class EventsDataAccess extends DataAccess
     public function getEventRaceInsightsByDistance(int $eventId)
     {
         $sql = $this->resultsDatabase->prepare("
-        SELECT p.name as fastestRunnerName, p.id as fastestRunnerId, race.date as fastetRaceDate, race.id as fastestRaceId, insights.* FROM (
+        SELECT p.name as fastestRunnerName, p.id as fastestRunnerId, race.date as fastestRaceDate, race.id as fastestRaceId, insights.* FROM (
             SELECT 
                 d.distance, 
                 count(r.id) as count, 
