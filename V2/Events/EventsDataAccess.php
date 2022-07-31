@@ -18,7 +18,7 @@ class EventsDataAccess extends DataAccess
             MIN(NULLIF(NULLIF(r.result, '00:00:00'), '')) as min, 
             MAX(r.performance) as maxPerformance, 
             MAX(r.result) as max, 
-            AVG(NULLIF(r.performance, 0)) as meanPerformance, 
+            ROUND(AVG(NULLIF(r.performance, 0)), 1) as meanPerformance, 
             SUBSTR(SEC_TO_TIME(AVG((substring(r.result, 1, 2) * 3600) + (substring(r.result, 4, 2) * 60) + substring(r.result, 7, 2))), 1, 8) as mean
         FROM `results` r
         INNER JOIN race race ON r.race_id = race.id
@@ -41,7 +41,7 @@ class EventsDataAccess extends DataAccess
                 MIN(NULLIF(NULLIF(r.result, '00:00:00'), '')) as min,
                 MAX(r.performance) as maxPerformance, 
                 MAX(r.result) as max, 
-                AVG(NULLIF(r.performance, 0)) as meanPerformance, 
+                ROUND(AVG(NULLIF(r.performance, 0)), 1) as meanPerformance, 
                 SUBSTR(SEC_TO_TIME(AVG((substring(r.result, 1, 2) * 3600) + (substring(r.result, 4, 2) * 60) + substring(r.result, 7, 2))), 1, 8) as mean 
             FROM `race` race 
             INNER JOIN `distance` d on race.distance_id = d.id 
