@@ -52,8 +52,9 @@ class EventsDataAccess extends DataAccess
         INNER JOIN race race ON race.id = qr.race_id
         INNER JOIN runners p on p.id = qr.runner_id
         WHERE race.event_id = %d
-        ORDER BY race.date ASC
-        LIMIT 1", $eventId, $eventId);
+        GROUP BY distance
+        HAVING race.date = MIN(race.date)
+        ORDER BY race.date ASC", $eventId, $eventId);
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
