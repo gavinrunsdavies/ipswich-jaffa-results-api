@@ -11,8 +11,15 @@ class EventsDataAccess extends DataAccess
     public function getEventRaceInsightsByYear(int $eventId)
     {
         $sql = $this->resultsDatabase->prepare("
-        SELECT YEAR(race.date) as year, d.distance, count(r.id) as count, MIN(NULLIF(NULLIF(r.result, '00:00:00'), '')) as min, MAX(r.result) as max, 
-        SUBSTR(SEC_TO_TIME(AVG((substring(r.result, 1, 2) * 3600) + (substring(r.result, 4, 2) * 60) + substring(r.result, 7, 2))), 1, 8) as mean
+        SELECT 
+            YEAR(race.date) as year, 
+            d.distance, count(r.id) as count, 
+            MIN(NULLIF(r.performance, 0)) as minPerformance, 
+            MIN(NULLIF(NULLIF(r.result, '00:00:00'), '')) as min, 
+            MAX(r.performance) as maxPerformance, 
+            MAX(r.result) as max, 
+            ROUND(AVG(NULLIF(r.performance, 0)), 1) as meanPerformance, 
+            SUBSTR(SEC_TO_TIME(AVG((substring(r.result, 1, 2) * 3600) + (substring(r.result, 4, 2) * 60) + substring(r.result, 7, 2))), 1, 8) as mean
         FROM `results` r
         INNER JOIN race race ON r.race_id = race.id
         LEFT JOIN distance d ON d.id = race.distance_id
@@ -26,12 +33,28 @@ class EventsDataAccess extends DataAccess
     public function getEventRaceInsightsByDistance(int $eventId)
     {
         $sql = $this->resultsDatabase->prepare("
-        SELECT d.distance, count(r.id) as count,  MIN(NULLIF(NULLIF(r.result, '00:00:00'), '')) as min, MAX(r.result) as max, SUBSTR(SEC_TO_TIME(AVG((substring(r.result, 1, 2) * 3600) + (substring(r.result, 4, 2) * 60) + substring(r.result, 7, 2))), 1, 8) as mean 
-        FROM `race` race 
-        INNER JOIN `distance` d on race.distance_id = d.id 
-        INNER JOIN `results` r ON race.id = r.race_id 
-        WHERE race.event_id = %d 
-        GROUP BY distance", $eventId);
+        SELECT p.name as fastestRunnerName, p.id as fastestRunnerId, race.date as fastestRaceDate, race.id as fastestRaceId, insights.* FROM (
+            SELECT 
+                d.distance, 
+                count(r.id) as count, 
+                MIN(NULLIF(r.performance, 0)) as minPerformance, 
+                MIN(NULLIF(NULLIF(r.result, '00:00:00'), '')) as min,
+                MAX(r.performance) as maxPerformance, 
+                MAX(r.result) as max, 
+                ROUND(AVG(NULLIF(r.performance, 0)), 1) as meanPerformance, 
+                SUBSTR(SEC_TO_TIME(AVG((substring(r.result, 1, 2) * 3600) + (substring(r.result, 4, 2) * 60) + substring(r.result, 7, 2))), 1, 8) as mean 
+            FROM `race` race 
+            INNER JOIN `distance` d on race.distance_id = d.id 
+            INNER JOIN `results` r ON race.id = r.race_id 
+            WHERE race.event_id = %d
+            GROUP BY distance) insights
+        INNER JOIN results qr on insights.minPerformance = qr.performance
+        INNER JOIN race race ON race.id = qr.race_id
+        INNER JOIN runners p on p.id = qr.runner_id
+        WHERE race.event_id = %d
+        GROUP BY distance
+        HAVING race.date = MIN(race.date)
+        ORDER BY race.date ASC", $eventId, $eventId);
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
