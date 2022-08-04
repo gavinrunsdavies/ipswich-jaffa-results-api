@@ -8,7 +8,7 @@ use IpswichJAFFARunningClubAPI\V2\DataAccess as DataAccess;
 
 class RecordsDataAccess extends DataAccess
 {
-    public function getOverallClubRecords($distanceIds)
+    public function getOverallClubRecords($distanceIds = null)
     {
 		if (isset($distanceIds)) {
 			$distanceIdSql = join(",", $distanceIds);
