@@ -23,7 +23,7 @@ class RecordsCommand extends BaseCommand
 
 	public function getClubRecords(\WP_REST_Request $request)
 	{
-		$response = $this->dataAccess->getClubRecords($request['distanceId']);
+		$response = $this->dataAccess->getClubRecordsByCategoryAndDistance($request['distanceId']);
 
 		return rest_ensure_response($response);
 	}
@@ -56,6 +56,7 @@ class RecordsCommand extends BaseCommand
 						"date" => $record->date,
 						"distance" => $record->distance,
 						"result" => $record->result,
+						"performance" => $record->performance,
 						"categoryCode" => $record->categoryCode,
 						"raceId" => $record->raceId,
 						"description" => $record->description,
