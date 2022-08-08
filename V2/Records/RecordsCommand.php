@@ -17,7 +17,7 @@ class RecordsCommand extends BaseCommand
 	public function getOverallClubRecords($distanceIds)
 	{
 		if (isset($distanceIds)) {
-			$distanceIdSql = join(",", $distanceIds);
+			$distanceIdSql = $distanceIds;
 		} else {
 			$distanceIdSql = "1,2,3,4,5,6,7,8";
 		}
