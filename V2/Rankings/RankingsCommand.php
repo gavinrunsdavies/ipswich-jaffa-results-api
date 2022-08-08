@@ -14,24 +14,15 @@ class RankingsCommand extends BaseCommand
 		parent::__construct(new RankingsDataAccess($db));
 	}
 
-	public function getResultRankings( \WP_REST_Request $request ) {
-		$parameters = $request->get_query_params();			
-		$response = $this->dataAccess->getResultRankings($request['distanceId'], $parameters['year'], $parameters['sexId'], $parameters['categoryId']);
-
-		return rest_ensure_response( $response );
+	public function getResultRankings( int $distanceId, ?int $year = 0, ?int $sexId = 0, ?int $categoryId = 0) {	
+		return $this->dataAccess->getResultRankings($distanceId, $year, $sexId, $categoryId);
 	}
 	
-	public function getWMAPercentageRankings( \WP_REST_Request $request ) {
-		$parameters = $request->get_query_params();			
-		$response = $this->dataAccess->getWMAPercentageRankings($parameters['sexId'], $parameters['distanceId'], $parameters['year'], $parameters['distinct']);
-
-		return rest_ensure_response( $response );
+	public function getWMAPercentageRankings(?int $sexId = 0, ?int $distanceId = 0, ?int $year = 0, ?bool $distinct = false) {		
+		return $this->dataAccess->getWMAPercentageRankings($sexId, $distanceId, $year, $distinct);
 	}
 	
-	public function getAveragePercentageRankings( \WP_REST_Request $request ) {
-		$parameters = $request->get_query_params();			
-		$response = $this->dataAccess->getAveragePercentageRankings($parameters['sexId'], $parameters['year'], $parameters['numberOfRaces']);
-
-		return rest_ensure_response( $response );
+	public function getAveragePercentageRankings(?int $sexId = 2, ?int $year = 0, ?int $numberOfRaces = 5, ?int $numberOfResults = 200) {
+		return $this->dataAccess->getAveragePercentageRankings($sexId, $year, $numberOfRaces, $numberOfResults);
 	}
 }

@@ -8,13 +8,8 @@ use IpswichJAFFARunningClubAPI\V2\DataAccess as DataAccess;
 
 class RecordsDataAccess extends DataAccess
 {
-    public function getOverallClubRecords($distanceIds = null)
-    {
-		if (isset($distanceIds)) {
-			$distanceIdSql = join(",", $distanceIds);
-		} else {
-			$distanceIdSql = "1,2,3,4,5,6,7,8";
-		}
+    public function getOverallClubRecords(string $distanceIds)
+    {		
         $sql = $this->resultsDatabase->prepare("
 				SELECT d.distance, r.runner_id as runnerId, p.Name as runnerName, s.sex, e.id as eventId, e.Name as eventName, ra.date, r.result, r.performance, ra.id as raceId, ra.description, ra.venue
 				FROM results AS r
@@ -41,7 +36,7 @@ class RecordsDataAccess extends DataAccess
 					ON ra.distance_id = d.id
 					INNER JOIN `runners` p2
 					ON r2.runner_id = p2.id
-					WHERE r2.performance > 0 and d.id IN ($distanceIdSql) and r2.category_id <> 0
+					WHERE r2.performance > 0 and d.id IN ($distanceIds) and r2.category_id <> 0
           				AND (ra.course_type_id NOT IN (2, 4, 5, 7, 9) OR ra.course_type_id IS NULL)
 					GROUP BY p2.sex_id, ra.distance_id
 				   ) AS rt
@@ -54,7 +49,7 @@ class RecordsDataAccess extends DataAccess
 				INNER JOIN runners p ON r.runner_id = p.id
                 INNER JOIN sex s ON p.sex_id = s.id
                 INNER JOIN distance d ON ra.distance_id = d.id
-				WHERE ra.distance_id IN ($distanceIdSql)
+				WHERE ra.distance_id IN ($distanceIds)
 				ORDER BY ra.distance_id, p.sex_id");
 
         return $this->executeResultsQuery(__METHOD__, $sql);
