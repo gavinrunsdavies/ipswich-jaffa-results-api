@@ -50,7 +50,7 @@ class RecordsController extends BaseController implements IRoute
 
 	public function getClubRecords(\WP_REST_Request $request)
 	{
-		$response = $this->command->getClubRecordsByCategoryAndDistance($request['distanceId']);
+		$response = $this->command->getClubRecords($request['distanceId']);
 
 		return rest_ensure_response($response);
 	}

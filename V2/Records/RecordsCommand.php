@@ -34,7 +34,7 @@ class RecordsCommand extends BaseCommand
 		$distances = array(1, 2, 3, 4, 5, 7, 8);
 		$recordHolders = array();
 		foreach ($distances as $distanceId) {
-			$records = $this->dataAccess->getClubRecords($distanceId);
+			$records = $this->dataAccess->getOverallClubRecords($distanceId);
 			foreach ($records as $categoryRecord) {
 				if (!array_key_exists($categoryRecord->runnerId, $recordHolders)) {
 					$recordHolders[$categoryRecord->runnerId] = array();
