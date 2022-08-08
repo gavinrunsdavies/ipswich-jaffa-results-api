@@ -11,7 +11,7 @@ class RecordsDataAccess extends DataAccess
     public function getOverallClubRecords(string $distanceIds)
     {		
         $sql = $this->resultsDatabase->prepare("
-				SELECT d.distance, r.runner_id as runnerId, p.Name as runnerName, s.sex, e.id as eventId, e.Name as eventName, ra.date, r.result, r.performance, ra.id as raceId, ra.description, ra.venue
+				SELECT d.distance, r.runner_id as runnerId, p.Name as runnerName, s.sex, e.id as eventId, e.Name as eventName, ra.date, r.result, r.performance, ra.id as raceId, ra.description, ra.venue, d.result_unit_type_id as resultUnitTypeId,
 				FROM results AS r
                 INNER JOIN race ra ON r.race_id = ra.id                
 				JOIN (
@@ -30,8 +30,6 @@ class RecordsDataAccess extends DataAccess
 					FROM results r2
 					INNER JOIN race ra
 					ON r2.race_id = ra.id
-					INNER JOIN events e
-					ON ra.event_id = e.id
 					INNER JOIN `distance` d
 					ON ra.distance_id = d.id
 					INNER JOIN `runners` p2
@@ -58,7 +56,7 @@ class RecordsDataAccess extends DataAccess
     public function getClubRecordsByCategoryAndDistance(int $distanceId)
     {
         $sql = $this->resultsDatabase->prepare("
-				SELECT d.distance, r.runner_id as runnerId, p.Name as runnerName, e.id as eventId, e.Name as eventName, ra.date, r.performance, r.result, c.code as categoryCode, ra.id as raceId, ra.description, ra.venue
+				SELECT d.distance, d.result_unit_type_id as resultUnitTypeId, r.runner_id as runnerId, p.Name as runnerName, e.id as eventId, e.Name as eventName, ra.date, r.performance, r.result, c.code as categoryCode, ra.id as raceId, ra.description, ra.venue
 				FROM results AS r
                 INNER JOIN race ra ON r.race_id = ra.id
 				JOIN (
@@ -75,8 +73,6 @@ class RecordsDataAccess extends DataAccess
 					FROM results r2
 					INNER JOIN race ra
 					ON r2.race_id = ra.id
-					INNER JOIN events e
-					ON ra.event_id = e.id
 					INNER JOIN `distance` d
 					ON ra.distance_id = d.id
 					INNER JOIN `runners` p2
