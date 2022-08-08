@@ -11,7 +11,7 @@ class RecordsDataAccess extends DataAccess
     public function getOverallClubRecords(string $distanceIds)
     {		
         $sql = $this->resultsDatabase->prepare("
-				SELECT d.distance, r.runner_id as runnerId, p.Name as runnerName, s.sex, e.id as eventId, e.Name as eventName, ra.date, r.result, r.performance, ra.id as raceId, ra.description, ra.venue, d.result_unit_type_id as resultUnitTypeId,
+				SELECT d.distance, r.runner_id as runnerId, p.Name as runnerName, s.sex, e.id as eventId, e.Name as eventName, ra.date, r.result, r.performance, ra.id as raceId, ra.description, ra.venue, d.result_unit_type_id as resultUnitTypeId
 				FROM results AS r
                 INNER JOIN race ra ON r.race_id = ra.id                
 				JOIN (
