@@ -20,17 +20,17 @@ class RecordsController extends BaseController implements IRoute
 	{
 		register_rest_route($this->route, '/results/records', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this->command, 'getOverallClubRecords')
+			'callback'            => array($this, 'getOverallClubRecords')
 		));
 
 		register_rest_route($this->route, '/results/records/holders', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this->command, 'getTopClubRecordHolders')
+			'callback'            => array($this, 'getTopClubRecordHolders')
 		));
 
 		register_rest_route($this->route, '/results/records/distance/(?P<distanceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this->command, 'getClubRecords'),
+			'callback'            => array($this, 'getClubRecords'),
 			'args'                => array(
 				'distanceId'           => array(
 					'required'          => true,
@@ -38,5 +38,29 @@ class RecordsController extends BaseController implements IRoute
 				)
 			)
 		));
+	}
+
+	public function getOverallClubRecords(\WP_REST_Request $request)
+	{
+		$parameters = $request->get_query_params();
+		$response = $this->command->getOverallClubRecords($parameters['distanceIds']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function getClubRecords(\WP_REST_Request $request)
+	{
+		$response = $this->command->getClubRecords($request['distanceId']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function getTopClubRecordHolders(\WP_REST_Request $request)
+	{
+		$parameters = $request->get_query_params();
+		$limit = $parameters['limit'] ?? 3;
+		$response = $this->command->getTopClubRecordHolders($limit);
+
+		return rest_ensure_response($response);
 	}
 }

@@ -14,26 +14,27 @@ class RecordsCommand extends BaseCommand
 		parent::__construct(new RecordsDataAccess($db));
 	}
 
-	public function getOverallClubRecords(\WP_REST_Request $request)
+	public function getOverallClubRecords($distanceIds)
 	{
-		$response = $this->dataAccess->getOverallClubRecords();
-
-		return rest_ensure_response($response);
+		if (isset($distanceIds)) {
+			$distanceIdSql = $distanceIds;
+		} else {
+			$distanceIdSql = "1,2,3,4,5,6,7,8";
+		}
+		return $this->dataAccess->getOverallClubRecords($distanceIdSql);
 	}
 
-	public function getClubRecords(\WP_REST_Request $request)
+	public function getClubRecords(int $distanceId)
 	{
-		$response = $this->dataAccess->getClubRecords($request['distanceId']);
-
-		return rest_ensure_response($response);
+		return $this->dataAccess->getClubRecordsByCategoryAndDistance($distanceId);
 	}
 
-	public function getTopClubRecordHolders(\WP_REST_Request $request)
+	public function getTopClubRecordHolders(int $limit = 3)
 	{
 		$distances = array(1, 2, 3, 4, 5, 7, 8);
 		$recordHolders = array();
 		foreach ($distances as $distanceId) {
-			$records = $this->dataAccess->getClubRecords($distanceId);
+			$records = $this->dataAccess->getOverallClubRecords($distanceId);
 			foreach ($records as $categoryRecord) {
 				if (!array_key_exists($categoryRecord->runnerId, $recordHolders)) {
 					$recordHolders[$categoryRecord->runnerId] = array();
@@ -42,9 +43,7 @@ class RecordsCommand extends BaseCommand
 			}
 		}
 
-		$parameters = $request->get_query_params();
 		$filteredRecordHolders = array();
-		$limit = $parameters['limit'] ?? 3;
 		foreach ($recordHolders as $holder => $records) {
 			if (count($records) >= $limit) {
 				$runner = array("id" => $holder, "name" => $records[0]->runnerName);
@@ -56,6 +55,7 @@ class RecordsCommand extends BaseCommand
 						"date" => $record->date,
 						"distance" => $record->distance,
 						"result" => $record->result,
+						"performance" => $record->performance,
 						"categoryCode" => $record->categoryCode,
 						"raceId" => $record->raceId,
 						"description" => $record->description,
@@ -66,6 +66,6 @@ class RecordsCommand extends BaseCommand
 			}
 		}
 
-		return rest_ensure_response($filteredRecordHolders);
+		return $filteredRecordHolders;
 	}
 }

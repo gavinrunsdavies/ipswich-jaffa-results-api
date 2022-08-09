@@ -14,7 +14,7 @@ use IpswichJAFFARunningClubAPI\V2\Runners\RunnersCommand as RunnersCommand;
 class RunnerOfTheMonthCommand extends BaseCommand
 {
 	private $runnersCommand;
-	const MENS_CATEGORY = 'Mens';
+	const MENS_CATEGORY = 'Men';
 	const LADIES_CATEGORY = 'Ladies';
 
 	public function __construct($db)

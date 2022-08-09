@@ -20,7 +20,7 @@ class RankingsController extends BaseController implements IRoute
 	{
 		register_rest_route( $this->route, '/results/ranking/distance/(?P<distanceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,				
-			'callback'            => array( $this->command, 'getResultRankings' ),
+			'callback'            => array( $this, 'getResultRankings' ),
 			'args'                => array(
 				'distanceId'           => array(
 					'required'          => true,						
@@ -31,12 +31,33 @@ class RankingsController extends BaseController implements IRoute
 		
 		register_rest_route( $this->route, '/results/ranking/averageWMA', array(
 			'methods'             => \WP_REST_Server::READABLE,				
-			'callback'            => array( $this->command, 'getAveragePercentageRankings' )
+			'callback'            => array( $this, 'getAveragePercentageRankings' )
 		) );
 		
 		register_rest_route( $this->route, '/results/ranking/wma', array(
 			'methods'             => \WP_REST_Server::READABLE,				
-			'callback'            => array( $this->command, 'getWMAPercentageRankings' )				
+			'callback'            => array( $this, 'getWMAPercentageRankings' )				
 		) );
+	}
+
+	public function getResultRankings( \WP_REST_Request $request ) {
+		$parameters = $request->get_query_params();			
+		$response = $this->command->getResultRankings($request['distanceId'], $parameters['year'], $parameters['sexId'], $parameters['categoryId']);
+
+		return rest_ensure_response( $response );
+	}
+	
+	public function getWMAPercentageRankings( \WP_REST_Request $request ) {
+		$parameters = $request->get_query_params();			
+		$response = $this->command->getWMAPercentageRankings($parameters['sexId'], $parameters['distanceId'], $parameters['year'], $parameters['distinct']);
+
+		return rest_ensure_response( $response );
+	}
+	
+	public function getAveragePercentageRankings( \WP_REST_Request $request ) {
+		$parameters = $request->get_query_params();			
+		$response = $this->command->getAveragePercentageRankings($parameters['sexId'], $parameters['year'], $parameters['numberOfRaces']);
+
+		return rest_ensure_response( $response );
 	}
 }
