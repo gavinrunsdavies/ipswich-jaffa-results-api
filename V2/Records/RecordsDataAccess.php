@@ -22,7 +22,7 @@ class RecordsDataAccess extends DataAccess
 				  JOIN (
 					SELECT 
                     CASE
-                        WHEN d.result_unit_type_id = 1 THEN MAX(r2.performance)
+                        WHEN d.result_unit_type_id = 3 THEN MAX(r2.performance)
                         ELSE MIN(r2.performance)
                     END as best,
                     p2.sex_id,
@@ -66,7 +66,7 @@ class RecordsDataAccess extends DataAccess
 				  JOIN (
 					SELECT 
                     CASE
-                        WHEN d.result_unit_type_id = 1 THEN MAX(r2.performance)
+                        WHEN d.result_unit_type_id = 3 THEN MAX(r2.performance)
                         ELSE MIN(r2.performance)
                     END as best,
                     r2.category_id
