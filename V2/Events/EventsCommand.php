@@ -31,7 +31,7 @@ class EventsCommand extends BaseCommand
 		return $this->dataAccess->getEvents();
 	}
 
-	public function getTopAttendees(int $eventId)
+	public function getEventTopAttendees(int $eventId)
 	{
 		$response = $this->dataAccess->getEventTopAttendees($eventId);
 
