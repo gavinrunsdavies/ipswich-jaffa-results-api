@@ -26,13 +26,7 @@ class EventsController extends BaseController implements IRoute
 		register_rest_route($this->route, '/events', array(
 			'methods'             => \WP_REST_Server::CREATABLE,
 			'permission_callback' => array($this, 'isAuthorized'),
-			'callback'            => array($this, 'saveEvent'),
-			'args'                => array(
-				'event'           => array(
-					'required'          => true,
-					'validate_callback' => array($this, 'validateEvent'),
-				)
-			)
+			'callback'            => array($this, 'saveEvent')
 		));
 
 		// Patch - updates
