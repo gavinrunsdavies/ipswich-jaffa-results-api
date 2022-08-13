@@ -123,7 +123,7 @@ class EventsController extends BaseController implements IRoute
 
 	public function saveEvent(\WP_REST_Request $request)
 	{
-		$response = $this->command->insertEvent($request['event']);
+		$response = $this->command->saveEvent($request['event']);
 
 		return rest_ensure_response($response);
 	}
