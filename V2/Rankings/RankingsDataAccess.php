@@ -38,21 +38,24 @@ class RankingsDataAccess extends DataAccess
 
 		$sql = "
 				SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
-					SELECT r.runner_id as runnerId, p.Name as name, ra3.id as raceId, e.Name as event, ra3.date, r.result
+					SELECT r.runner_id as runnerId, p.Name as name, ra3.id as raceId, e.Name as event, ra3.date, r.result, r.performance as 'performance',
 					FROM results AS r
 					JOIN (
-					  SELECT r1.runner_id, r1.result, MIN(ra1.date) AS earliest
+					  SELECT r1.runner_id, r1.performance, MIN(ra1.date) AS earliest
 					  FROM results AS r1
 					  INNER JOIN race ra1 ON r1.race_id = ra1.id
 					  JOIN (
-						SELECT r2.runner_id, MIN(r2.result) AS quickest
+						SELECT r2.runner_id, 
+						CASE
+							WHEN d.result_unit_type_id = 3 THEN MAX(r2.performance)
+							ELSE MIN(r2.performance)
+                    	END as best
 						FROM results r2
 						INNER JOIN `race` ra2
 						ON ra2.id = r2.race_id
 						INNER JOIN `runners` p2
 						ON r2.runner_id = p2.id
-						WHERE r2.result != '00:00:00'
-						AND r2.result != ''
+						WHERE r2.performance > 0
 						AND ra2.distance_id = $distanceId
                         AND (ra2.course_type_id NOT IN (2, 4, 5, 7) OR ra2.course_type_id IS NULL)
 						$sexQuery
@@ -60,10 +63,10 @@ class RankingsDataAccess extends DataAccess
                         $categoryQuery
 						GROUP BY r2.runner_id
 					   ) AS rt
-					   ON r1.runner_id = rt.runner_id AND r1.result = rt.quickest
+					   ON r1.runner_id = rt.runner_id AND r1.performance = rt.best
 					   $dateQuery1
-					   GROUP BY r1.runner_id, r1.result
-					   ORDER BY r1.result asc
+					   GROUP BY r1.runner_id, r1.performance
+					   ORDER BY r1.performance asc
 					   LIMIT 100
 					) as rd
 					ON r.runner_id = rd.runner_id AND r.result = rd.result
@@ -116,6 +119,7 @@ class RankingsDataAccess extends DataAccess
 						e.name as event,
 						ra2.id as raceId,
 						ra2.date,
+						r.performance,
 						r.result,
 						CASE
 							WHEN ra2.date >= '" . Rules::START_OF_2015_AGE_GRADING . "' OR $year = 0 THEN r.percentage_grading_2015
@@ -139,10 +143,11 @@ class RankingsDataAccess extends DataAccess
 						ra.id as raceId,
 						ra.date,
 						r.result,
+						r.performance,
 						r.percentage_grading_2015 as percentageGrading
 						FROM results AS r
 						JOIN (
-						  SELECT r1.runner_id, r1.result, MIN(ra1.date) AS earliest
+						  SELECT r1.runner_id, r1.performance, MIN(ra1.date) AS earliest
 						  FROM results AS r1
 						  JOIN (
 							SELECT r2.runner_id, MAX(r2.percentage_grading_2015) AS highest
@@ -161,11 +166,11 @@ class RankingsDataAccess extends DataAccess
 						   INNER JOIN race ra1 ON r1.race_id = ra1.id
 						   $distanceQuery1
 						   $yearQuery1
-						   GROUP BY r1.runner_id, r1.result
+						   GROUP BY r1.runner_id, r1.performance
 						   ORDER BY r1.percentage_grading_2015 desc
 						   LIMIT 100
 						) as rd
-						ON r.runner_id = rd.runner_id AND r.result = rd.result
+						ON r.runner_id = rd.runner_id AND r.performance = rd.performance
 						INNER JOIN race ra ON r.race_id = ra.id AND ra.date = rd.earliest
 						INNER JOIN events e ON ra.event_id = e.id
 						INNER JOIN runners p ON r.runner_id = p.id
@@ -178,10 +183,11 @@ class RankingsDataAccess extends DataAccess
 						ra.date,
 						ra.id as raceId,
 						r.result,
+						r.performance,
 						r.percentage_grading as percentageGrading
 						FROM results AS r
 						JOIN (
-						  SELECT r1.runner_id, r1.result, MIN(ra1.date) AS earliest
+						  SELECT r1.runner_id, r1.performance, MIN(ra1.date) AS earliest
 						  FROM results AS r1
 						  JOIN (
 							SELECT r2.runner_id, MAX(r2.percentage_grading) AS highest
@@ -200,11 +206,11 @@ class RankingsDataAccess extends DataAccess
 						   INNER JOIN race ra1 ON r1.race_id = ra1.id
 						   $distanceQuery1
 						   $yearQuery1
-						   GROUP BY r1.runner_id, r1.result
+						   GROUP BY r1.runner_id, r1.performance
 						   ORDER BY r1.percentage_grading desc
 						   LIMIT 100
 						) as rd
-						ON r.runner_id = rd.runner_id AND r.result = rd.result
+						ON r.runner_id = rd.runner_id AND r.performance = rd.performance
 						INNER JOIN race ra ON r.race_id = ra.id AND ra.date = rd.earliest
 						INNER JOIN events e ON ra.event_id = e.id
 						INNER JOIN runners p ON r.runner_id = p.id
@@ -247,7 +253,7 @@ class RankingsDataAccess extends DataAccess
 					select * from (
 					select @cnt := if (@runnerId = ranking.runner_id, @cnt + 1, 1) as rank, @runnerId := ranking.runner_id, ranking.* from (
 
-										select r.runner_id, p.name, e.id, e.name as event, ra.date, r.result, r.percentage_grading_2015
+										select r.runner_id, p.name, e.id, e.name as event, ra.date, r.result, r.performance, r.percentage_grading_2015
 										from results as r
 										inner join runners p on p.id = r.runner_id
 										inner join race ra on ra.id = r.race_id
