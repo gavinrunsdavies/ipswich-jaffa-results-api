@@ -51,10 +51,9 @@ class RankingsDataAccess extends DataAccess
 							ELSE MIN(r2.performance)
                     	END as best
 						FROM results r2
-						INNER JOIN `race` ra2
-						ON ra2.id = r2.race_id
-						INNER JOIN `runners` p2
-						ON r2.runner_id = p2.id
+						INNER JOIN `race` ra2 ON ra2.id = r2.race_id
+						INNER JOIN `runners` p2	ON r2.runner_id = p2.id
+						INNER JOIN `distance` d ON ra2.distance_id = d.id
 						WHERE r2.performance > 0
 						AND ra2.distance_id = $distanceId
                         AND (ra2.course_type_id NOT IN (2, 4, 5, 7) OR ra2.course_type_id IS NULL)
@@ -74,7 +73,6 @@ class RankingsDataAccess extends DataAccess
 					INNER JOIN distance d ON ra3.distance_id = d.id
 					INNER JOIN runners p ON r.runner_id = p.id
 					INNER JOIN events e ON ra3.event_id = e.id
-					ORDER BY r.result asc
 					LIMIT 100) Ranking";
 
 		return $this->executeResultsQuery(__METHOD__, $sql);
