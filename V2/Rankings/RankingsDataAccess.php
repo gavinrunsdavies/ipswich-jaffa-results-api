@@ -69,7 +69,7 @@ class RankingsDataAccess extends DataAccess
 					   ORDER BY r1.performance asc
 					   LIMIT 100
 					) as rd
-					ON r.runner_id = rd.runner_id AND r.result = rd.result
+					ON r.runner_id = rd.runner_id AND r.performance = rd.performance
 					INNER JOIN race ra3 ON r.race_id = ra3.id AND ra3.date = rd.earliest
 					INNER JOIN distance d ON ra3.distance_id = d.id
 					INNER JOIN runners p ON r.runner_id = p.id
