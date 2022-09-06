@@ -44,6 +44,7 @@ class RankingsDataAccess extends DataAccess
 					  SELECT r1.runner_id, r1.performance, MIN(ra1.date) AS earliest
 					  FROM results AS r1
 					  INNER JOIN race ra1 ON r1.race_id = ra1.id
+					  INNER JOIN distance d ON ra1.distance_id = d.id
 					  JOIN (
 						SELECT r2.runner_id, 
 						CASE
@@ -51,9 +52,9 @@ class RankingsDataAccess extends DataAccess
 							ELSE MIN(r2.performance)
                     	END as best
 						FROM results r2
-						INNER JOIN `race` ra2 ON ra2.id = r2.race_id
-						INNER JOIN `runners` p2	ON r2.runner_id = p2.id
-						INNER JOIN `distance` d ON ra2.distance_id = d.id
+						INNER JOIN race ra2 ON ra2.id = r2.race_id
+						INNER JOIN runners p2	ON r2.runner_id = p2.id
+						INNER JOIN distance d ON ra2.distance_id = d.id
 						WHERE r2.performance > 0
 						AND ra2.distance_id = $distanceId
                         AND (ra2.course_type_id NOT IN (2, 4, 5, 7) OR ra2.course_type_id IS NULL)
@@ -65,7 +66,13 @@ class RankingsDataAccess extends DataAccess
 					   ON r1.runner_id = rt.runner_id AND r1.performance = rt.best
 					   $dateQuery1
 					   GROUP BY r1.runner_id, r1.performance
-					   ORDER BY r1.performance asc
+					   ORDER BY 
+					   	CASE
+							WHEN d.result_unit_type_id = 3 THEN r1.performance							
+                    	END DESC,
+                        CASE
+							WHEN d.result_unit_type_id != 3 THEN r1.performance						
+                    	END ASC
 					   LIMIT 100
 					) as rd
 					ON r.runner_id = rd.runner_id AND r.performance = rd.performance
