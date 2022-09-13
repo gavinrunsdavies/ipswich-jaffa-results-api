@@ -86,7 +86,9 @@ class ResultsCommand extends BaseCommand
 				$ageGrading2015 = $this->dataAccess->get2015FactorsAgeGrading($performance, $resultRequest['runnerId'], $resultRequest['raceId']);
 			}
 
-			$standardTypeId = $this->dataAccess->getResultStandardTypeId($categoryId, $resultRequest['result'], $resultRequest['raceId'], $ageGrading2015, $resultRequest['date']);
+			if ($ageGrading2015) {
+				$standardTypeId = $this->dataAccess->getResultStandardTypeId($categoryId, $resultRequest['result'], $resultRequest['raceId'], $ageGrading2015, $resultRequest['date']);
+			}
 		}
 
 		$resultId = $this->dataAccess->insertResult($resultRequest, $performance, $categoryId, $isPersonalBest, $isSeasonBest, $standardTypeId, $ageGrading, $ageGrading2015);
