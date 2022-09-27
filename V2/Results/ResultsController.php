@@ -152,7 +152,7 @@ class ResultsController extends BaseController implements IRoute
 		if (!$invalid && strpos($result['result'], ':') !== false) {
 			$time = explode(":", $result['result']);
 
-			if ($time[0] < 0 || $time[1] < 0 || $time[2] < 0 || $time[1] > 59 || $time[2] > 59) {
+			if ($time[0] < 0 || $time[1] < 0 || $time[2] < 0 || $time[1] > 60 || $time[2] > 60) {
 				$invalid = true;
 			} 
 		} 		
