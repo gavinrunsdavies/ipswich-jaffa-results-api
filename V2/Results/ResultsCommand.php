@@ -76,7 +76,7 @@ class ResultsCommand extends BaseCommand
 		$performance = $this->calculateSecondsFromTime($resultRequest['result']);
 
 		if ($this->isCertificatedCourseAndResult($resultRequest['raceId'], $performance)) {
-			$isPersonalBest = $this->dataAccess->isPersonalBest($resultRequest['raceId'], $resultRequest['runnerId'], $performance, $resultRequest['date']);
+			$isPersonalBest = $this->dataAccess->isPersonalBest($resultRequest['raceId'], $resultRequest['runnerId'], $performance);
 
 			$isSeasonBest = $this->dataAccess->isSeasonBest($resultRequest['raceId'], $resultRequest['runnerId'], $performance, $resultRequest['date']);
 

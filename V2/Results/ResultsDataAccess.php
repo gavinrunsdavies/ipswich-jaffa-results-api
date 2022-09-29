@@ -337,35 +337,39 @@ class ResultsDataAccess extends DataAccess
         return $result;
     }
 
-    public function isPersonalBest(int $raceId, int $runnerId, float $performance, string $date): bool
+    public function isPersonalBest(int $raceId, int $runnerId, float $performance): bool
     {
         $sql = $this->resultsDatabase->prepare(
-            "select
-                count(r.id)
+            "select  
+                SUM (CASE
+                    WHEN d.result_unit_type_id != 3 AND r.performance <= %f THEN count(r.id) 
+                    WHEN d.result_unit_type_id = 3 AND r.performance >= %f THEN count(r.id) 
+                    ELSE 0
+                END) as quickerResults
                 from
-                race ra1,
-                race ra2,
+                race existingRaces,
+                race thisRace,
+                distance d,
                 results r
                 where
-                ra1.id = r.race_id AND
-                ra1.distance_id = ra2.distance_id AND
-                ra2.id = %d AND
-                ra1.distance_id <> 0 AND
+                existingRaces.id = r.race_id AND
+                existingRaces.distance_id = thisRace.distance_id AND
+                d.id = thisRace.distance_id AND
+                thisRace.id = %d AND
+                existingRaces.distance_id != 0 AND
                 r.performance != 0 AND
                 r.performance IS NOT NULL AND
-                r.performance <= %f AND
                 r.runner_id = %d AND
-                r.race_id <> %d AND
-                ra1.date < '%s' AND
-                ra1.course_type_id IN (%d, %d, %d) AND
-                ra2.course_type_id IN (%d, %d, %d)
+                r.race_id != thisRace.id AND
+                existingRaces.date < thisRace.date AND
+                existingRaces.course_type_id IN (%d, %d, %d) AND
+                thisRace.course_type_id IN (%d, %d, %d)
                 ORDER BY result
                 LIMIT 1",
-            $raceId,
             $performance,
-            $runnerId,
+            $performance,
             $raceId,
-            $date,
+            $runnerId,
             CourseTypes::ROAD,
             CourseTypes::TRACK,
             CourseTypes::INDOOR,
@@ -374,9 +378,9 @@ class ResultsDataAccess extends DataAccess
             CourseTypes::INDOOR
         );
 
-        $count = $this->resultsDatabase->get_var($sql);
+        $quickerResultsCount = $this->resultsDatabase->get_var($sql);
 
-        return ($count == 0);
+        return (is_null($quickerResultsCount) || $quickerResultsCount == 0);
     }
 
     public function checkAndUpdatePersonalBestResults(int $resultId)
@@ -558,37 +562,41 @@ class ResultsDataAccess extends DataAccess
         return true;
     }
 
-    public function isSeasonBest(int $raceId, int $runnerId, string $result, string $date): bool
+    public function isSeasonBest(int $raceId, int $runnerId, string $performance, string $date): bool
     {
         $sql = $this->resultsDatabase->prepare(
-            "select
-                count(r.id)
+            "select  
+                SUM (CASE
+                    WHEN d.result_unit_type_id != 3 AND r.performance <= %f THEN count(r.id) 
+                    WHEN d.result_unit_type_id = 3 AND r.performance >= %f THEN count(r.id) 
+                    ELSE 0
+                END) as quickerResults
                 from
-                race ra,
-                race ra2,
+                race existingRaces,
+                race thisRace,
+                distance d,
                 results r
                 where
-                ra.id = r.race_id AND
-                ra.distance_id = ra2.distance_id AND
-                ra2.id = %d AND
-                ra.distance_id <> 0 AND
-								r.result != '00:00:00' AND
-                                r.result != '' AND
-								r.result <= %s AND
+                existingRaces.id = r.race_id AND
+                existingRaces.distance_id = thisRace.distance_id AND
+                d.id = thisRace.distance_id AND
+                thisRace.id = %d AND
+                existingRaces.distance_id != 0 AND
+                r.performance != 0 AND
+                r.performance IS NOT NULL AND
                 r.runner_id = %d AND
-                YEAR(ra.date) = YEAR('%s') AND
-                ra.date < '%s' AND
-                r.race_id <> %d AND
-                ra.course_type_id IN (%d, %d, %d) AND
-                ra2.course_type_id IN (%d, %d, %d)
+                r.race_id != thisRace.id AND
+                YEAR(existingRaces.date) = YEAR('%s') AND
+                existingRaces.date < thisRace.date AND
+                existingRaces.course_type_id IN (%d, %d, %d) AND
+                thisRace.course_type_id IN (%d, %d, %d)
                 ORDER BY result
                 LIMIT 1",
+            $performance,
+            $performance,
             $raceId,
-            $result,
             $runnerId,
             $date,
-            $date,
-            $raceId,
             CourseTypes::ROAD,
             CourseTypes::TRACK,
             CourseTypes::INDOOR,
@@ -597,9 +605,9 @@ class ResultsDataAccess extends DataAccess
             CourseTypes::INDOOR
         );
 
-        $count = $this->resultsDatabase->get_var($sql);
+        $quickerResultsCount = $this->resultsDatabase->get_var($sql);
 
-        return ($count == 0);
+        return (is_null($quickerResultsCount) || $quickerResultsCount == 0);        
     }
 
     public function isNewStandard(int $resultId): bool
