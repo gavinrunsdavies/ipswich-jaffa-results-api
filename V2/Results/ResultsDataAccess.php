@@ -341,11 +341,7 @@ class ResultsDataAccess extends DataAccess
     {
         $sql = $this->resultsDatabase->prepare(
             "select  
-                SUM (CASE
-                    WHEN d.result_unit_type_id != 3 AND r.performance <= %f THEN count(r.id) 
-                    WHEN d.result_unit_type_id = 3 AND r.performance >= %f THEN count(r.id) 
-                    ELSE 0
-                END) as quickerResults
+                count(CASE WHEN (d.result_unit_type_id != 3 AND r.performance <= %f) OR (d.result_unit_type_id = 3 AND r.performance >= %f) THEN 1 END ) as quickerResults
                 from
                 race existingRaces,
                 race thisRace,
@@ -363,9 +359,7 @@ class ResultsDataAccess extends DataAccess
                 r.race_id != thisRace.id AND
                 existingRaces.date < thisRace.date AND
                 existingRaces.course_type_id IN (%d, %d, %d) AND
-                thisRace.course_type_id IN (%d, %d, %d)
-                ORDER BY result
-                LIMIT 1",
+                thisRace.course_type_id IN (%d, %d, %d)",
             $performance,
             $performance,
             $raceId,
@@ -566,11 +560,7 @@ class ResultsDataAccess extends DataAccess
     {
         $sql = $this->resultsDatabase->prepare(
             "select  
-                SUM (CASE
-                    WHEN d.result_unit_type_id != 3 AND r.performance <= %f THEN count(r.id) 
-                    WHEN d.result_unit_type_id = 3 AND r.performance >= %f THEN count(r.id) 
-                    ELSE 0
-                END) as quickerResults
+            count(CASE WHEN (d.result_unit_type_id != 3 AND r.performance <= %f) OR (d.result_unit_type_id = 3 AND r.performance >= %f) THEN 1 END ) as quickerResults
                 from
                 race existingRaces,
                 race thisRace,
@@ -589,9 +579,7 @@ class ResultsDataAccess extends DataAccess
                 YEAR(existingRaces.date) = YEAR('%s') AND
                 existingRaces.date < thisRace.date AND
                 existingRaces.course_type_id IN (%d, %d, %d) AND
-                thisRace.course_type_id IN (%d, %d, %d)
-                ORDER BY result
-                LIMIT 1",
+                thisRace.course_type_id IN (%d, %d, %d)",
             $performance,
             $performance,
             $raceId,
