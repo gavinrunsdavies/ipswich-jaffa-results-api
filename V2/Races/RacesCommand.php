@@ -61,4 +61,9 @@ class RacesCommand extends BaseCommand
 	{
 		return $this->dataAccess->deleteRace($raceId, false);
 	}
+
+	public function getLatestRacesDetails(?int $count = 10)
+	{
+		return $this->dataAccess->getLatestRacesDetails($count);
+	}
 }
