@@ -135,9 +135,6 @@ class RacesDataAccess extends DataAccess
             MIN(race.id) as lastRaceId,
             count(DISTINCT(race.id)) as countOfRaces,
             count(CASE
-              WHEN race.grand_prix = 1 THEN 1
-            END) as countOfGrandPrixRaces,
-            count(CASE
               WHEN r.personal_best = 1 THEN 1
             END) as countOfPersonalBests,
             count(CASE
