@@ -60,6 +60,17 @@ class RacesController extends BaseController implements IRoute
 			)
 		));
 
+		register_rest_route($this->route, '/races/latest', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array($this, 'getLatestRacesDetails'),
+			'args'                 => array(
+				'count'           => array(
+					'required'          => false,
+					'validate_callback' => array($this, 'isValidId')
+				)
+			)
+		));
+
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/races/(?P<id>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array($this, 'getRace'),
@@ -176,6 +187,12 @@ class RacesController extends BaseController implements IRoute
 	public function deleteRace(\WP_REST_Request $request)
 	{
 		return rest_ensure_response($this->command->deleteRace($request['raceId']));
+	}
+
+	public function getLatestRacesDetails(\WP_REST_Request $request)
+	{
+		$parameters = $request->get_query_params();
+		return rest_ensure_response($this->command->getLatestRacesDetails($parameters['count']));
 	}
 
 	public function isValidRaceUpdateField(string $value, $request, string $key)

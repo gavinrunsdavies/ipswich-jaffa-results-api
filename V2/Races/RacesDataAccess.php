@@ -124,4 +124,32 @@ class RacesDataAccess extends DataAccess
 			return $this->getRace($id);
 		});
     }
+
+    public function getLatestRacesDetails(int $count)
+    {
+        $sql = $this->resultsDatabase->prepare(
+            'SELECT
+            e.id AS eventId,
+            e.Name as name,
+            race.date,
+            MIN(race.id) as lastRaceId,
+            count(DISTINCT(race.id)) as countOfRaces,
+            count(CASE
+              WHEN r.personal_best = 1 THEN 1
+            END) as countOfPersonalBests,
+            count(CASE
+              WHEN r.season_best = 1 THEN 1
+            END) as countOfSeasonalBests,
+            count(r.id) as countOfResults
+            FROM `events` e
+            INNER JOIN `race` race ON race.event_id = e.id
+            INNER JOIN `results` r ON race.id = r.race_id
+            GROUP BY eventId, name, race.date
+            ORDER BY race.date DESC
+            LIMIT %d',
+            $count
+        );
+
+        return $this->executeResultsQuery(__METHOD__, $sql);
+    }
 }
