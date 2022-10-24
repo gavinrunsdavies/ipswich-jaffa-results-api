@@ -119,8 +119,11 @@ class ResultsCommand extends BaseCommand
 	public function updateResult(int $resultId, string $field, string $value)
 	{
 		// TODO Changing raceId could mean new results generation for PBs etc
-		if ($field == 'info' || $field == 'position' || $field == "scoring_team" || $field == 'race_id' || $field == 'county_champion') {
+		if ($field == 'info' || $field == 'position' || $field == "scoring_team" || $field == 'race_id') {
 			return $this->dataAccess->updateResult($resultId, $field, $value);
+		} else if ($field == 'county_champion') {
+			// TODO
+			// Check if exists - insert or update or delete
 		} else if ($field == 'result') {
 			// Get old, delete and insert. Reuses exitsing logic
 			$existingResult = $this->dataAccess->getResult($resultId);

@@ -101,6 +101,59 @@ class ResultsDataAccess extends DataAccess
         return $this->executeResultQuery(__METHOD__, $sql);
     }
 
+    public function getCountyResultCategory(int $resultId)
+    {
+        $sql =  $this->resultsDatabase->prepare(
+            "SELECT county_record_category_override as categoryCode
+            FROM results r
+            INNER JOIN county_champion_results ccr ON r.id = ccr.result_id
+            INNER JOIN category c ON r.category_id = c.id
+			WHERE r.id = %d",
+            $resultId
+        );
+
+        return $this->executeResultQuery(__METHOD__, $sql);
+    }
+
+    public function updateCountyResultCategory(int $resultId, string $categoryOverride)
+    {
+        return $this->updateEntity(__METHOD__, 'county_champion_results', 'county_record_category_override', $categoryOverride, $resultId, function ($id) {
+            return $this->getResult($id);
+        });
+    }
+
+    public function deleteCountyResult(int $resultId)
+    {
+        $sql = $this->resultsDatabase->prepare('DELETE FROM county_champion_results WHERE result_id = %d', $resultId);
+
+        return $this->executeQuery(__METHOD__, $sql);
+    }
+
+    public function insertCountyResultCategory(int $resultId, ?string $categoryCodeOverride = null)
+    {
+        $sql = $this->resultsDatabase->prepare(
+            'INSERT INTO county_champion_results (`result_id`, `county_record_category_override`)
+			VALUES(%d, %s)',
+            $resultId, $categoryCodeOverride
+        );
+
+        $result = $this->resultsDatabase->query($sql);
+
+        if (is_null($result) || !empty($this->resultsDatabase->last_error)) {
+            return new \WP_Error(
+                __METHOD__,
+                'Unknown error in inserting entity in to the database',
+                array(
+                    'status' => 500,
+                    'last_query' => $this->resultsDatabase->last_query,
+                    'last_error' => $this->resultsDatabase->last_error
+                )
+            );
+        }
+
+        return $this->resultsDatabase->insert_id;
+    }
+
     public function updateResult(int $resultId, string $field, string $value)
     {
         return $this->updateEntity(__METHOD__, 'results', $field, $value, $resultId, function ($id) {
@@ -198,14 +251,19 @@ class ResultsDataAccess extends DataAccess
 
     public function getCountyChampions()
     {
-        $sql = "SELECT r.runner_id as runnerId, p.Name as runnerName, e.id as eventId, e.Name as eventName, ra.date, r.result as result, r.performance as performance, c.code as categoryCode, ra.id as raceId, ra.description, d.id as distanceId, d.distance
+        $sql = "SELECT r.id as resultId, r.runner_id as runnerId, p.Name as runnerName, e.id as eventId, e.Name as eventName, ra.date, r.result as result, r.performance as performance, 
+                CASE
+                    WHEN ccr.county_record_category_override IS NOT NULL THEN ccr.county_record_category_override
+                    ELSE c.code
+                END as categoryCode,
+                ra.id as raceId, ra.description, d.id as distanceId, d.distance
 				FROM results AS r
+                INNER JOIN county_champion_results ccr ON r.id = ccr.result_id
                 INNER JOIN race ra ON r.race_id = ra.id
                 LEFT JOIN distance d ON ra.distance_id = d.id
 				INNER JOIN events e ON ra.event_id = e.id
 				INNER JOIN runners p ON r.runner_id = p.id
 				INNER JOIN category c ON r.category_id = c.id
-				WHERE r.county_champion = 1
 				ORDER BY ra.date desc, categoryCode asc";
 
         return $this->executeResultsQuery(__METHOD__, $sql);
