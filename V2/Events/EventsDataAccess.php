@@ -11,20 +11,20 @@ class EventsDataAccess extends DataAccess
     public function getEventRaceInsightsByYear(int $eventId)
     {
         $sql = $this->resultsDatabase->prepare("
-        SELECT 
-            YEAR(race.date) as year, 
-            d.distance, count(r.id) as count, 
-            MIN(NULLIF(r.performance, 0)) as minPerformance, 
-            MIN(NULLIF(NULLIF(r.result, '00:00:00'), '')) as min, 
-            MAX(r.performance) as maxPerformance, 
-            MAX(r.result) as max, 
-            ROUND(AVG(NULLIF(r.performance, 0)), 1) as meanPerformance, 
+        SELECT
+            YEAR(race.date) as year,
+            d.distance, count(r.id) as count,
+            MIN(NULLIF(r.performance, 0)) as minPerformance,
+            MIN(NULLIF(NULLIF(r.result, '00:00:00'), '')) as min,
+            MAX(r.performance) as maxPerformance,
+            MAX(r.result) as max,
+            ROUND(AVG(NULLIF(r.performance, 0)), 1) as meanPerformance,
             SUBSTR(SEC_TO_TIME(AVG((substring(r.result, 1, 2) * 3600) + (substring(r.result, 4, 2) * 60) + substring(r.result, 7, 2))), 1, 8) as mean
         FROM `results` r
         INNER JOIN race race ON r.race_id = race.id
         LEFT JOIN distance d ON d.id = race.distance_id
         WHERE race.event_id = %d
-        GROUP BY year, distance        
+        GROUP BY year, distance
         ORDER BY year", $eventId);
 
         return $this->executeResultsQuery(__METHOD__, $sql);
