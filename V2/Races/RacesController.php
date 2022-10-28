@@ -44,6 +44,10 @@ class RacesController extends BaseController implements IRoute
 				'eventId'           => array(
 					'required'          => true,
 					'validate_callback' => array($this, 'isValidId'),
+				),
+				'date'           => array(
+					'required'          => false,
+					'validate_callback' => array($this, 'isValidDate')
 				)
 			)
 		));
@@ -171,7 +175,8 @@ class RacesController extends BaseController implements IRoute
 
 	public function getRaces(\WP_REST_Request $request)
 	{
-		return rest_ensure_response($this->command->getRaces($request['eventId']));
+		$parameters = $request->get_query_params();
+		return rest_ensure_response($this->command->getRaces($request['eventId'], $parameters['date']));
 	}
 
 	public function getRace(\WP_REST_Request $request)
@@ -180,7 +185,7 @@ class RacesController extends BaseController implements IRoute
 	}
 
 	public function updateRace(\WP_REST_Request $request)
-	{		
+	{
 		return rest_ensure_response($this->command->updateRace($request['id'], $request['field'], $request['value']));
 	}
 

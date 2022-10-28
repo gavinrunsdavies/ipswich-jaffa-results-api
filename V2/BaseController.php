@@ -27,26 +27,40 @@ abstract class BaseController
         }
     }
 
+    public function isValidDate(string $date, \WP_REST_Request $request, string $key)
+    {
+        $parsedDate = date_parse($date);
+		if (!$date || checkdate($parsedDate['month'], $parsedDate['day'], $parsedDate['year']) === false) {
+            return new \WP_Error(
+                'rest_invalid_param',
+                sprintf('%s %s must be valid date.', $key, $date),
+                array('status' => 400)
+            );
+        } else {
+            return true;
+        }
+    }
+
     public function isAuthorized(\WP_REST_Request $request)
     {
         if (!(current_user_can('editor') || current_user_can('administrator'))) {
-            $current_user = wp_get_current_user();
+            $currentUser = wp_get_current_user();
             return new \WP_Error(
                 'rest_forbidden',
                 sprintf('You do not have enough privileges to use this API.'),
-                array('status' => 403, 'Username' => $current_user->user_login)
+                array('status' => 403, 'Username' => $currentUser->user_login)
             );
         }
 
         return true;
     }
 
-    public function isNotNull($value, $request, $key){
+    public function isNotNull(string $value, \WP_REST_Request $request, string $key) {
 		if ( $value != null ) {
 			return true;
 		} else {
 			return new \WP_Error( 'rest_invalid_param',
 				sprintf( '%s %d must not be null.', $key, $value ), array( 'status' => 400 ) );
-		} 			
+		}
 	}
 }
