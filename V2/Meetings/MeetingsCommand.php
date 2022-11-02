@@ -4,7 +4,7 @@ namespace IpswichJAFFARunningClubAPI\V2\Meetings;
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseCommand.php';
 require_once 'MeetingsDataAccess.php';
-require_once 'Meeting.class.php.php';
+require_once 'Meeting.class.php';
 
 use IpswichJAFFARunningClubAPI\V2\Meetings\Meeting as Meeting;
 use IpswichJAFFARunningClubAPI\V2\BaseCommand as BaseCommand;
