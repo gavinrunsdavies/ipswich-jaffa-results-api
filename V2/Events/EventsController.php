@@ -116,7 +116,7 @@ class EventsController extends BaseController implements IRoute
 
 	public function getTopAttendees(\WP_REST_Request $request)
 	{
-		$response = $this->command->getEventTopAttendees($request['eventId']);		
+		$response = $this->command->getEventTopAttendees($request['eventId']);
 
 		return rest_ensure_response($response);
 	}

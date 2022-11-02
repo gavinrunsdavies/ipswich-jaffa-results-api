@@ -20,11 +20,27 @@ class MeetingsController extends BaseController implements IRoute
 	{
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this->command, 'getMeetings'),
+			'callback'            => array($this, 'getMeetings'),
 			'args'                => array(
 				'eventId'           => array(
 					'required'          => true,
 					'validate_callback' => array($this, 'isValidId'),
+				)
+			)
+		));
+
+		// Return an event meeting for a race.
+		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetingsdetails', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array($this, 'getMeetingForRace'),
+			'args'                => array(
+				'eventId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId'),
+				),
+				'raceId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId')
 				)
 			)
 		));
@@ -39,7 +55,7 @@ class MeetingsController extends BaseController implements IRoute
 				),
 				'meetingId'           => array(
 					'required'          => true,
-					'validate_callback' => array($this, 'isValidId'),
+					'validate_callback' => array($this, 'isValidId')
 				)
 			)
 		));
@@ -121,6 +137,17 @@ class MeetingsController extends BaseController implements IRoute
 				),
 			)
 		));
+	}
+
+	public function getMeetingForRace(\WP_REST_Request $request)
+	{
+		$parameters = $request->get_query_params();
+		return rest_ensure_response($this->command->getMeetingForRace($request['eventId'], $parameters['raceId']));
+	}
+
+	public function getMeetings(\WP_REST_Request $request)
+	{
+		return rest_ensure_response($this->command->getMeetings($request['eventId']));
 	}
 	
 	public function isValidMeetingUpdateField(string $value, \WP_REST_Request $request, string $key)

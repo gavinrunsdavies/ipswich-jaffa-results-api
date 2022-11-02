@@ -30,6 +30,16 @@ class MeetingsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
+    public function getEvent(int $eventId)
+    {
+        $sql = $this->resultsDatabase->prepare(
+            'SELECT e.id as id, e.name as name FROM `events` e WHERE e.id = %d',
+            $eventId
+        );
+
+        return $this->executeResultQuery(__METHOD__, $sql);
+    }
+
     public function getMeetingById(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
@@ -95,6 +105,19 @@ class MeetingsDataAccess extends DataAccess
             FROM `race` ra
             WHERE ra.meeting_id = %d
             ORDER BY ra.date, ra.description', $meetingId);
+
+        return $this->executeResultsQuery(__METHOD__, $sql);
+    }
+
+    public function getMeetingRacesForEventAndDate(int $eventId, string $date)
+    {
+        $sql = $this->resultsDatabase->prepare(
+            "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId, race.report as report
+            FROM `race` race
+            WHERE race.event_id = %d AND race.date = '%s'
+            ORDER BY race.description",
+            $eventId, $date
+        );
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
