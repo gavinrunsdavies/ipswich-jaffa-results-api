@@ -5,6 +5,7 @@ namespace IpswichJAFFARunningClubAPI\V2\Meetings;
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseCommand.php';
 require_once 'MeetingsDataAccess.php';
 
+use IpswichJAFFARunningClubAPI\V2\Meetings\Meeting as Meeting;
 use IpswichJAFFARunningClubAPI\V2\BaseCommand as BaseCommand;
 use IpswichJAFFARunningClubAPI\V2\Races\RacesCommand as RacesCommand;
 
@@ -28,6 +29,11 @@ class MeetingsCommand extends BaseCommand
 	{
 		$event = $this->dataAccess->getEvent($eventId);
 		$race = $this->racesCommand->getRace($raceId);
+
+		if (is_wp_error($race)) {
+			return $race;
+		}
+
 		if ($race->meetingId > 0) {
 			$meeting = $this->dataAccess->getMeeting($race->meetingId);
 			$races = $this->dataAccess->getMeetingRaces($race->meetingId);
