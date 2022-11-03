@@ -101,10 +101,12 @@ class MeetingsDataAccess extends DataAccess
     public function getMeetingRaces(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
-            'SELECT ra.id, ra.date, ra.description, ra.course_type_id as courseTypeId, ra.report as report
+            "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId, race.report as report, d.result_unit_type_id as resultUnitTypeId,
             FROM `race` ra
+            LEFT JOIN `distance` d ON ra.distance_id = d.id
             WHERE ra.meeting_id = %d
-            ORDER BY ra.date, ra.description', $meetingId);
+            ORDER BY ra.date, ra.description",
+            $meetingId);
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
@@ -112,11 +114,13 @@ class MeetingsDataAccess extends DataAccess
     public function getMeetingRacesForEventAndDate(int $eventId, string $date)
     {
         $sql = $this->resultsDatabase->prepare(
-            "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId, race.report as report
+            "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId, race.report as report, d.result_unit_type_id as resultUnitTypeId,
             FROM `race` race
+            LEFT JOIN `distance` d ON ra.distance_id = d.id
             WHERE race.event_id = %d AND race.date = '%s'
             ORDER BY race.description",
-            $eventId, $date
+            $eventId,
+            $date
         );
 
         return $this->executeResultsQuery(__METHOD__, $sql);

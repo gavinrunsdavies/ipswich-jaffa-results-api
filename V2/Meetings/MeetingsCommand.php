@@ -26,17 +26,18 @@ class MeetingsCommand extends BaseCommand
 		return $this->dataAccess->getMeetings($eventId);
 	}
 
-	public function getMeetingForRace(int $eventId, int $raceId)
+	public function getMeetingForRace(int $raceId)
 	{
-		$event = $this->dataAccess->getEvent($eventId);
 		$race = $this->racesCommand->getRace($raceId);
 
 		if (is_wp_error($race)) {
 			return new \WP_Error('rest_invalid_param', 'No race found for given Id', array('status' => 400));
 		}
 
+		$event = $this->dataAccess->getEvent($race->eventId);
+
 		if ($race->meetingId > 0) {
-			$meeting = $this->dataAccess->getMeeting($race->meetingId);
+			$meeting = $this->dataAccess->getMeetingById($race->meetingId);
 			$races = $this->dataAccess->getMeetingRaces($race->meetingId);
 			$teams = $this->dataAccess->getMeetingTeams($race->meetingId);
 			$results = $this->dataAccess->getMeetingResults($race->meetingId);
@@ -58,7 +59,7 @@ class MeetingsCommand extends BaseCommand
 				}
 			};
 			
-			$races = $this->dataAccess->getMeetingRacesForEventAndDate($eventId, $race->date);
+			$races = $this->dataAccess->getMeetingRacesForEventAndDate($race->eventId, $race->date);
 		}
 
 		if ($teams) {
