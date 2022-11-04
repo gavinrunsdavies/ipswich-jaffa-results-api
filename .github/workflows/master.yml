@@ -20,16 +20,20 @@ jobs:
     - name: 🚚 Get latest code
       uses: actions/checkout@v2
 
-    - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@4.3.0
+    - name: 📂 Sync files to live
+      uses: Wandalen/wretry.action@master
       with:
-        server: ftp.ipswichjaffa.org.uk
-        username: githubftp@ipswichjaffa.org.uk
-        password: ${{ secrets.FtpServerPassword }}
-        server-dir: public_html/wordpress/wp-content/plugins/ipswich-jaffa-results-api/
-        dry-run: false
-        exclude: |
-          **/.git*
-          **/.git*/**          
-          Config.php   
-          Tests/**
+        action: SamKirkland/FTP-Deploy-Action@4.3.0
+        with: |
+          server: ftp.ipswichjaffa.org.uk
+          username: githubftp@ipswichjaffa.org.uk
+          password: ${{ secrets.FtpServerPassword }}
+          server-dir: public_html/wordpress/wp-content/plugins/ipswich-jaffa-results-api/
+          dry-run: false
+          exclude: |
+            **/.git*
+            **/.git*/**   
+            Tests/**      
+            Config.php
+        attempt_limit: 10
+        attempt_delay: 2000
