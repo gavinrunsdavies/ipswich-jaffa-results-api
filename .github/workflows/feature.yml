@@ -27,6 +27,7 @@ jobs:
 
     - name: 📂 Sync files to test
       uses: Wandalen/wretry.action@master
+      with:
         action: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
           server: ftp.test.ipswichjaffa.org.uk
