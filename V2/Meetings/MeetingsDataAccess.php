@@ -117,7 +117,7 @@ class MeetingsDataAccess extends DataAccess
     public function getMeetingRacesForEventAndDate(int $eventId, string $date)
     {
         $sql = $this->resultsDatabase->prepare(
-            "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId, race.report as report, d.result_unit_type_id as resultUnitTypeId,
+            "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId, race.report as report, d.result_unit_type_id as resultUnitTypeId
             FROM `race` race
             LEFT JOIN `distance` d ON ra.distance_id = d.id
             WHERE race.event_id = %d AND race.date = '%s'
