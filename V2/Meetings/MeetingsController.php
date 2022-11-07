@@ -30,7 +30,7 @@ class MeetingsController extends BaseController implements IRoute
 		));
 
 		// Return an event meeting for a race.
-		register_rest_route($this->route, '/meetingdetails/(?P<raceId>[\d]+)', array(
+		register_rest_route($this->route, '/meetingdetails/races/(?P<raceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array($this, 'getMeetingForRace'),
 			'args'                => array(
