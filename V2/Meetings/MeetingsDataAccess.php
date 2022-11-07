@@ -103,9 +103,13 @@ class MeetingsDataAccess extends DataAccess
     public function getMeetingRaces(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
-            "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId, race.report as report, d.result_unit_type_id as resultUnitTypeId
+            "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId,
+            race.report as report, d.result_unit_type_id as resultUnitTypeId,
+            race.area, race.county, race.country_code AS countryCode,
+            race.conditions, race.venue, d.id as distanceId, d.distance, ct.description AS courseType
             FROM `race` race
             LEFT JOIN `distance` d ON race.distance_id = d.id
+            LEFT JOIN `course_type` c ON ra.course_type_id = c.id
             WHERE race.meeting_id = %d
             ORDER BY race.date, race.description",
             $meetingId
@@ -117,9 +121,13 @@ class MeetingsDataAccess extends DataAccess
     public function getMeetingRacesForEventAndDate(int $eventId, string $date)
     {
         $sql = $this->resultsDatabase->prepare(
-            "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId, race.report as report, d.result_unit_type_id as resultUnitTypeId
+            "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId,
+            race.report as report, d.result_unit_type_id as resultUnitTypeId,
+            race.area, race.county, race.country_code AS countryCode,
+            race.conditions, race.venue, d.id as distanceId, d.distance, ct.description AS courseType
             FROM `race` race
             LEFT JOIN `distance` d ON race.distance_id = d.id
+            LEFT JOIN `course_type` c ON ra.course_type_id = c.id
             WHERE race.event_id = %d AND race.date = '%s'
             ORDER BY race.description",
             $eventId,
