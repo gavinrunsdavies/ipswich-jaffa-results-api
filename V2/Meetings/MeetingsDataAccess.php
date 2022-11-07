@@ -119,7 +119,7 @@ class MeetingsDataAccess extends DataAccess
         $sql = $this->resultsDatabase->prepare(
             "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId, race.report as report, d.result_unit_type_id as resultUnitTypeId
             FROM `race` race
-            LEFT JOIN `distance` d ON ra.distance_id = d.id
+            LEFT JOIN `distance` d ON race.distance_id = d.id
             WHERE race.event_id = %d AND race.date = '%s'
             ORDER BY race.description",
             $eventId,
