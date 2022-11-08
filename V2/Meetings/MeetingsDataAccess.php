@@ -109,7 +109,7 @@ class MeetingsDataAccess extends DataAccess
             race.conditions, race.venue, d.id as distanceId, d.distance, ct.description AS courseType
             FROM `race` race
             LEFT JOIN `distance` d ON race.distance_id = d.id
-            LEFT JOIN `course_type` c ON ra.course_type_id = c.id
+            LEFT JOIN `course_type` ct ON race.course_type_id = ct.id
             WHERE race.meeting_id = %d
             ORDER BY race.date, race.description",
             $meetingId
@@ -127,7 +127,7 @@ class MeetingsDataAccess extends DataAccess
             race.conditions, race.venue, d.id as distanceId, d.distance, ct.description AS courseType
             FROM `race` race
             LEFT JOIN `distance` d ON race.distance_id = d.id
-            LEFT JOIN `course_type` c ON ra.course_type_id = c.id
+            LEFT JOIN `course_type` ct ON race.course_type_id = ct.id
             WHERE race.event_id = %d AND race.date = '%s'
             ORDER BY race.description",
             $eventId,
