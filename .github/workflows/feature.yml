@@ -1,10 +1,10 @@
-# Basic workflow to push all code changes from master to the JAFFA live site
+# Basic workflow to push all code changes to a feature branch to the JAFFA test site
 
-name: 🚀 Deploy to live website on push
+name: 🚀 Deploy to test website on push
 
 on:
   push:
-    branches: [ 'master' ]
+    branches: [ 'feature/**' ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -14,21 +14,26 @@ jobs:
   web-deploy:
     name: 🎉 Deploy
     runs-on: ubuntu-latest
-    environment: Live JAFFA
+    environment: Test JAFFA
     steps: 
+    - name: Php Linter
+      uses: overtrue/phplint@8.1
+      with:
+        path: .
+        options: --no-configuration
       
     - name: 🚚 Get latest code
       uses: actions/checkout@v2
 
-    - name: 📂 Sync files to live
+    - name: 📂 Sync files to test
       uses: Wandalen/wretry.action@master
       with:
         action: SamKirkland/FTP-Deploy-Action@4.3.0
         with: |
-          server: ftp.ipswichjaffa.org.uk
-          username: githubftp@ipswichjaffa.org.uk
+          server: ftp.test.ipswichjaffa.org.uk
+          username: githubftp@test.ipswichjaffa.org.uk
           password: ${{ secrets.FtpServerPassword }}
-          server-dir: public_html/wordpress/wp-content/plugins/ipswich-jaffa-results-api/
+          server-dir: public_html/wp-content/plugins/ipswich-jaffa-results-api/
           dry-run: false
           exclude: |
             **/.git*

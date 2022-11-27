@@ -68,7 +68,7 @@ class EventsDataAccess extends DataAccess
 
     public function getEvents()
     {
-        $sql = 'SELECT e.id as id, e.name as name, e.website, MAX(ra.date) as lastRaceDate, count( r.id ) AS count
+        $sql = 'SELECT e.id as id, e.name as name, e.website, MAX(ra.date) as lastRaceDate, MAX(ra.id) as lastRaceId, count( r.id ) AS count
 			FROM `events` e
 			LEFT JOIN `race` ra on ra.event_id = e.id
 			LEFT JOIN `results` r ON ra.id = r.race_id
