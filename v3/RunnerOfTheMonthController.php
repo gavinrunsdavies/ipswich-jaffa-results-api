@@ -186,7 +186,7 @@ class RunnerOfTheMonthController extends BaseController implements IRoute {
 		
 		$votes = $this->dataAccess->getRunnerOfTheMonthVotes($request['email']['year'], $request['email']['month']);
 		$votesHtml = $this->getVotesHtml($votes);
-		$footerHtml  = "<p><small>This email was automatically sent via a request made on the Ipswich JAFFA RC Results Management Portal by ".$user->user_firstname . " " . $user->user_lastname .".</small></p>";
+		$footerHtml  = "<p><small>This email was automatically sent via a request made on the Ipswich JAFFA RC Results Management Portal by ".$user->user_firstname . " " . $user->user_lastname .".</small></p>\r\n";
 		$html = $votesHtml.$footerHtml;
 		// $message = "Hello Gavin";
 		// $message .= "From email: $fromEmail";
@@ -219,7 +219,7 @@ class RunnerOfTheMonthController extends BaseController implements IRoute {
 	}
 	
 	private function getVotesTable($results, $category, &$runners) {
-		$html = '<table><thead><tr><th>Nomination</th><th>Reason</th><th>Voter ID</th></tr></thead>';
+		$html = '<table><thead><tr><th>Nomination</th><th>Reason</th><th>Voter ID</th></tr></thead>\r\n';
 		$html .= '<tbody>';
 		foreach ($results as $row) {
 			if ($row->category == $category) {
@@ -227,7 +227,7 @@ class RunnerOfTheMonthController extends BaseController implements IRoute {
 				$html .= '<td>'.$row->nomination.'</td>';
 				$html .= '<td>'.$row->reason.'</td>';
 				$html .= '<td>'.$row->voterId.'</td>';
-				$html .= '</tr>';
+				$html .= "</tr>\r\n";
 			
 		
 				if (!array_key_exists($row->nomination, $runners)) {
@@ -237,7 +237,7 @@ class RunnerOfTheMonthController extends BaseController implements IRoute {
 				}
 			}
 		}
-		$html .= '</tbody></table>';
+		$html .= "</tbody></table>\r\n";
 		
 		arsort($runners);
 		
@@ -258,7 +258,7 @@ class RunnerOfTheMonthController extends BaseController implements IRoute {
 			$i++;
 			$lastVoteCount = $votes;
 		}
-		$headingHtml .= '</ol>';
+		$headingHtml .= "</ol>\r\n";
 		
 		return $headingHtml;
 	}	
