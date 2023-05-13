@@ -130,7 +130,7 @@ class GrandPrixCommand extends BaseCommand
 
 		foreach ($results as $runner) {
 			$results[$runner['id']]['best8Score'] = $this->getGrandPrixBest8Score($runner['races']);
-			$results[$runner['id']]['numberOfRaces'] = count($races);
+			$results[$runner['id']]['numberOfRaces'] = count($runner['races']);
 			$results[$runner['id']]['averageScore'] = $results[$runner['id']]['totalPoints'] / count($races);
 		}
 
