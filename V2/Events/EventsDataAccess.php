@@ -142,31 +142,16 @@ class EventsDataAccess extends DataAccess
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    public function getEventTopAttendees(int $eventId)
+    public function getEventTopAttendees(int $eventId, ?int $limit = 10)
     {
         $sql = $this->resultsDatabase->prepare("
-        select t1.name,
-        t1.year,        
-        sum(t2.count) as runningTotal
-        FROM
-        (
-            SELECT p.name as name, YEAR(race.date) as year, count(r.id) as count
+        SELECT p.name as Name, p.id as Id, count(r.id) as Count, Max(race.date) as LastRaceDate
             FROM race race  
             INNER JOIN results r ON r.race_id = race.id
             INNER JOIN runners p ON p.id = r.runner_id
             wHERE race.event_id = %d
-            GROUP BY name, year) as t1
-        INNER JOIN
-        (
-            SELECT p.name as name, YEAR(race.date) as year, count(r.id) as count
-            FROM race race  
-            INNER JOIN results r ON r.race_id = race.id
-            INNER JOIN runners p ON p.id = r.runner_id
-            wHERE race.event_id = %d
-            GROUP BY name, year) as t2
-        on t1.name=t2.name and t1.year >= t2.year
-        group by t1.name, t1.year  
-        ORDER BY t1.year ASC", $eventId, $eventId);
+            GROUP BY name, id
+        ORDER BY count desc, LastRaceDate asC limit %d", $eventId, $limit);
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }

@@ -35,43 +35,27 @@ class EventsCommand extends BaseCommand
 	{
 		$response = $this->dataAccess->getEventTopAttendees($eventId);
 
-		// Array: year, name, count
+		// Array: id, name, count
 		// Transform to JSON of form:
-		// Data = {}
-		// "year1" : {
-		//	 	"name1" : count,
-		// 		"name2" : count,
-		// 		"name3" : count,
+		// Data = [
+		// "{
+		//	 	"name" : an example,
+		// 		"id" : 123,
+		// 		"count" : 22,
 		// },
-		// "year2" : {
-		//	 	"name1" : count,
-		// 		"name2" : count,
-		// 		"name3" : count,
-		// },
+		// "{
+		//	 	"name" : another name,
+		// 		"id" : 45,
+		// 		"count" : 19,
+		// }]
 
-		$topAttendeesByYear = array();
+		$topAttendees = array();
 		$lastYear = 0;
 		foreach ($response as $item) {
-
-			// Should only be the first time
-			if (!array_key_exists($item->year, $topAttendeesByYear)) {
-				$topAttendeesByYear[$item->year] = new class
-				{
-				};
-			}
-
-			// Build up cumulative values. Add all values from last year
-			if ($lastYear != $item->year) {
-				if ($lastYear != 0) {
-					$topAttendeesByYear[$item->year] = clone $topAttendeesByYear[$lastYear];
-				}
-				$lastYear = $item->year;
-			}
-
-			$topAttendeesByYear[$item->year]->{$item->name} = $item->runningTotal;
+			$topAttendees[] = $item;
 		}
 
-		return $topAttendeesByYear;
+		return $topAttendees;
 	}
 
 	public function saveEvent($event)
