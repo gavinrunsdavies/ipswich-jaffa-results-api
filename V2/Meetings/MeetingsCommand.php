@@ -4,22 +4,78 @@ namespace IpswichJAFFARunningClubAPI\V2\Meetings;
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseCommand.php';
 require_once 'MeetingsDataAccess.php';
+require_once 'Meeting.class.php';
 
+use IpswichJAFFARunningClubAPI\V2\Meetings\Meeting as Meeting;
 use IpswichJAFFARunningClubAPI\V2\BaseCommand as BaseCommand;
+use IpswichJAFFARunningClubAPI\V2\Races\RacesCommand as RacesCommand;
 
 class MeetingsCommand extends BaseCommand
 {
+	private $racesCommand;
+
 	public function __construct($db)
 	{
 		parent::__construct(new MeetingsDataAccess($db));
+
+		$this->racesCommand = new RacesCommand($db);
 	}
 
-	public function getMeetings(\WP_REST_Request $request)
+	public function getMeetings(int $eventId)
 	{
+		return $this->dataAccess->getMeetings($eventId);
+	}
 
-		$response = $this->dataAccess->getMeetings($request['eventId']);
+	public function getMeetingForRace(int $raceId)
+	{
+		$race = $this->racesCommand->getRace($raceId);
 
-		return rest_ensure_response($response);
+		if (is_wp_error($race)) {
+			return new \WP_Error('rest_invalid_param', 'No race found for given Id', array('status' => 400));
+		}
+
+		$event = $this->dataAccess->getEvent($race->eventId);
+
+		if ($race->meetingId > 0) {
+			$meeting = $this->dataAccess->getMeetingById($race->meetingId);
+			$races = $this->dataAccess->getMeetingRaces($race->meetingId);
+			$teams = $this->dataAccess->getMeetingTeams($race->meetingId);
+			$results = $this->dataAccess->getMeetingResults($race->meetingId);
+		} else {
+			// Create a virtual meeting
+			$meeting = new class($event->name, $race->date)
+			{
+				public $name;
+				public $id = 0;
+				public $fromDate;
+				public $toDate;
+				public $description = '';
+
+				public function __construct($name, $date)
+				{
+					$this->name = $name;
+					$this->fromDate = $date;
+					$this->toDate = $date;
+				}
+			};
+			
+			$races = $this->dataAccess->getMeetingRacesForEventAndDate($race->eventId, $race->date);
+		}
+
+		if ($teams) {
+			foreach ($teams as $team) {
+				$team->results = array();
+				if ($results) {
+					foreach ($results as $result) {
+						if ($team->teamId == $result->teamId) {
+							$team->results[] = $result;
+						}
+					}
+				}
+			}
+		}
+
+		return new Meeting($meeting, $races, $teams, $event);
 	}
 
 	public function getMeeting(\WP_REST_Request $request)
@@ -50,20 +106,7 @@ class MeetingsCommand extends BaseCommand
 			}
 		}
 
-		$response = new class($meeting, $races, $teams)
-		{
-
-			public $meeting;
-			public $races;
-			public $teams;
-
-			public function __construct($meeting, $races, $teams)
-			{
-				$this->meeting = $meeting;
-				$this->races = $races;
-				$this->teams = $teams;
-			}
-		};
+		$response = new Meeting($meeting, $races, $teams, null);
 
 		return rest_ensure_response($response);
 	}

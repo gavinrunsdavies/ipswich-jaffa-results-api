@@ -8,10 +8,10 @@ use IpswichJAFFARunningClubAPI\V2\DataAccess as DataAccess;
 
 class RacesDataAccess extends DataAccess
 {
-    public function getRaces(int $eventId)
+    public function getRaces(int $eventId, ?string $date)
     {
         $sql = $this->resultsDatabase->prepare(
-            'SELECT ra.id, 
+            "SELECT ra.id, 
             e.id AS eventId, 
             e.Name as name, 
             ra.date, 
@@ -42,10 +42,10 @@ class RacesDataAccess extends DataAccess
             LEFT JOIN `course_type` c ON ra.course_type_id = c.id
             LEFT JOIN `leagues` l ON ra.league_id = l.id
             LEFT JOIN `meeting` m ON ra.meeting_id = m.id
-            WHERE e.id = %d
+            WHERE e.id = %d AND (%d = 1 OR '%s' = ra.date)
             GROUP BY ra.id, eventId, name, ra.date, ra.description, courseTypeId, courseType, ra.area, ra.county, countryCode, ra.conditions, ra.venue, d.distance, isGrandPrixRace
-            ORDER BY ra.date DESC, ra.description',
-            $eventId
+            ORDER BY ra.date DESC, ra.description",
+            $eventId, is_null($date) ? 1 : 0, $date
         );
 
         return $this->executeResultsQuery(__METHOD__, $sql);

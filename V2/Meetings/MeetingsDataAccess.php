@@ -30,14 +30,26 @@ class MeetingsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
+    public function getEvent(int $eventId)
+    {
+        $sql = $this->resultsDatabase->prepare(
+            'SELECT e.id as id, e.name as name FROM `events` e WHERE e.id = %d',
+            $eventId
+        );
+
+        return $this->executeResultQuery(__METHOD__, $sql);
+    }
+
     public function getMeetingById(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
             'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate, m.report as report
-					FROM `meeting` m
-					WHERE m.id = %d', $meetingId);
+			FROM `meeting` m
+			WHERE m.id = %d',
+            $meetingId
+            );
 
-        return $this->executeResultQuery(__METHOD__, $sql);       
+        return $this->executeResultQuery(__METHOD__, $sql);
     }
 
     public function getMeetingTeams(int $meetingId)
@@ -91,10 +103,36 @@ class MeetingsDataAccess extends DataAccess
     public function getMeetingRaces(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
-            'SELECT ra.id, ra.date, ra.description, ra.course_type_id as courseTypeId, ra.report as report
-            FROM `race` ra
-            WHERE ra.meeting_id = %d
-            ORDER BY ra.date, ra.description', $meetingId);
+            "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId,
+            race.report as report, d.result_unit_type_id as resultUnitTypeId,
+            race.area, race.county, race.country_code AS countryCode,
+            race.conditions, race.venue, d.id as distanceId, d.distance, ct.description AS courseType
+            FROM `race` race
+            LEFT JOIN `distance` d ON race.distance_id = d.id
+            LEFT JOIN `course_type` ct ON race.course_type_id = ct.id
+            WHERE race.meeting_id = %d
+            ORDER BY race.date, race.description",
+            $meetingId
+        );
+
+        return $this->executeResultsQuery(__METHOD__, $sql);
+    }
+
+    public function getMeetingRacesForEventAndDate(int $eventId, string $date)
+    {
+        $sql = $this->resultsDatabase->prepare(
+            "SELECT race.id, race.date, race.description, race.course_type_id as courseTypeId,
+            race.report as report, d.result_unit_type_id as resultUnitTypeId,
+            race.area, race.county, race.country_code AS countryCode,
+            race.conditions, race.venue, d.id as distanceId, d.distance, ct.description AS courseType
+            FROM `race` race
+            LEFT JOIN `distance` d ON race.distance_id = d.id
+            LEFT JOIN `course_type` ct ON race.course_type_id = ct.id
+            WHERE race.event_id = %d AND race.date = '%s'
+            ORDER BY race.description",
+            $eventId,
+            $date
+        );
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }

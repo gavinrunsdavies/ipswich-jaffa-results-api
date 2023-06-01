@@ -6,6 +6,7 @@ require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseCommand.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Results/ResultsCommand.php';
 require_once 'RacesDataAccess.php';
 
+use DateTime;
 use IpswichJAFFARunningClubAPI\V2\BaseCommand as BaseCommand;
 use IpswichJAFFARunningClubAPI\V2\Results\ResultsCommand as ResultsCommand;
 
@@ -25,9 +26,9 @@ class RacesCommand extends BaseCommand
 		return $this->dataAccess->insertRace($race);
 	}
 
-	public function getRaces(int $eventId)
+	public function getRaces(int $eventId, ?string $date)
 	{
-		return $this->dataAccess->getRaces($eventId);
+		return $this->dataAccess->getRaces($eventId, $date);
 	}
 
 	public function getRace(int $id)
@@ -41,7 +42,7 @@ class RacesCommand extends BaseCommand
 
 		if ($field == 'country_code' && $value != 'GB') {
 			$this->dataAccess->updateRace($raceId, 'county', null);
-			$response = $this->dataAccess->updateRace($raceId, 'area', null);			
+			$response = $this->dataAccess->updateRace($raceId, 'area', null);
 		}
 
 		if ($field == "distance_id") {
@@ -50,7 +51,7 @@ class RacesCommand extends BaseCommand
         	for ($i = 0; $i < count($results); $i++) {
            
 				$this->resultsCommand->updateResult($results[$i]->id, 'result', $results[$i]->result);
-				// TODO - add error handling				
+				// TODO - add error handling
 			}
 		}
 
