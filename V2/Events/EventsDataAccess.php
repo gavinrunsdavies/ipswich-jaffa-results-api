@@ -145,7 +145,7 @@ class EventsDataAccess extends DataAccess
     public function getEventTopAttendees(int $eventId, ?int $limit = 10)
     {
         $sql = $this->resultsDatabase->prepare("
-        SELECT p.name as Name, p.id as Id, count(r.id) as Count, Max(race.date) as LastRaceDate
+        SELECT p.name as name, p.id as id, count(r.id) as count, Max(race.date) as lastRaceDate
             FROM race race  
             INNER JOIN results r ON r.race_id = race.id
             INNER JOIN runners p ON p.id = r.runner_id

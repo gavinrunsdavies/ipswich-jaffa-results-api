@@ -20,9 +20,12 @@ class EventsCommand extends BaseCommand
 
 		$yearlyMetrics = $this->dataAccess->getEventRaceInsightsByYear($eventId);
 
+		$topAttendees = $this->getEventTopAttendees($eventId);
+
 		return array(
 			"years" => $yearlyMetrics,
-			"distance" => $distanceMetrics
+			"distance" => $distanceMetrics,
+			"attendees" => $topAttendees
 		);
 	}
 
@@ -31,7 +34,7 @@ class EventsCommand extends BaseCommand
 		return $this->dataAccess->getEvents();
 	}
 
-	public function getEventTopAttendees(int $eventId)
+	private function getEventTopAttendees(int $eventId)
 	{
 		$response = $this->dataAccess->getEventTopAttendees($eventId);
 
@@ -42,15 +45,16 @@ class EventsCommand extends BaseCommand
 		//	 	"name" : an example,
 		// 		"id" : 123,
 		// 		"count" : 22,
+		//      "lastRaceDate" : "2001-01-14"
 		// },
 		// "{
 		//	 	"name" : another name,
 		// 		"id" : 45,
 		// 		"count" : 19,
+		//      "lastRaceDate" : "2019-09-14"
 		// }]
 
 		$topAttendees = array();
-		$lastYear = 0;
 		foreach ($response as $item) {
 			$topAttendees[] = $item;
 		}
