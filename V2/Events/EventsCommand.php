@@ -20,9 +20,12 @@ class EventsCommand extends BaseCommand
 
 		$yearlyMetrics = $this->dataAccess->getEventRaceInsightsByYear($eventId);
 
+		$topAttendees = $this->getEventTopAttendees($eventId);
+
 		return array(
 			"years" => $yearlyMetrics,
-			"distance" => $distanceMetrics
+			"distance" => $distanceMetrics,
+			"attendees" => $topAttendees
 		);
 	}
 
@@ -31,47 +34,32 @@ class EventsCommand extends BaseCommand
 		return $this->dataAccess->getEvents();
 	}
 
-	public function getEventTopAttendees(int $eventId)
+	private function getEventTopAttendees(int $eventId)
 	{
 		$response = $this->dataAccess->getEventTopAttendees($eventId);
 
-		// Array: year, name, count
+		// Array: id, name, count
 		// Transform to JSON of form:
-		// Data = {}
-		// "year1" : {
-		//	 	"name1" : count,
-		// 		"name2" : count,
-		// 		"name3" : count,
+		// Data = [
+		// "{
+		//	 	"name" : an example,
+		// 		"id" : 123,
+		// 		"count" : 22,
+		//      "lastRaceDate" : "2001-01-14"
 		// },
-		// "year2" : {
-		//	 	"name1" : count,
-		// 		"name2" : count,
-		// 		"name3" : count,
-		// },
+		// "{
+		//	 	"name" : another name,
+		// 		"id" : 45,
+		// 		"count" : 19,
+		//      "lastRaceDate" : "2019-09-14"
+		// }]
 
-		$topAttendeesByYear = array();
-		$lastYear = 0;
+		$topAttendees = array();
 		foreach ($response as $item) {
-
-			// Should only be the first time
-			if (!array_key_exists($item->year, $topAttendeesByYear)) {
-				$topAttendeesByYear[$item->year] = new class
-				{
-				};
-			}
-
-			// Build up cumulative values. Add all values from last year
-			if ($lastYear != $item->year) {
-				if ($lastYear != 0) {
-					$topAttendeesByYear[$item->year] = clone $topAttendeesByYear[$lastYear];
-				}
-				$lastYear = $item->year;
-			}
-
-			$topAttendeesByYear[$item->year]->{$item->name} = $item->runningTotal;
+			$topAttendees[] = $item;
 		}
 
-		return $topAttendeesByYear;
+		return $topAttendees;
 	}
 
 	public function saveEvent($event)

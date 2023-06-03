@@ -77,17 +77,6 @@ class EventsController extends BaseController implements IRoute
 			)
 		));
 
-		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/topAttendees', array(
-			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this, 'getTopAttendees'),
-			'args'                => array(
-				'eventId'           => array(
-					'required'          => true,
-					'validate_callback' => array($this, 'isValidId'),
-				)
-			)
-		));
-
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/insights', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array($this, 'getEventRaceInsights'),
@@ -110,13 +99,6 @@ class EventsController extends BaseController implements IRoute
 	public function getEvents(\WP_REST_Request $request)
 	{
 		$response = $this->command->getEvents();
-
-		return rest_ensure_response($response);
-	}
-
-	public function getTopAttendees(\WP_REST_Request $request)
-	{
-		$response = $this->command->getEventTopAttendees($request['eventId']);
 
 		return rest_ensure_response($response);
 	}

@@ -97,7 +97,9 @@ class HistoricRecordsCommand extends BaseCommand
 
 			$distance = $item->distance;
 			if (!array_key_exists($distance, $records)) {
-				$result = array("distance" => $distance, "runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "startDate" => $item->date, "endDate" => date("Y-m-d"));
+				$result = array("distance" => $distance, "records" => array());
+				$record = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "startDate" => $item->date, "endDate" => date("Y-m-d"));
+				$result['records'][] = $record;
 				$records[$distance] = array($result);
 
 				continue;
