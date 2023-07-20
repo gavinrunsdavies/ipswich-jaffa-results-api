@@ -10,7 +10,7 @@ class StatisticsDataAccess extends DataAccess
 {
     public function getResultCountByCategoryAndCourse()
     {
-        $sql = "SELECT c.code, ct.description  as courseType, count(r.id)
+        $sql = "SELECT c.code, ct.description  as courseType, count(r.id) as count
                 from results r 
                 INNER join category c on c.id = r.category_id 
                 INNER JOIN race race on race.id = r.race_id
