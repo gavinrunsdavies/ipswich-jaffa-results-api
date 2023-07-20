@@ -14,6 +14,28 @@ class StatisticsCommand extends BaseCommand
 		parent::__construct(new StatisticsDataAccess($db));
 	}
 
+	public function getResultCountByCategoryAndCourse(\WP_REST_Request $request)
+	{
+		$response = $this->dataAccess->getResultCountByCategoryAndCourse();
+		
+		return $this->processDataResponse(
+			$response,
+			function ($response) {
+				$groupedResults = array();
+
+				foreach ($response as $item) {
+					$categoryCode = $item->code;
+					if (!array_key_exists($categoryCode, $groupedResults)) {
+						$category[$categoryCode] = array();
+					}
+					$groupedResults[$categoryCode][] = array("courseType" => $item->courseType, "count" => $item->count);
+				}
+
+				return $groupedResults;
+			}
+		);
+	}
+
 	public function getMeanPercentageGradingByMonth(\WP_REST_Request $request)
 	{
 		$response = $this->dataAccess->getMeanPercentageGradingByMonth();

@@ -63,6 +63,12 @@ class StatisticsController extends BaseController implements IRoute
 			'callback'            => array($this->command, 'getMeanPercentageGradingByMonth'),
 			'args'                => array()
 		));
+
+		register_rest_route($this->route, '/statistics/resultCountByCategoryAndCourse', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array($this->command, 'getResultCountByCategoryAndCourse'),
+			'args'                => array()
+		));
 	}
 
 }
