@@ -21,12 +21,17 @@ class StatisticsCommand extends BaseCommand
 		return $this->processDataResponse(
 			$response,
 			function ($response) {
+				$courseTypeName = "courseTypes";
 				$groupedResults = array();
 
 				foreach ($response as $item) {
+					$courseName = $item->courseType ?? "Undefined";
 					$categoryCode = $item->code;
+					if (!array_key_exists($categoryCode, $groupedResults)) {	
+						$groupedResults[$categoryCode] = array("categoryName" => $categoryCode, $courseTypeName => array());
+					}
 					
-					$groupedResults[$categoryCode][] = array($item->courseType, $item->count);
+					$groupedResults[$categoryCode][$courseTypeName][] = array("name" => $courseName, "count" => $item->count);
 				}
 
 				return $groupedResults;
