@@ -28,13 +28,13 @@ class StatisticsCommand extends BaseCommand
 					$courseName = $item->courseType ?? "Undefined";
 					$categoryCode = $item->code;
 					if (!array_key_exists($categoryCode, $groupedResults)) {	
-						$groupedResults[$categoryCode] = array("categoryName" => $categoryCode, $courseTypeName => array());
+						$groupedResults[$categoryCode] = array("name" => $categoryCode, $courseTypeName => array());
 					}
 					
 					$groupedResults[$categoryCode][$courseTypeName][] = array("name" => $courseName, "count" => $item->count);
 				}
 
-				return $groupedResults;
+				return array_values($groupedResults);
 			}
 		);
 	}
