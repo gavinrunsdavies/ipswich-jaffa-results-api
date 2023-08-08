@@ -31,7 +31,7 @@ class StatisticsCommand extends BaseCommand
 						$groupedResults[$categoryCode] = array("name" => $categoryCode, $courseTypeName => array());
 					}
 					
-					$groupedResults[$categoryCode][$courseTypeName][] = array("name" => $courseName, "count" => $item->count);
+					$groupedResults[$categoryCode][$courseTypeName][] = array("name" => $courseName, "count" => intval($item->count));
 				}
 
 				return array_values($groupedResults);
