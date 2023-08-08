@@ -25,10 +25,8 @@ class StatisticsCommand extends BaseCommand
 
 				foreach ($response as $item) {
 					$categoryCode = $item->code;
-					if (!array_key_exists($categoryCode, $groupedResults)) {
-						$category[$categoryCode] = array();
-					}
-					$groupedResults[$categoryCode][] = array("courseType" => $item->courseType, "count" => $item->count);
+					
+					$groupedResults[$categoryCode][] = array($item->courseType, $item->count);
 				}
 
 				return $groupedResults;
