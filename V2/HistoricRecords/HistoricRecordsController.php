@@ -20,7 +20,7 @@ class HistoricRecordsController extends BaseController implements IRoute
 	{
 		register_rest_route($this->route, '/results/historicrecords/distance/(?P<distanceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
-			'callback'            => array($this->command, 'getHistoricClubRecords'),
+			'callback'            => array($this->command, 'getHistoricClubRecordsByDistance'),
 			'args'                => array(
 				'distanceId'           => array(
 					'required'          => true,

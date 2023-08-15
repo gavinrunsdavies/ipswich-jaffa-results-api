@@ -36,7 +36,7 @@ class HistoricRecordsCommand extends BaseCommand
 		parent::__construct(new HistoricRecordsDataAccess($db));
 	}
 
-	public function getHistoricClubRecords(\WP_REST_Request $request)
+	public function getHistoricClubRecordsByDistance(\WP_REST_Request $request)
 	{
 		$response = $this->dataAccess->getAllRaceResults($request['distanceId']);
 
@@ -45,7 +45,7 @@ class HistoricRecordsCommand extends BaseCommand
 		$categoryCode = 0;
 		$records = array();
 		foreach ($response as $item) {
-			if ($item->courseTypeId != null && in_array($item->courseTypeId, $this->invalidCourseTypes)) {
+			if (!$this->isValidCourseTypeForMeasuredDistance($item->courseTypeId)) {
 				continue;
 			}
 
@@ -91,45 +91,36 @@ class HistoricRecordsCommand extends BaseCommand
 				continue;
 			}
 
-			if (!$this->isStandardDistance($item->distanceId)) {
+			if (!$this->isValidDistance($item->distanceId)) {
 				continue;
 			}
 
 			$distance = $item->distance;
 			if (!array_key_exists($distance, $records)) {
-				$result = array("distance" => $distance, "records" => array());
-				$record = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "startDate" => $item->date, "endDate" => date("Y-m-d"));
-				$result['records'][] = $record;
-				$records[$distance] = array($result);
+				$record = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "performance" => $item->performance, "position" => $item->position, "date" => $item->date);
+				$records[$distance] = array("id" => $item->distanceId, "code" => $item->distance, "records" => array($record));
 
 				continue;
 			}
 
-			$currentResult = $item->result;
-			$count = count($records[$distance]);
-			$previousRecord = $records[$distance][$count - 1]['time'];
+			$currentResult = $item->performance;
+			$count = count($records[$distance]['records']);
+			$previousRecord = $records[$distance]['records'][$count - 1]['performance'];
 			if (in_array($item->resultMeasurementUnitTypeId, $distanceMeasurementUnitTypes)) {
 				if ($currentResult > $previousRecord) {
-					$records[$distance][$count - 1]['endDate'] = $item->date;
-					$records[$distance][] = array("distance" => $distance, "runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "startDate" => $item->date, "endDate" => date("Y-m-d"));
+					$records[$distance]['records'][] = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "performance" => $item->performance, "position" => $item->position, "date" => $item->date);
 				}
 			} else {
 				if ($currentResult < $previousRecord) {
-					$records[$distance][$count - 1]['endDate'] = $item->date;
-					$records[$distance][] = array("distance" => $distance, "runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "position" => $item->position, "startDate" => $item->date, "endDate" => date("Y-m-d"));
+					$records[$distance]['records'][] = array("runnerId" => $item->id, "runnerName" => $item->name, "raceId" => $item->raceId, "raceDescription" => $item->raceDescription, "eventName" => $item->eventName, "time" => $item->result, "performance" => $item->performance, "position" => $item->position, "date" => $item->date);
 				}
 			}
 		}
 
-		// Flatten
-		$flattenedRecords = [];
-		foreach ($records as $value) {
-			foreach ($value as $item) {
-				$flattenedRecords[] = $item;
-			}
-		}
+		// Sort Record by distance
+		ksort($records);
 
-		return rest_ensure_response($flattenedRecords);
+		return rest_ensure_response($records);
 	}
 
 	private function isValidCourseTypeForMeasuredDistance(?int $courseTypeId)
@@ -137,8 +128,8 @@ class HistoricRecordsCommand extends BaseCommand
 		return $courseTypeId == null || !in_array($courseTypeId, $this->invalidCourseTypes);
 	}
 
-	private function isStandardDistance(?int $distanceId)
+	private function isValidDistance(?int $distanceId)
 	{
-		return in_array($distanceId, $this->standardDistances);
+		return $distanceId > 0;
 	}
 }

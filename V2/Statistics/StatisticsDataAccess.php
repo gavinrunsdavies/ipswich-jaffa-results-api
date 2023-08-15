@@ -8,6 +8,19 @@ use IpswichJAFFARunningClubAPI\V2\DataAccess as DataAccess;
 
 class StatisticsDataAccess extends DataAccess
 {
+    public function getResultCountByCategoryAndCourse()
+    {
+        $sql = "SELECT c.code, ct.description  as courseType, count(r.id) as count
+                from results r 
+                INNER join category c on c.id = r.category_id 
+                INNER JOIN race race on race.id = r.race_id
+                left join course_type ct on ct.id = race.course_type_id
+                where r.category_id <> 0 
+                group by c.code, ct.description";
+    
+        return $this->executeResultsQuery(__METHOD__, $sql);
+    }
+
     public function getMeanPercentageGradingByMonth()
     {
         $sql = "SELECT DATE_FORMAT(race.date, '%Y-%m-01') as date, c.code as categoryCode, ROUND(AVG(r.percentage_grading_2015), 2) as meanGrading
