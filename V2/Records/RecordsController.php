@@ -55,6 +55,13 @@ class RecordsController extends BaseController implements IRoute
 		return rest_ensure_response($response);
 	}
 
+	public function getClubRecordsCountByRunner(\WP_REST_Request $request)
+	{
+		$response = $this->command->getClubRecordsCountByRunner();
+
+		return rest_ensure_response($response);
+	}
+
 	public function getTopClubRecordHolders(\WP_REST_Request $request)
 	{
 		$parameters = $request->get_query_params();

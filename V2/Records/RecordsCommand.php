@@ -29,6 +29,11 @@ class RecordsCommand extends BaseCommand
 		return $this->dataAccess->getClubRecordsByCategoryAndDistance($distanceId);
 	}
 
+	public function getClubRecordsCountByRunner()
+	{
+		return $this->dataAccess->getClubRecordsCountByRunner();
+	}
+
 	public function getTopClubRecordHolders(int $limit = 3)
 	{
 		$distances = array(1, 2, 3, 4, 5, 7, 8);
