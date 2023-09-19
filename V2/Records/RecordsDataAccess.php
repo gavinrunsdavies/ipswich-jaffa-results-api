@@ -98,7 +98,7 @@ class RecordsDataAccess extends DataAccess
 
 	public function getClubRecordsCountByRunner()
     {
-        $sql = "SELECT p.name, count(p.name) as count
+        $sql = "SELECT p.id, p.name, count(p.name) as count
 		FROM  (
 		  SELECT r1.runner_id
 		  FROM results AS r1
@@ -127,7 +127,7 @@ class RecordsDataAccess extends DataAccess
 		   
 		) as rd
 		INNER JOIN runners p ON rd.runner_id = p.id
-		group by p.name
+		group by p.name, p.id
 		order by count desc";
 
         return $this->executeResultsQuery(__METHOD__, $sql);
