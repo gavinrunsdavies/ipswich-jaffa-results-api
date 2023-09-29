@@ -128,6 +128,7 @@ class RecordsDataAccess extends DataAccess
 		) as rd
 		INNER JOIN runners p ON rd.runner_id = p.id
 		group by p.name, p.id
+		having count > 2
 		order by count desc";
 
         return $this->executeResultsQuery(__METHOD__, $sql);
