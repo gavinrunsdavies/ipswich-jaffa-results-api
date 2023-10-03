@@ -28,6 +28,11 @@ class RecordsController extends BaseController implements IRoute
 			'callback'            => array($this, 'getTopClubRecordHolders')
 		));
 
+		register_rest_route($this->route, '/results/records/count', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array($this, 'getClubRecordsCountByRunner')
+		));
+
 		register_rest_route($this->route, '/results/records/distance/(?P<distanceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,
 			'callback'            => array($this, 'getClubRecords'),
@@ -51,6 +56,13 @@ class RecordsController extends BaseController implements IRoute
 	public function getClubRecords(\WP_REST_Request $request)
 	{
 		$response = $this->command->getClubRecords($request['distanceId']);
+
+		return rest_ensure_response($response);
+	}
+
+	public function getClubRecordsCountByRunner(\WP_REST_Request $request)
+	{
+		$response = $this->command->getClubRecordsCountByRunner();
 
 		return rest_ensure_response($response);
 	}

@@ -95,4 +95,42 @@ class RecordsDataAccess extends DataAccess
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
+
+	public function getClubRecordsCountByRunner()
+    {
+        $sql = "SELECT p.id, p.name, count(p.name) as count
+		FROM  (
+		  SELECT r1.runner_id
+		  FROM results AS r1
+		  INNER JOIN race ra1 on r1.race_id = ra1.id
+		  JOIN (
+			SELECT
+			CASE
+				WHEN d.result_unit_type_id = 3 THEN MAX(r2.performance)
+				ELSE MIN(r2.performance)
+			END as best,
+			r2.category_id,
+			d.id as distanceId
+			FROM results r2
+			INNER JOIN race ra
+			ON r2.race_id = ra.id
+			INNER JOIN `distance` d
+			ON ra.distance_id = d.id
+			INNER JOIN `runners` p2
+			ON r2.runner_id = p2.id
+			WHERE r2.performance > 0 and r2.category_id <> 0
+			AND (ra.course_type_id NOT IN (2, 4, 5, 7, 9) OR ra.course_type_id IS NULL)
+			GROUP BY r2.category_id, distanceId
+		   ) AS rt
+		   ON r1.performance = rt.best and r1.category_id = rt.category_id and ra1.distance_id = rt.distanceId
+		   GROUP BY r1.runner_id, r1.performance, r1.category_id
+		   
+		) as rd
+		INNER JOIN runners p ON rd.runner_id = p.id
+		group by p.name, p.id
+		having count > 2
+		order by count desc";
+
+        return $this->executeResultsQuery(__METHOD__, $sql);
+    }
 }
