@@ -80,6 +80,13 @@ class RankingsDataAccess extends DataAccess
 					INNER JOIN distance d ON ra3.distance_id = d.id
 					INNER JOIN runners p ON r.runner_id = p.id
 					INNER JOIN events e ON ra3.event_id = e.id
+     					ORDER BY 
+     	   				CASE
+						WHEN d.result_unit_type_id = 3 THEN rd.performance							
+                    			END DESC,
+                        		CASE
+						WHEN d.result_unit_type_id != 3 THEN rd.performance						
+                    			END ASC
 					LIMIT 100) Ranking";
 
 		return $this->executeResultsQuery(__METHOD__, $sql);
