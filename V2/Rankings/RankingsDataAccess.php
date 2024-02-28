@@ -269,7 +269,7 @@ class RankingsDataAccess extends DataAccess
 				FROM (SELECT 
 				    rank_data.runner_id as runnerId,
 				    rank_data.name,
-				    AVG(rank_data.percentage_grading_2015) AS topXAvg
+				    ROUND(AVG(rank_data.percentage_grading_2015), 2) AS topXAvg
 				FROM (
 				    SELECT 
 				        r.runner_id, 
