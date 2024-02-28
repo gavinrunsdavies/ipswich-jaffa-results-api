@@ -260,7 +260,7 @@ class RankingsDataAccess extends DataAccess
 			$yearQuery = "AND race.date >= '2020-03-01' AND race.date < '2021-04-01'";
 		} else {
 			$nextYear = $year + 1;
-			$yearQuery = "AND race.date >= '$year-04-01' AND race.date < '$nextYear-03-01'";
+			$yearQuery = "AND race.date >= '$year-04-01' AND race.date < '$nextYear-04-01'";
 		}
 
 		$sql = "SELECT 
