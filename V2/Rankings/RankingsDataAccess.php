@@ -243,10 +243,6 @@ class RankingsDataAccess extends DataAccess
 
 	public function getAveragePercentageRankings(?int $sexId, ?int $year, ?int $numberOfRaces, ?int $numberOfResults)
 	{
-
-		$sql = "set @cnt := 0, @runnerId := 0, @rank := 0;";
-
-		$this->resultsDatabase->query($sql);
 		// If no year specificed the query is across all years.
 		// Prior to 2015 it is for calendar year results
 		// In 2015 the membership year changed to be from 1st March
@@ -254,40 +250,44 @@ class RankingsDataAccess extends DataAccess
 		if ($year == 0) {
 			$yearQuery = "";
 		} elseif ($year < 2015) {
-			$yearQuery = "AND YEAR(ra.date) = $year";
+			$yearQuery = "AND YEAR(race.date) = $year";
 		} elseif ($year == 2015) {
-			$yearQuery = "AND ra.date >= '2015-01-01' AND ra.date < '2016-03-01'";
+			$yearQuery = "AND race.date >= '2015-01-01' AND race.date < '2016-03-01'";
 		} else if ($year < 2020) {
 			$nextYear = $year + 1;
-			$yearQuery = "AND ra.date >= '$year-03-01' AND ra.date < '$nextYear-03-01'";
+			$yearQuery = "AND race.date >= '$year-03-01' AND race.date < '$nextYear-03-01'";
 		} else if ($year == 2020) {
-			$yearQuery = "AND ra.date >= '2020-03-01' AND ra.date < '2021-04-01'";
+			$yearQuery = "AND race.date >= '2020-03-01' AND race.date < '2021-04-01'";
 		} else {
 			$nextYear = $year + 1;
-			$yearQuery = "AND ra.date >= '$year-04-01' AND ra.date < '$nextYear-03-01'";
+			$yearQuery = "AND race.date >= '$year-04-01' AND race.date < '$nextYear-04-01'";
 		}
 
-		$sql = "select @rank := @rank + 1 AS rank, Results.* FROM (
-					select runner_id as runnerId, name, ROUND(avg(ranktopX.percentage_grading_2015),2) as topXAvg from (
-					select * from (
-					select @cnt := if (@runnerId = ranking.runner_id, @cnt + 1, 1) as rank, @runnerId := ranking.runner_id, ranking.* from (
-
-										select r.runner_id, p.name, e.id, e.name as event, ra.date, r.result, r.performance, r.percentage_grading_2015
-										from results as r
-										inner join runners p on p.id = r.runner_id
-										inner join race ra on ra.id = r.race_id
-										inner join events e on e.id = ra.event_id
-										where r.percentage_grading_2015 > 0
-										AND p.sex_id = $sexId
-										$yearQuery
-										order by r.runner_id asc, r.percentage_grading_2015 desc) ranking
-					) as rank2
-					where rank2.rank <= $numberOfRaces
-					) ranktopX
-					group by ranktopX.runner_id
-					having count(*) = $numberOfRaces
-					order by topXAvg desc
-					LIMIT $numberOfResults) Results";
+		$sql = "SELECT 
+				    ROW_NUMBER() OVER (ORDER BY ranked_results.topXAvg DESC) AS rank,
+				    ranked_results.*
+				FROM (SELECT 
+				    rank_data.runner_id as runnerId,
+				    rank_data.name,
+				    ROUND(AVG(rank_data.percentage_grading_2015), 2) AS topXAvg
+				FROM (
+				    SELECT 
+				        r.runner_id, 
+				        p.name,
+				        r.percentage_grading_2015,
+				        RANK() OVER(PARTITION BY r.runner_id ORDER BY r.percentage_grading_2015 DESC) AS rank
+				    FROM results AS r
+				    INNER JOIN runners AS p ON p.id = r.runner_id
+				    INNER JOIN race AS race ON race.id = r.race_id
+				    WHERE r.percentage_grading_2015 > 0
+				    AND p.sex_id = $sexId
+				    $yearQuery
+				) AS rank_data
+				WHERE rank_data.rank <= $numberOfRaces
+				GROUP BY rank_data.runner_id, rank_data.name 
+				HAVING COUNT(*) = $numberOfRaces
+				) as ranked_results
+				LIMIT $numberOfResults";
 
 		return $this->executeResultsQuery(__METHOD__, $sql);
 	}
