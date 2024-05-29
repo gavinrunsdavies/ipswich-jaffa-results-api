@@ -47,17 +47,29 @@ class ResultsDataAccess extends DataAccess
 
     public function getPreviousPersonalBest($runnerIds, int $newRaceId)
     {
-        $sql = "SELECT r1.runner_id as runnerId, MIN(r2.result) as previousBest, MIN(r2.performance) as previousBestPerformance
-              FROM `results` r1
-              INNER JOIN `race` ra1 ON r1.race_id = ra1.id              
-              inner join `results` r2 on r1.runner_id = r2.runner_id   
-              INNER JOIN `race` ra2 ON r2.race_id = ra2.id          
-              where r1.race_id = $newRaceId
-              AND ra1.date > ra2.date AND r2.personal_best = 1 
-              and r1.personal_best = 1
-              AND ra1.distance_id = ra2.distance_id
-              AND r1.runner_id in ($runnerIds)
-              GROUP BY r1.runner_id";
+        $sql = "SELECT 
+            r1.runner_id as runnerId, 
+            CASE WHEN (d.result_unit_type_id != 3) THEN 
+                MIN(r2.result)
+            ELSE 
+                MAX(r2.result)  
+            END as previousBest,
+            CASE WHEN (d.result_unit_type_id != 3) THEN 
+                MIN(r2.performance)
+            ELSE 
+                MAX(r2.performance)    
+            END as previousBestPerformance
+        FROM `results` r1
+        INNER JOIN `race` ra1 ON r1.race_id = ra1.id              
+        inner join `results` r2 on r1.runner_id = r2.runner_id   
+        INNER JOIN `race` ra2 ON r2.race_id = ra2.id 
+        INNER JOIN distance d ON d.id = ra1.distance_id         
+        where r1.race_id = $newRaceId
+        AND ra1.date > ra2.date AND r2.personal_best = 1 
+        and r1.personal_best = 1
+        AND ra1.distance_id = ra2.distance_id
+        AND r1.runner_id in ($runnerIds)
+        GROUP BY r1.runner_id";
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
@@ -134,7 +146,8 @@ class ResultsDataAccess extends DataAccess
         $sql = $this->resultsDatabase->prepare(
             'INSERT INTO county_champion_results (`result_id`, `county_record_category_override`)
 			VALUES(%d, %s)',
-            $resultId, $categoryCodeOverride
+            $resultId,
+            $categoryCodeOverride
         );
 
         $result = $this->resultsDatabase->query($sql);
@@ -653,7 +666,7 @@ class ResultsDataAccess extends DataAccess
 
         $quickerResultsCount = $this->resultsDatabase->get_var($sql);
 
-        return (is_null($quickerResultsCount) || $quickerResultsCount == 0);        
+        return (is_null($quickerResultsCount) || $quickerResultsCount == 0);
     }
 
     public function isNewStandard(int $resultId): bool
