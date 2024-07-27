@@ -68,8 +68,8 @@ class RunnerOfTheMonthCommand extends BaseCommand
 	public function saveRunnerOfTheMonthVote(\WP_REST_Request $request)
 	{
 		// Validate user vote
-		$isValid = $this->dataAccess->ValidateVoter($request['voterId'], $request['voterDateOfBirth']);
-		if (is_wp_error($voter)) {
+		$isValid = $this->dataAccess->validateVoter($request['voterId'], $request['voterDateOfBirth']);
+		if (is_wp_error($isValid)) {
 			return rest_ensure_response(new \WP_Error(
 				__METHOD__,
 				'Runner and date of birth do not match.',
