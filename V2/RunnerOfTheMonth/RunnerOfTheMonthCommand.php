@@ -9,18 +9,15 @@ require_once 'RunnerOfTheMonthDataAccess.php';
 
 use IpswichJAFFARunningClubAPI\V2\BaseCommand as BaseCommand;
 use IpswichJAFFARunningClubAPI\V2\Genders\Genders as Genders;
-use IpswichJAFFARunningClubAPI\V2\Runners\RunnersCommand as RunnersCommand;
 
 class RunnerOfTheMonthCommand extends BaseCommand
 {
-	private $runnersCommand;
 	const MENS_CATEGORY = 'Men';
 	const LADIES_CATEGORY = 'Ladies';
 
 	public function __construct($db)
 	{
 		parent::__construct(new RunnerOfTheMonthDataAccess($db));
-		$this->runnersCommand = new RunnersCommand($db);
 	}
 
 	public function saveWinners(\WP_REST_Request $request)
@@ -71,16 +68,18 @@ class RunnerOfTheMonthCommand extends BaseCommand
 	public function saveRunnerOfTheMonthVote(\WP_REST_Request $request)
 	{
 		// Validate user vote
-		$voter = $this->runnersCommand->getRunner($request['voterId']);
-		if (is_wp_error($voter) || $voter->dateOfBirth != $request['voterDateOfBirth']) {
+		$isValid = $this->dataAccess->ValidateVoter($request['voterId'], $request['voterDateOfBirth']);
+		if (is_wp_error($voter)) {
 			return rest_ensure_response(new \WP_Error(
 				__METHOD__,
 				'Runner and date of birth do not match.',
-				array('status' => 401, "data" => $request, "voter" => json_encode($voter))
+				array('status' => 401, "data" => $request)
 			));
 		}
 
 		$now = new \DateTime();
+		$response1 = true;
+		$response2 = true;
 
 		if ($request['men'] != null) {
 			$vote = array();

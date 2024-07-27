@@ -33,6 +33,13 @@ class RunnerOfTheMonthDataAccess extends DataAccess
         return $this->executeQuery(__METHOD__, $sql);
     }
 
+    public function validateVoter($voterId, $voterDateOfBirth)
+    {
+        $sql = $this->resultsDatabase->prepare("select name from runners where id=%d and dob='%s'", $voterId, $voterDateOfBirth);
+
+        return $this->executeQuery(__METHOD__, $sql);
+    }
+
     public function getRunnerOfTheMonthWinnners(int $year = 0, int $month = 0)
     {
         if ($year > 0 || $month > 0) {
