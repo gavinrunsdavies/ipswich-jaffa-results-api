@@ -99,61 +99,66 @@ class RunnersDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    public function getRunnerRankings($runnerId, $sexId, $distances)
-    {
-        $results = array();
-
-        foreach ($distances as $distanceId) {
-            $sql = "SET @cnt := 0;";
-
-            $this->resultsDatabase->query($sql);
-
-                $sql = $this->resultsDatabase->prepare(
-                    "SELECT * FROM (
-			    SELECT 
-				@cnt := @cnt + 1 AS rank,
-				r.id AS resultId,
-				e.name AS event,
-				r.position,
-				r.result,
-				r.info,
-				ra.date,
-				c.code,
-				p.name AS name,
-				r.runner_id,
-				ra.distance_id AS distanceId
-			    FROM results r
-			    JOIN (
-				-- Get each runner's quickest result time
-				SELECT r2.runner_id, MIN(r2.result) AS quickest
-				FROM results r2
-				INNER JOIN race ra2 ON r2.race_id = ra2.id
-				INNER JOIN events e ON ra2.event_id = e.id
-				INNER JOIN distance d ON ra2.distance_id = d.id
-				INNER JOIN runners p2 ON r2.runner_id = p2.id
-				WHERE r2.result NOT IN ('00:00:00', '')
-				  AND d.id = %d
-				  AND p2.sex_id = %d
-				GROUP BY r2.runner_id
-			    ) AS best_times ON r.runner_id = best_times.runner_id AND r.result = best_times.quickest
-			    INNER JOIN race ra ON ra.id = r.race_id
-			    INNER JOIN events e ON ra.event_id = e.id
-			    INNER JOIN runners p ON r.runner_id = p.id
-			    INNER JOIN category c ON r.category_id = c.id
-			    WHERE r.result NOT IN ('00:00:00', '')
-			      AND ra.distance_id = %d
-			    ORDER BY r.result ASC
-			    LIMIT 100
-			) AS RankedResults
-			WHERE runner_id = %d;", $distanceId, $sexId, $distanceId, $runnerId);          
-
-            $ranking = $this->executeResultQuery(__METHOD__, $sql);
-
-            if (!is_wp_error($ranking)) {
-                $results[] = $ranking;
-            }
-        }
-
-        return $results;
-    }
+   public function getRunnerRankings($runnerId, $sexId, $distances)
+   {
+	    $results = [];
+	
+	    foreach ($distances as $distanceId) {
+	        // Reset the rank counter for MySQL session variable
+	        $this->resultsDatabase->query("SET @cnt := 0");
+	
+	        $rawSql = "
+	            SELECT * FROM (
+	                SELECT 
+	                    @cnt := @cnt + 1 AS rank,
+	                    r.id AS resultId,
+	                    e.name AS event,
+	                    r.position,
+	                    r.result,
+	                    r.info,
+	                    ra.date,
+	                    c.code,
+	                    p.name AS name,
+	                    r.runner_id,
+	                    ra.distance_id AS distanceId
+	                FROM results r
+	                JOIN (
+	                    SELECT r2.runner_id, MIN(r2.result) AS quickest
+	                    FROM results r2
+	                    INNER JOIN race ra2 ON r2.race_id = ra2.id
+	                    INNER JOIN events e ON ra2.event_id = e.id
+	                    INNER JOIN distance d ON ra2.distance_id = d.id
+	                    INNER JOIN runners p2 ON r2.runner_id = p2.id
+	                    WHERE r2.result NOT IN ('00:00:00', '')
+	                      AND d.id = %d
+	                      AND p2.sex_id = %d
+	                    GROUP BY r2.runner_id
+	                ) AS best_times 
+	                    ON r.runner_id = best_times.runner_id 
+	                    AND r.result = best_times.quickest
+	                INNER JOIN race ra ON ra.id = r.race_id
+	                INNER JOIN events e ON ra.event_id = e.id
+	                INNER JOIN runners p ON r.runner_id = p.id
+	                INNER JOIN category c ON r.category_id = c.id
+	                WHERE r.result NOT IN ('00:00:00', '')
+	                  AND ra.distance_id = %d
+	                ORDER BY r.result ASC
+	                LIMIT 100
+	            ) AS RankedResults
+	            WHERE runner_id = %d
+	        ";
+	
+	        // Now use WordPress-style prepare
+	        $sql = $this->resultsDatabase->prepare($rawSql, $distanceId, $sexId, $distanceId, $runnerId);
+	
+	        // Assuming you have a helper to run and return results
+	        $ranking = $this->executeResultQuery(__METHOD__, $sql);
+	
+	        if (!is_wp_error($ranking)) {
+	            $results[] = $ranking;
+	        }
+	    }
+	
+	    return $results;
+	}
 }
