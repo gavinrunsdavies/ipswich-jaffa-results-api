@@ -110,44 +110,42 @@ class RunnersDataAccess extends DataAccess
 
                 $sql = $this->resultsDatabase->prepare(
                     "SELECT * FROM (
-						SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
-							SELECT r.id as resultId, e.Name as event, r.position, r.result, r.info, ra.date, c.code, p.Name as 'name', r.runner_id, ra.distance_id as distanceId
-							FROM results AS r
-							JOIN (
-								SELECT r1.runner_id, r1.result, MIN(race.date) AS earliest
-								FROM results AS r1
-								JOIN (
-									SELECT r2.runner_id, MIN(r2.result) AS quickest
-									FROM results r2
-                  					INNER JOIN race ra2
-									ON r2.race_id = ra2.id
-									INNER JOIN events e
-									ON ra2.event_id = e.id
-									INNER JOIN `distance` d
-									ON ra2.distance_id = d.id
-									INNER JOIN `runners` p2
-									ON r2.runner_id = p2.id
-									WHERE r2.result != '00:00:00'
-                  					AND r2.result != ''
-									AND d.id = %d
-									AND p2.sex_id = %d
-									GROUP BY r2.runner_id
-								   ) AS rt
-								ON r1.runner_id = rt.runner_id AND r1.result = rt.quickest
-								INNER JOIN race race ON r1.race_id = race.id
-								GROUP BY r1.runner_id, r1.result
-								ORDER BY r1.result asc
-								LIMIT 100
-							) as rd
-							ON r.runner_id = rd.runner_id AND r.result = rd.result 
-							INNER JOIN race ra ON ra.id = r.race_id AND ra.date = rd.earliest
-              				INNER JOIN events e ON ra.event_id = e.id
-							INNER JOIN runners p ON r.runner_id = p.id
-							INNER JOIN category c ON r.category_id = c.id
-							ORDER BY r.result asc
-							LIMIT 100) Ranking
-						) Results
-					HAVING Results.runner_id = %d", $distanceId, $sexId, $runnerId);          
+			    SELECT 
+				@cnt := @cnt + 1 AS rank,
+				r.id AS resultId,
+				e.name AS event,
+				r.position,
+				r.result,
+				r.info,
+				ra.date,
+				c.code,
+				p.name AS name,
+				r.runner_id,
+				ra.distance_id AS distanceId
+			    FROM results r
+			    JOIN (
+				-- Get each runner's quickest result time
+				SELECT r2.runner_id, MIN(r2.result) AS quickest
+				FROM results r2
+				INNER JOIN race ra2 ON r2.race_id = ra2.id
+				INNER JOIN events e ON ra2.event_id = e.id
+				INNER JOIN distance d ON ra2.distance_id = d.id
+				INNER JOIN runners p2 ON r2.runner_id = p2.id
+				WHERE r2.result NOT IN ('00:00:00', '')
+				  AND d.id = %d
+				  AND p2.sex_id = %d
+				GROUP BY r2.runner_id
+			    ) AS best_times ON r.runner_id = best_times.runner_id AND r.result = best_times.quickest
+			    INNER JOIN race ra ON ra.id = r.race_id
+			    INNER JOIN events e ON ra.event_id = e.id
+			    INNER JOIN runners p ON r.runner_id = p.id
+			    INNER JOIN category c ON r.category_id = c.id
+			    WHERE r.result NOT IN ('00:00:00', '')
+			      AND ra.distance_id = %d
+			    ORDER BY r.result ASC
+			    LIMIT 100
+			) AS RankedResults
+			WHERE runner_id = %d;", $distanceId, $sexId, $distanceId, $runnerId);          
 
             $ranking = $this->executeResultQuery(__METHOD__, $sql);
 
