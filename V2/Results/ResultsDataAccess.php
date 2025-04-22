@@ -14,34 +14,44 @@ class ResultsDataAccess extends DataAccess
 {
     public function getRaceResults(int $raceId)
     {
-        $sql = $this->resultsDatabase->prepare("SELECT
-			r.id, r.runner_id as 'runnerId',
-			r.position, 
-            r.result as 'result',
-            r.result as 'time',
-			r.performance as 'performance',
-			r.info, s.name as standardType,
-			c.code as categoryCode,
-			r.personal_best as 'isPersonalBest',
-			r.season_best as 'isSeasonBest',
-			r.scoring_team as 'team',
-			CASE
-			   WHEN race.date >= '%s' THEN r.percentage_grading_2015
-			   ELSE r.percentage_grading
-			END as percentageGrading,
-			r.percentage_grading_best as percentageGradingBest,
-			p.name as 'runnerName',
-			r.race_id as raceId,
-			c.id as categoryId,
-			race.date as 'date'
-			FROM results r
-			INNER JOIN race race ON r.race_id = race.id
-			INNER JOIN runners p on r.runner_id = p.id
-			LEFT JOIN standard_type s on s.id = r.standard_type_id
-			LEFT JOIN category c ON c.id = r.category_id
-			WHERE r.race_id = %d
-			ORDER BY r.position ASC, r.result ASC", Rules::START_OF_2015_AGE_GRADING, $raceId);
-
+        $sql = $this->resultsDatabase->prepare("
+            SELECT
+                r.id,
+                r.runner_id AS runnerId,
+                r.position,
+                r.result AS result,
+                r.result AS time,
+                r.performance AS performance,
+                r.info,
+                s.name AS standardType,
+                c.code AS categoryCode,
+                r.personal_best AS isPersonalBest,
+                r.season_best AS isSeasonBest,
+                r.scoring_team AS team,
+                CASE
+                    WHEN race.date >= '%s' THEN r.percentage_grading_2015
+                    ELSE r.percentage_grading
+                END AS percentageGrading,
+                r.percentage_grading_best AS percentageGradingBest,
+                p.name AS runnerName,
+                r.race_id AS raceId,
+                c.id AS categoryId,
+                race.date AS date,
+                rt.runnerTotalResults
+            FROM results r
+            INNER JOIN race race ON r.race_id = race.id
+            INNER JOIN runners p ON r.runner_id = p.id
+            LEFT JOIN standard_type s ON s.id = r.standard_type_id
+            LEFT JOIN category c ON c.id = r.category_id
+            LEFT JOIN (
+                SELECT runner_id, COUNT(*) AS runnerTotalResults
+                FROM results
+                GROUP BY runner_id
+            ) rt ON rt.runner_id = r.runner_id
+            WHERE r.race_id = %d
+            ORDER BY r.position ASC, r.result ASC
+        ", Rules::START_OF_2015_AGE_GRADING, $raceId);
+    
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
