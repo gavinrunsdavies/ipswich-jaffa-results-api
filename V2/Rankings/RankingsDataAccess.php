@@ -27,9 +27,11 @@ class RankingsDataAccess extends DataAccess
 		}
 
 		if ($categoryId != 0) {
-			$categoryQuery = " AND r2.category_id = $categoryId";
+			$categoryQuery2 = " AND r2.category_id = $categoryId";
+            $categoryQuery1 = " AND r1.category_id = $categoryId";
 		} else {
-			$categoryQuery = "";
+			$categoryQuery2 = "";
+            $categoryQuery1 = "";
 		}
 
 		$sql = "SET @cnt := 0;";
@@ -60,11 +62,12 @@ class RankingsDataAccess extends DataAccess
                         AND (ra2.course_type_id NOT IN (2, 4, 5, 7) OR ra2.course_type_id IS NULL)
 						$sexQuery
 						$dateQuery2
-                        $categoryQuery
+                        $categoryQuery2
 						GROUP BY r2.runner_id
 					   ) AS rt
 					   ON r1.runner_id = rt.runner_id AND r1.performance = rt.best
 					   $dateQuery1
+                       $categoryQuery1
 					   GROUP BY r1.runner_id, r1.performance
 					   ORDER BY 
 					   	CASE
