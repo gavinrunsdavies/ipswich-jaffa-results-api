@@ -11,89 +11,91 @@ use IpswichJAFFARunningClubAPI\V2\DataAccess as DataAccess;
 class RankingsDataAccess extends DataAccess
 {
 	public function getResultRankings(int $distanceId, ?int $year, ?int $sexId, ?int $categoryId)
-	{
-		if ($year != 0) {
-			$dateQuery1 = "  WHERE ra1.date >= '$year-01-01' and ra1.date <= '$year-12-31'";
-			$dateQuery2 = "  AND ra2.date >= '$year-01-01' and ra2.date <= '$year-12-31'";
-		} else {
-			$dateQuery1 = "";
-			$dateQuery2 = "";
-		}
-
-		if ($sexId != 0) {
-			$sexQuery = " AND p2.sex_id = $sexId";
-		} else {
-			$sexQuery = "";
-		}
-
-		if ($categoryId != 0) {
-			$categoryQuery2 = " AND r2.category_id = $categoryId";
-            $categoryQuery1 = " AND r1.category_id = $categoryId";
-		} else {
-			$categoryQuery2 = "";
-            $categoryQuery1 = "";
-		}
-
-		$sql = "SET @cnt := 0;";
-
-		$this->resultsDatabase->query($sql);
-
-		$sql = "
-				SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
-					SELECT r.runner_id as runnerId, p.Name as name, ra3.id as raceId, e.Name as event, ra3.date, r.result, r.performance as 'performance', d.result_unit_type_id as resultUnitTypeId
-					FROM results AS r
-					JOIN (
-					  SELECT r1.runner_id, r1.performance, MIN(ra1.date) AS earliest
-					  FROM results AS r1
-					  INNER JOIN race ra1 ON r1.race_id = ra1.id
-					  INNER JOIN distance d ON ra1.distance_id = d.id
-					  JOIN (
-						SELECT r2.runner_id, 
-						CASE
-							WHEN d.result_unit_type_id = 3 THEN MAX(r2.performance)
-							ELSE MIN(r2.performance)
-                    	END as best
-						FROM results r2
-						INNER JOIN race ra2 ON ra2.id = r2.race_id
-						INNER JOIN runners p2	ON r2.runner_id = p2.id
-						INNER JOIN distance d ON ra2.distance_id = d.id
-						WHERE r2.performance > 0
-						AND ra2.distance_id = $distanceId
-                        AND (ra2.course_type_id NOT IN (2, 4, 5, 7) OR ra2.course_type_id IS NULL)
-						$sexQuery
-						$dateQuery2
-                        $categoryQuery2
-						GROUP BY r2.runner_id
-					   ) AS rt
-					   ON r1.runner_id = rt.runner_id AND r1.performance = rt.best
-					   $dateQuery1
-                       $categoryQuery1
-					   GROUP BY r1.runner_id, r1.performance
-					   ORDER BY 
-					   	CASE
-							WHEN d.result_unit_type_id = 3 THEN r1.performance							
-                    	END DESC,
-                        CASE
-							WHEN d.result_unit_type_id != 3 THEN r1.performance						
-                    	END ASC
-					   LIMIT 100
-					) as rd
-					ON r.runner_id = rd.runner_id AND r.performance = rd.performance
-					INNER JOIN race ra3 ON r.race_id = ra3.id AND ra3.date = rd.earliest
-					INNER JOIN distance d ON ra3.distance_id = d.id
-					INNER JOIN runners p ON r.runner_id = p.id
-					INNER JOIN events e ON ra3.event_id = e.id
-     					ORDER BY 
-     	   				CASE
-						WHEN d.result_unit_type_id = 3 THEN rd.performance							
-                    			END DESC,
-                        		CASE
-						WHEN d.result_unit_type_id != 3 THEN rd.performance						
-                    			END ASC
-					LIMIT 100) Ranking";
-
-		return $this->executeResultsQuery(__METHOD__, $sql);
-	}
+    {
+        // Dynamic WHERE clause parts
+        $filtersRt = [
+            "r2.performance > 0",
+            "ra2.distance_id = $distanceId",
+            "(ra2.course_type_id NOT IN (2, 4, 5, 7) OR ra2.course_type_id IS NULL)"
+        ];
+    
+        $filtersR1 = [];
+    
+        if ($year != 0) {
+            $filtersRt[] = "ra2.date BETWEEN '$year-01-01' AND '$year-12-31'";
+            $filtersR1[] = "ra1.date BETWEEN '$year-01-01' AND '$year-12-31'";
+        }
+    
+        if ($sexId != 0) {
+            $filtersRt[] = "p2.sex_id = $sexId";
+        }
+    
+        if ($categoryId != 0) {
+            $filtersRt[] = "r2.category_id = $categoryId";
+            $filtersR1[] = "r1.category_id = $categoryId";
+        }
+    
+        $whereRt = implode(' AND ', $filtersRt);
+        $whereR1 = count($filtersR1) ? 'WHERE ' . implode(' AND ', $filtersR1) : '';
+    
+        // Initialize rank counter
+        $this->resultsDatabase->query("SET @cnt := 0;");
+    
+        $sql = "
+            SELECT @cnt := @cnt + 1 AS rank, Ranking.*
+            FROM (
+                SELECT 
+                    r.runner_id AS runnerId,
+                    p.Name AS name,
+                    ra3.id AS raceId,
+                    e.Name AS event,
+                    ra3.date,
+                    r.result,
+                    r.performance,
+                    d.result_unit_type_id AS resultUnitTypeId
+                FROM results AS r
+                INNER JOIN (
+                    SELECT 
+                        r1.runner_id,
+                        r1.performance,
+                        MIN(ra1.date) AS earliest
+                    FROM results AS r1
+                    INNER JOIN race ra1 ON r1.race_id = ra1.id
+                    INNER JOIN distance d ON ra1.distance_id = d.id
+                    INNER JOIN (
+                        SELECT 
+                            r2.runner_id,
+                            CASE
+                                WHEN d.result_unit_type_id = 3 THEN MAX(r2.performance)
+                                ELSE MIN(r2.performance)
+                            END AS best
+                        FROM results r2
+                        INNER JOIN race ra2 ON ra2.id = r2.race_id
+                        INNER JOIN runners p2 ON r2.runner_id = p2.id
+                        INNER JOIN distance d ON ra2.distance_id = d.id
+                        WHERE $whereRt
+                        GROUP BY r2.runner_id
+                    ) rt ON r1.runner_id = rt.runner_id AND r1.performance = rt.best
+                    $whereR1
+                    GROUP BY r1.runner_id, r1.performance
+                    ORDER BY
+                        CASE WHEN d.result_unit_type_id = 3 THEN r1.performance END DESC,
+                        CASE WHEN d.result_unit_type_id != 3 THEN r1.performance END ASC
+                    LIMIT 100
+                ) rd ON r.runner_id = rd.runner_id AND r.performance = rd.performance
+                INNER JOIN race ra3 ON r.race_id = ra3.id AND ra3.date = rd.earliest
+                INNER JOIN distance d ON ra3.distance_id = d.id
+                INNER JOIN runners p ON r.runner_id = p.id
+                INNER JOIN events e ON ra3.event_id = e.id
+                ORDER BY
+                    CASE WHEN d.result_unit_type_id = 3 THEN rd.performance END DESC,
+                    CASE WHEN d.result_unit_type_id != 3 THEN rd.performance END ASC
+                LIMIT 100
+            ) Ranking
+        ";
+    
+        return $this->executeResultsQuery(__METHOD__, $sql);
+    }
 
 	public function getWMAPercentageRankings(?int $sexId, ?int $distanceId, ?int $year, ?bool $distinct)
 	{
