@@ -43,7 +43,7 @@ class ResultsDataAccess extends DataAccess
             INNER JOIN runners p ON r.runner_id = p.id
             LEFT JOIN standard_type s ON s.id = r.standard_type_id
             LEFT JOIN category c ON c.id = r.category_id
-            LEFT JOIN (
+            INNER JOIN (
                 SELECT runner_id, COUNT(*) AS runnerTotalResults
                 FROM results
                 GROUP BY runner_id
