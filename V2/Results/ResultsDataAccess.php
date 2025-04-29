@@ -37,7 +37,8 @@ class ResultsDataAccess extends DataAccess
                 r.race_id AS raceId,
                 c.id AS categoryId,
                 race.date AS date,
-                rt.runnerTotalResults
+                rt.runnerTotalResults,
+                GROUP_CONCAT(DISTINCT b.name ORDER BY b.name SEPARATOR ',') AS runnerBadges
             FROM results r
             INNER JOIN race race ON r.race_id = race.id
             INNER JOIN runners p ON r.runner_id = p.id
@@ -48,11 +49,23 @@ class ResultsDataAccess extends DataAccess
                 FROM results
                 GROUP BY runner_id
             ) rt ON rt.runner_id = r.runner_id
+            LEFT JOIN runner_badges rb ON rb.runner_id = r.runner_id
+            LEFT JOIN badges b ON b.id = rb.badge_id
             WHERE r.race_id = %d
+            GROUP BY r.id
             ORDER BY r.position ASC, r.result ASC
         ", Rules::START_OF_2015_AGE_GRADING, $raceId);
     
-        return $this->executeResultsQuery(__METHOD__, $sql);
+        $results = $this->executeResultsQuery(__METHOD__, $sql);
+    
+        // Convert runnerBadges to an array
+        foreach ($results as &$result) {
+            $result['runnerBadges'] = $result['runnerBadges']
+                ? explode(',', $result['runnerBadges'])
+                : [];
+        }
+    
+        return $results;
     }
 
     public function getPreviousPersonalBest($runnerIds, int $newRaceId)
