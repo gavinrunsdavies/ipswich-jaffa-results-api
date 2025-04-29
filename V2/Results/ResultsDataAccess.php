@@ -60,8 +60,8 @@ class ResultsDataAccess extends DataAccess
     
         // Convert runnerBadges to an array
         foreach ($results as &$result) {
-            $result->runnerKeywords = $result->runnerKeywords
-                ? explode(',', $result->runnerKeywords)
+            $result->runnerBadges = $result->runnerBadges
+                ? explode(',', $result->runnerBadges)
                 : [];
         }
 
