@@ -156,7 +156,7 @@ class ResultsCommand extends BaseCommand
         }
         if ($race->distanceId === Distances::MARATHON) {
         }
-        if (!in_array($race->countryCode, array(Countries::ENGLAND, Countries::WALES, Countries::SCOTLAND)) {
+        if ($race->countryCode !== "GB")) {
         }
     }*/
 
