@@ -5,6 +5,7 @@ namespace IpswichJAFFARunningClubAPI\V2\Results;
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseCommand.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Constants/Rules.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/CourseTypes/CourseTypes.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Distances/Distances.php';
 require_once 'ResultsDataAccess.php';
 
 use IpswichJAFFARunningClubAPI\V2\BaseCommand as BaseCommand;
