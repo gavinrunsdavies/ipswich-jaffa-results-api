@@ -72,10 +72,10 @@ class ResultsCommand extends BaseCommand
 		$ageGrading2015 = 0;
 
 		$categoryId = $this->dataAccess->getCategoryId($resultRequest['runnerId'], $resultRequest['date']);
-
+		$race = $this->dataAccess->getRace($raceId);
 		$performance = $this->calculateSecondsFromTime($resultRequest['result']);
 
-		if ($this->isCertificatedCourseAndResult($resultRequest['raceId'], $performance)) {
+		if ($this->isCertificatedCourseAndResult($race, $performance)) {
 			$isPersonalBest = $this->dataAccess->isPersonalBest($resultRequest['raceId'], $resultRequest['runnerId'], $performance);
 
 			$isSeasonBest = $this->dataAccess->isSeasonBest($resultRequest['raceId'], $resultRequest['runnerId'], $performance, $resultRequest['date']);
@@ -146,14 +146,24 @@ class ResultsCommand extends BaseCommand
 			return $this->insertResult($resultRequest);
 		}
 	}
+/*
+    private function updateBadges($race, int $runnerId)
+    {
+        if ($race->courseTypeId === CourseTypes::TRACK) {
+            $this->dataAcess->insertOrUpdateRunnerBadges($runnerId, Badges::TRACK);
+        } else if ($race->courseTypeId === CourseTypes::CROSS_COUNTRY) {
+        }
+        if ($race->distanceId === Distances::MARATHON) {
+        }
+        if (!in_array($race->countryCode, array(Countries::ENGLAND, Countries::WALES, Countries::SCOTLAND)) {
+        }
+    }*/
 
-	private function isCertificatedCourseAndResult(int $raceId, float $performance): bool
+	private function isCertificatedCourseAndResult($race, float $performance): bool
 	{
 		if (!isset($performance)) {
 			return false;
 		}
-
-		$race = $this->dataAccess->getRace($raceId);
 
 		return $race && $race->distance != null && in_array($race->courseTypeId, array(CourseTypes::ROAD, CourseTypes::TRACK, CourseTypes::INDOOR));
 	}
