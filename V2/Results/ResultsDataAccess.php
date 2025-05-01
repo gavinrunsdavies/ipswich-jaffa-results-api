@@ -775,4 +775,35 @@ class ResultsDataAccess extends DataAccess
 
         return $this->executeResultQuery(__METHOD__, $sql);
     }
+
+    public function addRunnerBadges(int $runnerId, array $badgeIds): void
+    {
+        if (empty($badgeIds)) {
+            return;
+        }
+    
+        // Fetch existing badge IDs for this runner
+        $sql = $this->resultsDatabase->prepare("SELECT badge_id FROM runner_badges WHERE runner_id = %d", $runnerId);
+        $existingRunnerBadges = $this->executeResultQuery(__METHOD__, $sql);
+            
+        // Determine which badge IDs are not already assigned
+        $newBadgeIds = array_diff($badgeIds, $existingRunnerBadges);
+    
+        if (empty($newBadgeIds)) {
+            return;
+        }
+    
+        $values = [];
+        $params = [];
+    
+        foreach ($newBadgeIds as $badgeId) {
+            $values[] = "(%d, %d)";
+            $params[] = $runnerId;
+            $params[] = $badgeId;
+        }
+    
+        $placeholders = implode(', ', $values);
+        $insertStmt = $this->resultsDatabase->prepare("INSERT IGNORE INTO runner_badges (runner_id, badge_id) VALUES $placeholders", ...$params);
+        $this->execute($insertStmt);
+    }
 }
