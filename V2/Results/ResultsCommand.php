@@ -2,15 +2,18 @@
 
 namespace IpswichJAFFARunningClubAPI\V2\Results;
 
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Badges/Badges.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseCommand.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Constants/Rules.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/CourseTypes/CourseTypes.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Distances/Distances.php';
 require_once 'ResultsDataAccess.php';
 
+use IpswichJAFFARunningClubAPI\V2\Badges\Badges as Badges;
 use IpswichJAFFARunningClubAPI\V2\BaseCommand as BaseCommand;
 use IpswichJAFFARunningClubAPI\V2\Constants\Rules as Rules;
 use IpswichJAFFARunningClubAPI\V2\CourseTypes\CourseTypes as CourseTypes;
+use IpswichJAFFARunningClubAPI\V2\Distances\Distances as Distances;
 
 class ResultsCommand extends BaseCommand
 {
@@ -147,18 +150,28 @@ class ResultsCommand extends BaseCommand
 			return $this->insertResult($resultRequest);
 		}
 	}
-/*
+
     private function updateBadges($race, int $runnerId)
     {
+        $badges = [];
         if ($race->courseTypeId === CourseTypes::TRACK) {
-            $this->dataAcess->insertOrUpdateRunnerBadges($runnerId, Badges::TRACK);
+            $badges[] = Badges::TRACK;
         } else if ($race->courseTypeId === CourseTypes::CROSS_COUNTRY) {
+            $badges[] = Badges::CROSS_COUNTRY;
         }
         if ($race->distanceId === Distances::MARATHON) {
+            $badges[] = Badges::MARATHON;
         }
         if ($race->countryCode !== "GB")) {
+            $badges[] = Badges::INTERNATIONAL ;
         }
-    }*/
+
+        if (empty($badges)) {
+            return;
+        }
+        
+        $this->dataAccess->addRunnerBadges($runnerId, $badges);        
+    }
 
 	private function isCertificatedCourseAndResult($race, float $performance): bool
 	{
