@@ -164,8 +164,8 @@ class ResultsCommand extends BaseCommand
         if ($race->distanceId === Distances::MARATHON) {
             $badges[] = Badges::MARATHON;
         }
-        if ($race->countryCode !== "GB")) {
-            $badges[] = Badges::INTERNATIONAL ;
+        if ($race->countryCode !== "GB") {
+            $badges[] = Badges::INTERNATIONAL;
         }
 
         if (empty($badges)) {
