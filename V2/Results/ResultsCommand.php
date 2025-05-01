@@ -76,7 +76,7 @@ class ResultsCommand extends BaseCommand
 		$ageGrading2015 = 0;
 
 		$categoryId = $this->dataAccess->getCategoryId($resultRequest['runnerId'], $resultRequest['date']);
-		$race = $this->dataAccess->getRace($raceId);
+		$race = $this->dataAccess->getRace($resultRequest['raceId']);
 		$performance = $this->calculateSecondsFromTime($resultRequest['result']);
 
 		if ($this->isCertificatedCourseAndResult($race, $performance)) {
