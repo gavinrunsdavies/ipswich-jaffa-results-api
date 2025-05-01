@@ -117,6 +117,8 @@ class ResultsCommand extends BaseCommand
 			$this->dataAccess->checkAndUpdatePersonalBestResults($resultRequest['runnerId']);
 		}
 
+        $this->updateBadges($race, $resultRequest['runnerId']);
+
 		return $this->dataAccess->getResult($resultId);
 	}
 
