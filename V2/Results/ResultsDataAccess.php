@@ -759,6 +759,7 @@ class ResultsDataAccess extends DataAccess
 				ra.conditions,
 				ra.venue,
 				d.distance,
+    				d.id as distanceId,
 				ra.grand_prix as isGrandPrixRace,
 				ra.course_number as courseNumber,
 				ra.league_id as leagueId,
