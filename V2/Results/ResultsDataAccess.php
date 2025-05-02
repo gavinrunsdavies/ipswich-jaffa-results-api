@@ -785,9 +785,11 @@ class ResultsDataAccess extends DataAccess
     
         // Fetch existing badge IDs for this runner
         $sql = $this->resultsDatabase->prepare("SELECT badge_id FROM runner_badges WHERE runner_id = %d", $runnerId);
-        $existingRunnerBadges = $this->executeResultQuery(__METHOD__, $sql);
+        $results = $this->executeResultQuery(__METHOD__, $sql);
+        $existingRunnerBadges = array_map(function($row) {
+            return $row->badge_id;
+        }, $results);
 
-        var_dump($existingRunnerBadges);
         // Determine which badge IDs are not already assigned
         $newBadgeIds = array_diff($badgeIds, $existingRunnerBadges);
     
