@@ -172,7 +172,15 @@ class ResultsCommand extends BaseCommand
             return;
         }
 
-        return $badges;
+        return new \WP_Error(
+                __METHOD__,
+                'Unknown error in inserting entity in to the database',
+                array(
+                    'status' => 500,
+                    'last_query' => $this->resultsDatabase->last_query,
+                    'badges' => $badges
+                )
+            );
         
         $this->dataAccess->addRunnerBadges($runnerId, $badges);        
     }
