@@ -177,7 +177,6 @@ class ResultsCommand extends BaseCommand
                 'Unknown error in inserting entity in to the database',
                 array(
                     'status' => 500,
-                    'last_query' => $this->resultsDatabase->last_query,
                     'badges' => $badges
                 )
             );
