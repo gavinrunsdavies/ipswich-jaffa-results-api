@@ -118,9 +118,9 @@ class ResultsCommand extends BaseCommand
 			$this->dataAccess->checkAndUpdatePersonalBestResults($resultRequest['runnerId']);
 		}
 
-        	// $this->updateBadges($race, $resultRequest['runnerId']);
+        	return $this->updateBadges($race, $resultRequest['runnerId']);
 
-		return $this->dataAccess->getResult($resultId);
+		//return $this->dataAccess->getResult($resultId);
 	}
 
 	public function updateResult(int $resultId, string $field, string $value)
@@ -169,20 +169,11 @@ class ResultsCommand extends BaseCommand
             $badges[] = Badges::INTERNATIONAL;
         }
 
+        return $badges;
+        
         if (empty($badges)) {
             return;
         }
-
-        return new \WP_Error(
-                __METHOD__,
-                'Unknown error in inserting entity in to the database',
-                array(
-			'runnerId' => $runnerId,
-			'race' => serialize($race),
-                    'status' => 500,
-                    'badges' => $badges
-                )
-            );
         
         $this->dataAccess->addRunnerBadges($runnerId, $badges);        
     }
