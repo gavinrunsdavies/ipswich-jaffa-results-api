@@ -77,7 +77,6 @@ class ResultsCommand extends BaseCommand
 
 		$categoryId = $this->dataAccess->getCategoryId($resultRequest['runnerId'], $resultRequest['date']);
 		$race = $this->dataAccess->getRace($resultRequest['raceId']);
-		//return $this->updateBadges($race, $resultRequest['runnerId']);
 		$performance = $this->calculateSecondsFromTime($resultRequest['result']);
 
 		if ($this->isCertificatedCourseAndResult($race, $performance)) {
@@ -118,9 +117,9 @@ class ResultsCommand extends BaseCommand
 			$this->dataAccess->checkAndUpdatePersonalBestResults($resultRequest['runnerId']);
 		}
 
-        	return $this->updateBadges($race, $resultRequest['runnerId']);
+        $this->updateBadges($race, $resultRequest['runnerId']);
 
-		//return $this->dataAccess->getResult($resultId);
+		return $this->dataAccess->getResult($resultId);
 	}
 
 	public function updateResult(int $resultId, string $field, string $value)
@@ -150,6 +149,7 @@ class ResultsCommand extends BaseCommand
 				'info' => $existingResult->info,
 				'team' => $existingResult->team
 			);
+            
 			return $this->insertResult($resultRequest);
 		}
 	}
@@ -157,27 +157,18 @@ class ResultsCommand extends BaseCommand
     private function updateBadges($race, int $runnerId)
     {
         $badges = [];
-        if ($race->courseTypeId === CourseTypes::TRACK) {
+        if ((int)$race->courseTypeId === CourseTypes::TRACK) {
             $badges[] = Badges::TRACK;
-        } else if ($race->courseTypeId === CourseTypes::CROSS_COUNTRY) {
+        } else if ((int)$race->courseTypeId === CourseTypes::CROSS_COUNTRY) {
             $badges[] = Badges::CROSS_COUNTRY;
         }
-        if ($race->distanceId === Distances::MARATHON) {
+        if ((int)$race->distanceId === Distances::MARATHON) {
             $badges[] = Badges::MARATHON;
         }
         if ($race->countryCode !== "GB") {
             $badges[] = Badges::INTERNATIONAL;
         }
-$badges[] = Badges::TRACK;
-	    $badges[] = Badges::CROSS_COUNTRY;
-	    $badges[] = Badges::MARATHON;
-	    $badges[] = Badges::INTERNATIONAL;
-	    $badges[] = $race->courseTypeId;
-	    $badges[] = $race->distanceId;
-	    $badges[] = $race->countryCode;
 
-        return $badges;
-        
         if (empty($badges)) {
             return;
         }
