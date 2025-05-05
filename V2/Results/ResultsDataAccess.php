@@ -809,6 +809,6 @@ class ResultsDataAccess extends DataAccess
     
         $placeholders = implode(', ', $values);
         $insertStmt = $this->resultsDatabase->prepare("INSERT IGNORE INTO runner_badges (runner_id, badge_id) VALUES $placeholders", ...$params);
-        $this->execute($insertStmt);
+        $this->executeQuery($insertStmt);
     }
 }
