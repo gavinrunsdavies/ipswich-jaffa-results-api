@@ -168,6 +168,13 @@ class ResultsCommand extends BaseCommand
         if ($race->countryCode !== "GB") {
             $badges[] = Badges::INTERNATIONAL;
         }
+$badges[] = Badges::TRACK;
+	    $badges[] = Badges::CROSS_COUNTRY;
+	    $badges[] = Badges::MARATHON;
+	    $badges[] = Badges::INTERNATIONAL;
+	    $badges[] = $race->courseTypeId;
+	    $badges[] = $race->distanceId;
+	    $badges[] = $race->countryCode;
 
         return $badges;
         
