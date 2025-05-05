@@ -77,7 +77,7 @@ class ResultsCommand extends BaseCommand
 
 		$categoryId = $this->dataAccess->getCategoryId($resultRequest['runnerId'], $resultRequest['date']);
 		$race = $this->dataAccess->getRace($resultRequest['raceId']);
-		return $this->updateBadges($race, $resultRequest['runnerId']);
+		//return $this->updateBadges($race, $resultRequest['runnerId']);
 		$performance = $this->calculateSecondsFromTime($resultRequest['result']);
 
 		if ($this->isCertificatedCourseAndResult($race, $performance)) {
@@ -118,9 +118,9 @@ class ResultsCommand extends BaseCommand
 			$this->dataAccess->checkAndUpdatePersonalBestResults($resultRequest['runnerId']);
 		}
 
-        	return $this->updateBadges($race, $resultRequest['runnerId']);
+        	// $this->updateBadges($race, $resultRequest['runnerId']);
 
-		//return $this->dataAccess->getResult($resultId);
+		return $this->dataAccess->getResult($resultId);
 	}
 
 	public function updateResult(int $resultId, string $field, string $value)
@@ -184,7 +184,7 @@ class ResultsCommand extends BaseCommand
                 )
             );
         
-        //$this->dataAccess->addRunnerBadges($runnerId, $badges);        
+        $this->dataAccess->addRunnerBadges($runnerId, $badges);        
     }
 
 	private function isCertificatedCourseAndResult($race, float $performance): bool
