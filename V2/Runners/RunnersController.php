@@ -13,12 +13,12 @@ use IpswichJAFFARunningClubAPI\V2\Results\ResultsCommand as ResultsCommand;
 
 class RunnersController extends BaseController implements IRoute
 {
-    private $ResultsCommand;
+    private $resultsCommand;
     
 	public function __construct(string $route, $db)
 	{
 		parent::__construct($route, new RunnersCommand($db));
-        $this->ResultsCommand = new ResultsCommand($db);
+        $this->resultsCommand = new ResultsCommand($db);
 	}
 
 	public function registerRoutes()
