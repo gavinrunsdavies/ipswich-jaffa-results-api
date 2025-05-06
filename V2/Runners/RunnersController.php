@@ -4,16 +4,21 @@ namespace IpswichJAFFARunningClubAPI\V2\Runners;
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/IRoute.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Results/ResultsCommand.php';
 require_once 'RunnersCommand.php';
 
 use IpswichJAFFARunningClubAPI\V2\BaseController as BaseController;
 use IpswichJAFFARunningClubAPI\V2\IRoute as IRoute;
+use IpswichJAFFARunningClubAPI\V2\Results\ResultsCommand as ResultsCommand;
 
 class RunnersController extends BaseController implements IRoute
 {
+    private $ResultsCommand;
+    
 	public function __construct(string $route, $db)
 	{
 		parent::__construct($route, new RunnersCommand($db));
+        $this->ResultsCommand = new ResultsCommand($db);
 	}
 
 	public function registerRoutes()
@@ -65,14 +70,26 @@ class RunnersController extends BaseController implements IRoute
 			'args' => array(
 				'runnerId' => array(
 					'required' => true,
-					'validate_callback' => array($this, 'isValidId'),
+					'validate_callback' => array($this, 'isValidId')
 				),
 				'field' => array(
 					'required' => true,
-					'validate_callback' => array($this, 'isValidRunnerUpdateField'),
+					'validate_callback' => array($this, 'isValidRunnerUpdateField')
 				),
 				'value' => array(
+					'required' => true
+				)
+			)
+		));
+
+        register_rest_route($this->route, '/runners/(?P<runnerId>[\d]+)/badges', array(
+			'methods' => \WP_REST_Server::CREATABLE,
+			'permission_callback' => array($this, 'isAuthorized'),
+			'callback' => array($this, 'addRunnerBadges'),
+			'args' => array(
+				'runnerId' => array(
 					'required' => true,
+					'validate_callback' => array($this, 'isValidId')
 				)
 			)
 		));
@@ -91,6 +108,11 @@ class RunnersController extends BaseController implements IRoute
 	public function saveRunner(\WP_REST_Request $request)
 	{
 		return rest_ensure_response($this->command->saveRunner($request['runner']));
+	}
+
+    public function addRunnerBadges(\WP_REST_Request $request)
+	{
+		return rest_ensure_response($this->resultsCommand->addRunnerBadges($request['runnerId'], $request['badges']));
 	}
 
 	public function deleteRunner(\WP_REST_Request $request)
