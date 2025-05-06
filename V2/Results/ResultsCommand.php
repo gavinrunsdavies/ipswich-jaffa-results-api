@@ -154,7 +154,7 @@ class ResultsCommand extends BaseCommand
 		}
 	}
 
-    public function updateBadges(int $runnerId, array $badges)
+    public function addRunnerBadges(int $runnerId, array $badges)
 	{
 		$this->dataAccess->addRunnerBadges($runnerId, $badges);   
 	}
