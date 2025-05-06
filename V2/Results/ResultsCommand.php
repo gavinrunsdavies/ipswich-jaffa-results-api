@@ -154,6 +154,11 @@ class ResultsCommand extends BaseCommand
 		}
 	}
 
+    public function updateBadges(int $runnerId, array $badges)
+	{
+		$this->dataAccess->addRunnerBadges($runnerId, $badges);   
+	}
+
     private function updateBadges($race, int $runnerId)
     {
         $badges = [];
