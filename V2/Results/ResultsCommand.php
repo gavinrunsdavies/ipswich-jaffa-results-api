@@ -2,14 +2,18 @@
 
 namespace IpswichJAFFARunningClubAPI\V2\Results;
 
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Badges/Badges.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseCommand.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Constants/Rules.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/CourseTypes/CourseTypes.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Distances/Distances.php';
 require_once 'ResultsDataAccess.php';
 
+use IpswichJAFFARunningClubAPI\V2\Badges\Badges as Badges;
 use IpswichJAFFARunningClubAPI\V2\BaseCommand as BaseCommand;
 use IpswichJAFFARunningClubAPI\V2\Constants\Rules as Rules;
 use IpswichJAFFARunningClubAPI\V2\CourseTypes\CourseTypes as CourseTypes;
+use IpswichJAFFARunningClubAPI\V2\Distances\Distances as Distances;
 
 class ResultsCommand extends BaseCommand
 {
@@ -72,10 +76,10 @@ class ResultsCommand extends BaseCommand
 		$ageGrading2015 = 0;
 
 		$categoryId = $this->dataAccess->getCategoryId($resultRequest['runnerId'], $resultRequest['date']);
-
+		$race = $this->dataAccess->getRace($resultRequest['raceId']);
 		$performance = $this->calculateSecondsFromTime($resultRequest['result']);
 
-		if ($this->isCertificatedCourseAndResult($resultRequest['raceId'], $performance)) {
+		if ($this->isCertificatedCourseAndResult($race, $performance)) {
 			$isPersonalBest = $this->dataAccess->isPersonalBest($resultRequest['raceId'], $resultRequest['runnerId'], $performance);
 
 			$isSeasonBest = $this->dataAccess->isSeasonBest($resultRequest['raceId'], $resultRequest['runnerId'], $performance, $resultRequest['date']);
@@ -113,6 +117,8 @@ class ResultsCommand extends BaseCommand
 			$this->dataAccess->checkAndUpdatePersonalBestResults($resultRequest['runnerId']);
 		}
 
+        $this->updateBadges($race, $resultRequest['runnerId']);
+
 		return $this->dataAccess->getResult($resultId);
 	}
 
@@ -143,17 +149,43 @@ class ResultsCommand extends BaseCommand
 				'info' => $existingResult->info,
 				'team' => $existingResult->team
 			);
+            
 			return $this->insertResult($resultRequest);
 		}
 	}
 
-	private function isCertificatedCourseAndResult(int $raceId, float $performance): bool
+    public function addRunnerBadges(int $runnerId, array $badges)
+	{
+		$this->dataAccess->addRunnerBadges($runnerId, $badges);   
+	}
+
+    private function updateBadges($race, int $runnerId)
+    {
+        $badges = [];
+        if ((int)$race->courseTypeId === CourseTypes::TRACK) {
+            $badges[] = Badges::TRACK;
+        } else if ((int)$race->courseTypeId === CourseTypes::CROSS_COUNTRY) {
+            $badges[] = Badges::CROSS_COUNTRY;
+        }
+        if ((int)$race->distanceId === Distances::MARATHON) {
+            $badges[] = Badges::MARATHON;
+        }
+        if ($race->countryCode !== "GB") {
+            $badges[] = Badges::INTERNATIONAL;
+        }
+
+        if (empty($badges)) {
+            return;
+        }
+        
+        $this->dataAccess->addRunnerBadges($runnerId, $badges);        
+    }
+
+	private function isCertificatedCourseAndResult($race, float $performance): bool
 	{
 		if (!isset($performance)) {
 			return false;
 		}
-
-		$race = $this->dataAccess->getRace($raceId);
 
 		return $race && $race->distance != null && in_array($race->courseTypeId, array(CourseTypes::ROAD, CourseTypes::TRACK, CourseTypes::INDOOR));
 	}

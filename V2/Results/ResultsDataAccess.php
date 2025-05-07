@@ -37,7 +37,8 @@ class ResultsDataAccess extends DataAccess
                 r.race_id AS raceId,
                 c.id AS categoryId,
                 race.date AS date,
-                rt.runnerTotalResults
+                rt.runnerTotalResults,
+                GROUP_CONCAT(DISTINCT b.name ORDER BY b.name SEPARATOR ',') AS runnerBadges
             FROM results r
             INNER JOIN race race ON r.race_id = race.id
             INNER JOIN runners p ON r.runner_id = p.id
@@ -48,11 +49,23 @@ class ResultsDataAccess extends DataAccess
                 FROM results
                 GROUP BY runner_id
             ) rt ON rt.runner_id = r.runner_id
+            LEFT JOIN runner_badges rb ON rb.runner_id = r.runner_id
+            LEFT JOIN badges b ON b.id = rb.badge_id
             WHERE r.race_id = %d
+            GROUP BY r.id
             ORDER BY r.position ASC, r.result ASC
         ", Rules::START_OF_2015_AGE_GRADING, $raceId);
     
-        return $this->executeResultsQuery(__METHOD__, $sql);
+        $results = $this->executeResultsQuery(__METHOD__, $sql);
+    
+        // Convert runnerBadges to an array
+        foreach ($results as &$result) {
+            $result->runnerBadges = $result->runnerBadges
+                ? explode(',', $result->runnerBadges)
+                : [];
+        }
+
+        return $results;
     }
 
     public function getPreviousPersonalBest($runnerIds, int $newRaceId)
@@ -746,6 +759,7 @@ class ResultsDataAccess extends DataAccess
 				ra.conditions,
 				ra.venue,
 				d.distance,
+    				d.id as distanceId,
 				ra.grand_prix as isGrandPrixRace,
 				ra.course_number as courseNumber,
 				ra.league_id as leagueId,
@@ -761,5 +775,40 @@ class ResultsDataAccess extends DataAccess
         );
 
         return $this->executeResultQuery(__METHOD__, $sql);
+    }
+
+    public function addRunnerBadges(int $runnerId, array $badgeIds): void
+    {
+        if (empty($badgeIds)) {
+            return;
+        }
+    
+        // Fetch existing badge IDs for this runner
+        $sql = $this->resultsDatabase->prepare("SELECT badge_id FROM runner_badges WHERE runner_id = %d", $runnerId);
+        $results = $this->executeResultQuery(__METHOD__, $sql);
+    	$existingRunnerBadges = [];
+        foreach ($results as $row) {
+            $existingRunnerBadges[] = $row->badge_id;
+        }
+
+        // Determine which badge IDs are not already assigned
+        $newBadgeIds = array_diff($badgeIds, $existingRunnerBadges);
+    
+        if (empty($newBadgeIds)) {
+            return;
+        }
+    
+        $values = [];
+        $params = [];
+    
+        foreach ($newBadgeIds as $badgeId) {
+            $values[] = "(%d, %d)";
+            $params[] = $runnerId;
+            $params[] = $badgeId;
+        }
+    
+        $placeholders = implode(', ', $values);
+        $insertStmt = $this->resultsDatabase->prepare("INSERT IGNORE INTO runner_badges (runner_id, badge_id) VALUES $placeholders", ...$params);
+        $this->executeQuery(__METHOD__, $insertStmt);
     }
 }
