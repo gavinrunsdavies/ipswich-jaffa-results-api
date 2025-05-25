@@ -389,7 +389,7 @@ class ResultsDataAccess extends DataAccess
                 %s grade
                 INNER JOIN %s record ON grade.distance_id = record.distance_id
                 INNER JOIN distance d ON record.distance_id = d.id
-                INNER JOIN race race ON d.id = race.distance_id 
+                INNER JOIN race race ON d.id = race.distance_id, 
                 runners p
             WHERE
                 race.id = %d
