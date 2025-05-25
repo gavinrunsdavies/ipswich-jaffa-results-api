@@ -176,7 +176,7 @@ class ResultsCommand extends BaseCommand
 
 	private function getAgeGrading(int $courseTypeId, string $date, float $performance, int $runnerId, int $raceId)
 	{
-		if ($courseTypeId === CourseTypes::ROAD) {
+		if ($courseTypeId == CourseTypes::ROAD) {
 			$datasetYear = 2010;
 			if ($date >= Rules::START_OF_2015_AGE_GRADING && $date < Rules::START_OF_2025_AGE_GRADING) {
 				$datasetYear = 2015;
