@@ -26,7 +26,7 @@ class RunnerResultsDataAccess extends DataAccess
         for ($i = 1; $i <= count($runnerIds); $i++) {
             $selectSql .= "r$i.position as position$i, ";
             $selectSql .= "r$i.result as time$i, ";
-            $selectSql .= "r$i.percentage_grading_2015 as percentageGrading$i";
+            $selectSql .= "r$i.age_grading as percentageGrading$i";
 
             if ($i != count($runnerIds)) {
                 $selectSql .= ", ";
@@ -72,10 +72,7 @@ class RunnerResultsDataAccess extends DataAccess
 					  r.season_best as isSeasonBest,
 					  st.name as standard,
 					  r.info as info,
-					  CASE
-					   WHEN ra.date >= '%s' THEN r.percentage_grading_2015
-					   ELSE r.percentage_grading
-					  END as percentageGrading,
+					  r.age_grading as percentageGrading,
 					  r.percentage_grading_best as percentageGradingBest,
 					  ra.course_type_id AS courseTypeId
 					from
@@ -90,7 +87,7 @@ class RunnerResultsDataAccess extends DataAccess
 					  ON r.standard_type_id = st.id
 					where
 					  r.runner_id = %d
-					ORDER BY date DESC", Rules::START_OF_2015_AGE_GRADING, $runnerId);
+					ORDER BY date DESC", $runnerId);
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     } 
@@ -98,7 +95,7 @@ class RunnerResultsDataAccess extends DataAccess
     public function getMemberPBResults(int $runnerId)
     {
 
-        $sql = $this->resultsDatabase->prepare("select
+        $sql = $this->resultsDatabase->prepare("SELECT
 					  e.id as eventId,
 					  e.name as eventName,
 					  ra.distance_id as distanceId,
@@ -112,11 +109,8 @@ class RunnerResultsDataAccess extends DataAccess
 					  r.result as time,
 					  r.performance as performance,
 					  r.info as info,
-					  CASE
-					   WHEN ra.date >= '%s' THEN r.percentage_grading_2015
-					   ELSE r.percentage_grading
-					  END as percentageGrading
-					from
+					  r.age_grading as percentageGrading
+					FROM
 					  runners p
 					INNER JOIN results r
 					  ON r.runner_id = p.id
@@ -140,7 +134,7 @@ class RunnerResultsDataAccess extends DataAccess
 					) t on r.result = t.pb and ra.distance_id = t.distanceId
 					where
 					  r.runner_id = %d and r.personal_best = 1
-					ORDER BY r.result ASC", Rules::START_OF_2015_AGE_GRADING, $runnerId, $runnerId);
+					ORDER BY r.result ASC", $runnerId, $runnerId);
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }

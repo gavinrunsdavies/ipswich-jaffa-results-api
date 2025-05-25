@@ -73,29 +73,22 @@ class ResultsCommand extends BaseCommand
 		$isSeasonBest = false;
 		$standardTypeId = 0;
 		$ageGrading = 0;
-		$ageGrading2015 = 0;
 
 		$categoryId = $this->dataAccess->getCategoryId($resultRequest['runnerId'], $resultRequest['date']);
 		$race = $this->dataAccess->getRace($resultRequest['raceId']);
-		$performance = $this->calculateSecondsFromTime($resultRequest['result']);
+		$performance = $this->calculateSiUnitFromTime($resultRequest['result']);
 
 		if ($this->isCertificatedCourseAndResult($race, $performance)) {
 			$isPersonalBest = $this->dataAccess->isPersonalBest($resultRequest['raceId'], $resultRequest['runnerId'], $performance);
 
 			$isSeasonBest = $this->dataAccess->isSeasonBest($resultRequest['raceId'], $resultRequest['runnerId'], $performance, $resultRequest['date']);
 
-			$ageGrading = $this->dataAccess->getAgeGrading($performance, $resultRequest['runnerId'], $resultRequest['raceId']);
-
-			if ($resultRequest['date'] >= Rules::START_OF_2015_AGE_GRADING) {
-				$ageGrading2015 = $this->dataAccess->get2015FactorsAgeGrading($performance, $resultRequest['runnerId'], $resultRequest['raceId']);
-			}
-
-			if ($ageGrading2015) {
-				$standardTypeId = $this->dataAccess->getResultStandardTypeId($categoryId, $resultRequest['result'], $resultRequest['raceId'], $ageGrading2015, $resultRequest['date']);
-			}
+			$ageGrading = $this->getAgeGrading($race->courseTypeId, $resultRequest['date'], $performance, $resultRequest['runnerId'], $resultRequest['raceId']);
+		
+			$standardTypeId = $this->dataAccess->getResultStandardTypeId($categoryId, $resultRequest['result'], $resultRequest['raceId'], $ageGrading, $resultRequest['date']);
 		}
 
-		$resultId = $this->dataAccess->insertResult($resultRequest, $performance, $categoryId, $isPersonalBest, $isSeasonBest, $standardTypeId, $ageGrading, $ageGrading2015);
+		$resultId = $this->dataAccess->insertResult($resultRequest, $performance, $categoryId, $isPersonalBest, $isSeasonBest, $standardTypeId, $ageGrading);
 
 		if (is_wp_error($resultId)) {
 			return $resultId;
@@ -181,34 +174,50 @@ class ResultsCommand extends BaseCommand
         $this->dataAccess->addRunnerBadges($runnerId, $badges);        
     }
 
+	private function getAgeGrading(int $courseTypeId, string $date, float $performance, int $runnerId, int $raceId)
+	{
+		if ($courseTypeId === CourseTypes::ROAD) {
+			$datasetYear = 2010;
+			if ($date >= Rules::START_OF_2015_AGE_GRADING && $date < Rules::START_OF_2025_AGE_GRADING) {
+				$datasetYear = 2015;
+			} elseif ($date >= Rules::START_OF_2025_AGE_GRADING) {
+				$datasetYear = 2025;
+			}
+
+			return $this->dataAccess->getRoadRaceAgeGrading($performance, $runnerId, $raceId, $datasetYear);
+		} else {
+			return $this->dataAccess->getTrackAgeGrading($performance, $runnerId, $raceId, 2015);
+		}
+	}
+
 	private function isCertificatedCourseAndResult($race, float $performance): bool
 	{
 		if (!isset($performance)) {
 			return false;
 		}
 
-		return $race && $race->distance != null && in_array($race->courseTypeId, array(CourseTypes::ROAD, CourseTypes::TRACK, CourseTypes::INDOOR));
+		return $race && $race->distance != null && in_array($race->courseTypeId, array(CourseTypes::ROAD, CourseTypes::TRACK, CourseTypes::INDOOR, CourseTypes::FIELD));
 	}
 
-	private function calculateSecondsFromTime(string $result): float
+	private function calculateSiUnitFromTime(string $result): float
 	{
-		$seconds = 0;
+		$units = 0;
 		if (!empty($result)) {
 
 			$timeExploded = explode(':', $result);
 
 			if (isset($timeExploded[2])) {
 				// hh:mm:ss.mmmm
-				$seconds = $timeExploded[0] * 3600 + $timeExploded[1] * 60 + $timeExploded[2];
+				$units = $timeExploded[0] * 3600 + $timeExploded[1] * 60 + $timeExploded[2];
 			} elseif (isset($timeExploded[1])) {
 				// mm:ss.mmmm
-				$seconds = $timeExploded[0] * 60 + $timeExploded[1];
+				$units = $timeExploded[0] * 60 + $timeExploded[1];
 			} elseif (isset($timeExploded[0])) {
-				// ss.mmmm
-				$seconds = $timeExploded[0];
+				// ss.mmmm or distance in metres
+				$units = $timeExploded[0];
 			}
 		}
 
-		return $seconds;
+		return $units;
 	}
 }
