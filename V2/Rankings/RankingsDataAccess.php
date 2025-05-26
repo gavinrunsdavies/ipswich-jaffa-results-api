@@ -140,107 +140,60 @@ class RankingsDataAccess extends DataAccess
 						r.performance,						
 						r.result,
 						d.result_unit_type_id as resultUnitTypeId,
-						CASE
-							WHEN ra2.date >= '" . Rules::START_OF_2015_AGE_GRADING . "' OR $year = 0 THEN r.percentage_grading_2015
-							ELSE r.percentage_grading
-						END as percentageGrading
+						r.age_grading as percentageGrading
 						from results as r
 						inner join runners p on p.id = r.runner_id
 						inner join race ra2 on ra2.id = r.race_id
 						INNER JOIN `distance` d ON ra2.distance_id = d.id
 						inner join events e on e.id = ra2.event_id
-						where ((r.percentage_grading_2015 > 0 AND (ra2.date > '" . Rules::START_OF_2015_AGE_GRADING . "' OR $year = 0)) OR r.percentage_grading > 0)
+						where r.age_grading > 0
 						$sexQuery0
 						$distanceQuery2
 						$yearQuery2
 						order by percentageGrading desc
 						limit 500) ranking";
 		} else {
-			if ($year >= 2017) {
-				$sql = "
-					SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
-						SELECT r.runner_id as runnerId, p.Name as name, e.id as eventId, e.Name as event,
-						ra.id as raceId,
-						ra.date,
-						r.result,
-						r.performance,
-						d.result_unit_type_id as resultUnitTypeId,
-						r.percentage_grading_2015 as percentageGrading
-						FROM results AS r
+			$sql = "
+				SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
+					SELECT r.runner_id as runnerId, p.Name as name, e.id as eventId, e.Name as event,
+					ra.date,
+					ra.id as raceId,
+					r.result,
+					r.performance,
+					d.result_unit_type_id as resultUnitTypeId,
+					r.age_grading as percentageGrading
+					FROM results AS r
+					JOIN (
+						SELECT r1.runner_id, r1.performance, MIN(ra1.date) AS earliest
+						FROM results AS r1
 						JOIN (
-						  SELECT r1.runner_id, r1.performance, MIN(ra1.date) AS earliest
-						  FROM results AS r1
-						  JOIN (
-							SELECT r2.runner_id, MAX(r2.percentage_grading_2015) AS highest
-							FROM results r2
-							INNER JOIN race ra2
-							ON r2.race_id = ra2.id
-							INNER JOIN `runners` p2
-							ON r2.runner_id = p2.id
-							WHERE r2.percentage_grading_2015 > 0
-							$distanceQuery2
-							$sexQuery1
-							$yearQuery2
-							GROUP BY r2.runner_id
-						   ) AS rt
-						   ON r1.runner_id = rt.runner_id AND r1.percentage_grading_2015 = rt.highest
-						   INNER JOIN race ra1 ON r1.race_id = ra1.id
-						   $distanceQuery1
-						   $yearQuery1
-						   GROUP BY r1.runner_id, r1.performance
-						   ORDER BY r1.percentage_grading_2015 desc
-						   LIMIT 100
-						) as rd
-						ON r.runner_id = rd.runner_id AND r.performance = rd.performance
-						INNER JOIN race ra ON r.race_id = ra.id AND ra.date = rd.earliest
-						INNER JOIN events e ON ra.event_id = e.id
-						INNER JOIN `distance` d ON ra.distance_id = d.id
-						INNER JOIN runners p ON r.runner_id = p.id
-						ORDER BY percentageGrading desc
-						LIMIT 100) Ranking";
-			} else {
-				$sql = "
-					SELECT @cnt := @cnt + 1 AS rank, Ranking.* FROM (
-						SELECT r.runner_id as runnerId, p.Name as name, e.id as eventId, e.Name as event,
-						ra.date,
-						ra.id as raceId,
-						r.result,
-						r.performance,
-						d.result_unit_type_id as resultUnitTypeId,
-						r.percentage_grading as percentageGrading
-						FROM results AS r
-						JOIN (
-						  SELECT r1.runner_id, r1.performance, MIN(ra1.date) AS earliest
-						  FROM results AS r1
-						  JOIN (
-							SELECT r2.runner_id, MAX(r2.percentage_grading) AS highest
-							FROM results r2
-							INNER JOIN race ra2
-							ON r2.race_id = ra2.id
-							INNER JOIN `runners` p2
-							ON r2.runner_id = p2.id
-							WHERE r2.percentage_grading > 0
-							$distanceQuery2
-							$sexQuery1
-							$yearQuery2
-							GROUP BY r2.runner_id
-						   ) AS rt
-						   ON r1.runner_id = rt.runner_id AND r1.percentage_grading = rt.highest
-						   INNER JOIN race ra1 ON r1.race_id = ra1.id
-						   $distanceQuery1
-						   $yearQuery1
-						   GROUP BY r1.runner_id, r1.performance
-						   ORDER BY r1.percentage_grading desc
-						   LIMIT 100
-						) as rd
-						ON r.runner_id = rd.runner_id AND r.performance = rd.performance
-						INNER JOIN race ra ON r.race_id = ra.id AND ra.date = rd.earliest
-						INNER JOIN events e ON ra.event_id = e.id
-						INNER JOIN runners p ON r.runner_id = p.id
-						INNER JOIN `distance` d ON ra.distance_id = d.id
-						ORDER BY percentageGrading desc
-						LIMIT 100) Ranking";
-			}
+						SELECT r2.runner_id, MAX(r2.age_grading) AS highest
+						FROM results r2
+						INNER JOIN race ra2
+						ON r2.race_id = ra2.id
+						INNER JOIN `runners` p2
+						ON r2.runner_id = p2.id
+						WHERE r2.age_grading > 0
+						$distanceQuery2
+						$sexQuery1
+						$yearQuery2
+						GROUP BY r2.runner_id
+						) AS rt
+						ON r1.runner_id = rt.runner_id AND r1.age_grading = rt.highest
+						INNER JOIN race ra1 ON r1.race_id = ra1.id
+						$distanceQuery1
+						$yearQuery1
+						GROUP BY r1.runner_id, r1.performance
+						ORDER BY r1.age_grading desc
+						LIMIT 100
+					) as rd
+					ON r.runner_id = rd.runner_id AND r.performance = rd.performance
+					INNER JOIN race ra ON r.race_id = ra.id AND ra.date = rd.earliest
+					INNER JOIN events e ON ra.event_id = e.id
+					INNER JOIN runners p ON r.runner_id = p.id
+					INNER JOIN `distance` d ON ra.distance_id = d.id
+					ORDER BY percentageGrading desc
+					LIMIT 100) Ranking";			
 		}
 
 		return $this->executeResultsQuery(__METHOD__, $sql);
@@ -274,17 +227,17 @@ class RankingsDataAccess extends DataAccess
 				FROM (SELECT 
 				    rank_data.runner_id as runnerId,
 				    rank_data.name,
-				    ROUND(AVG(rank_data.percentage_grading_2015), 2) AS topXAvg
+				    ROUND(AVG(rank_data.age_grading), 2) AS topXAvg
 				FROM (
 				    SELECT 
 				        r.runner_id, 
 				        p.name,
-				        r.percentage_grading_2015,
-				        RANK() OVER(PARTITION BY r.runner_id ORDER BY r.percentage_grading_2015 DESC) AS rank
+				        r.age_grading,
+				        RANK() OVER(PARTITION BY r.runner_id ORDER BY r.age_grading DESC) AS rank
 				    FROM results AS r
 				    INNER JOIN runners AS p ON p.id = r.runner_id
 				    INNER JOIN race AS race ON race.id = r.race_id
-				    WHERE r.percentage_grading_2015 > 0
+				    WHERE r.age_grading > 0
 				    AND p.sex_id = $sexId
 				    $yearQuery
 				) AS rank_data

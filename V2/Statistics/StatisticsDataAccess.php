@@ -23,11 +23,11 @@ class StatisticsDataAccess extends DataAccess
 
     public function getMeanPercentageGradingByMonth()
     {
-        $sql = "SELECT DATE_FORMAT(race.date, '%Y-%m-01') as date, c.code as categoryCode, ROUND(AVG(r.percentage_grading_2015), 2) as meanGrading
+        $sql = "SELECT DATE_FORMAT(race.date, '%Y-%m-01') as date, c.code as categoryCode, ROUND(AVG(r.age_grading), 2) as meanGrading
 				FROM race race
 				inner join results r on r.race_id = race.id
 				INNER join category c on c.id = r.category_id
-				where r.percentage_grading_2015 > 0
+				where r.age_grading > 0
 				group by date, categoryCode
 				ORDER BY date, categoryCode";
 

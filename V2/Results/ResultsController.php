@@ -67,6 +67,12 @@ class ResultsController extends BaseController implements IRoute
 			)
 		));
 
+		register_rest_route($this->route, '/results/updateAgeGrading', array(
+			'methods'             => \WP_REST_Server::EDITABLE,
+			'permission_callback' => array($this, 'isAuthorized'),
+			'callback'            => array($this, 'updateAgeGrading')
+		));
+
 		// The following may belong in their own controllers	
 		register_rest_route( $this->route, '/results/race/(?P<raceId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::READABLE,				
@@ -126,6 +132,14 @@ class ResultsController extends BaseController implements IRoute
 	public function getCountyChampions(\WP_REST_Request $request)
 	{
 		$response = $this->command->getCountyChampions();
+
+		return rest_ensure_response($response);
+	}
+
+	public function updateAgeGrading(\WP_REST_Request $request)
+	{
+		$parameters = $request->get_query_params();
+		$response = $this->command->updateAgeGrading($parameters['fromDate'], $parameters['toDate']);
 
 		return rest_ensure_response($response);
 	}

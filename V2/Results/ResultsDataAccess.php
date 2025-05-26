@@ -27,11 +27,8 @@ class ResultsDataAccess extends DataAccess
                 c.code AS categoryCode,
                 r.personal_best AS isPersonalBest,
                 r.season_best AS isSeasonBest,
-                r.scoring_team AS team,
-                CASE
-                    WHEN race.date >= '%s' THEN r.percentage_grading_2015
-                    ELSE r.percentage_grading
-                END AS percentageGrading,
+                r.scoring_team AS team,                
+                r.age_grading AS percentageGrading,
                 r.percentage_grading_best AS percentageGradingBest,
                 p.name AS runnerName,
                 r.race_id AS raceId,
@@ -54,10 +51,10 @@ class ResultsDataAccess extends DataAccess
             WHERE r.race_id = %d
             GROUP BY r.id
             ORDER BY r.position ASC, r.result ASC
-        ", Rules::START_OF_2015_AGE_GRADING, $raceId);
-    
+        ", $raceId);
+
         $results = $this->executeResultsQuery(__METHOD__, $sql);
-    
+
         // Convert runnerBadges to an array
         foreach ($results as &$result) {
             $result->runnerBadges = $result->runnerBadges
@@ -101,7 +98,8 @@ class ResultsDataAccess extends DataAccess
     {
         $sql =  $this->resultsDatabase->prepare(
             "SELECT 
-            r.id, 0 as 'eventId',
+            r.id, 
+            0 as 'eventId',
             r.runner_id as 'runnerId',
             r.position,
             ra.date as 'date',
@@ -117,19 +115,18 @@ class ResultsDataAccess extends DataAccess
             ra.id as 'raceId', 
             p.sex_id, 
             e.name as 'eventName',
-			CASE
-			   WHEN ra.date >= '%s' THEN r.percentage_grading_2015
-			   ELSE r.percentage_grading
-			END as percentageGrading,
+			r.age_grading as percentageGrading,
 			r.percentage_grading_best as percentageGradingBest,
-			ra.course_number as 'courseNumber', p.name as 'runnerName', e.name as 'eventName', ra.description as 'raceDescription'
+			ra.course_number as 'courseNumber', 
+            p.name as 'runnerName', 
+            e.name as 'eventName', 
+            ra.description as 'raceDescription'
 			FROM results r
 			INNER JOIN runners p on p.id = r.runner_id
 			INNER JOIN race ra ON r.race_id = ra.id
 			INNER JOIN events e ON ra.event_id = e.id
 			WHERE r.id = %d
 			ORDER BY ra.date DESC, ra.id, r.position ASC, r.result ASC",
-            Rules::START_OF_2015_AGE_GRADING,
             $resultId
         );
 
@@ -204,11 +201,11 @@ class ResultsDataAccess extends DataAccess
         return $this->executeQuery(__METHOD__, $sql);
     }
 
-    public function insertResult($resultRequest, float $performance, int $categoryId, bool $isPersonalBest, bool $isSeasonBest, int $standardTypeId, ?float $ageGrading, ?float $ageGrading2015)
+    public function insertResult($resultRequest, float $performance, int $categoryId, bool $isPersonalBest, bool $isSeasonBest, int $standardTypeId, ?float $ageGrading)
     {
         $sql = $this->resultsDatabase->prepare(
-            'INSERT INTO results (`result`, `performance`, `info`, `runner_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `scoring_team`, `race_id`, `percentage_grading`, `percentage_grading_2015`)
-			VALUES(%s, %f, %s, %d, %d, %d, %d, %d, %d, %d, %d, %f, %f)',
+            'INSERT INTO results (`result`, `performance`, `info`, `runner_id`, `position`, `category_id`, `personal_best`, `season_best`, `standard_type_id`, `scoring_team`, `race_id`, `age_grading`)
+			VALUES(%s, %f, %s, %d, %d, %d, %d, %d, %d, %d, %d, %f)',
             $resultRequest['result'],
             $performance,
             $resultRequest['info'],
@@ -220,8 +217,7 @@ class ResultsDataAccess extends DataAccess
             $standardTypeId,
             $resultRequest['team'] != null ? $resultRequest['team'] : 0,
             $resultRequest['raceId'],
-            $ageGrading ?? 0,
-            $ageGrading2015 ?? 0
+            $ageGrading ?? 0
         );
 
         $result = $this->resultsDatabase->query($sql);
@@ -267,20 +263,33 @@ class ResultsDataAccess extends DataAccess
             $limit = 100;
         }
 
-        $sql = $this->resultsDatabase->prepare("SELECT r.id, ra.event_id as 'eventId', r.runner_id as 'runnerId', r.position, ra.date as 'date', r.result as 'time', r.result as 'result', r.performance as 'performance', r.info, r.standard_type_id as 'standardTypeId', r.category_id as 'categoryId', r.personal_best as 'isPersonalBest', r.season_best as 'isSeasonBest',
+        $sql = $this->resultsDatabase->prepare("
+            SELECT r.id, 
+            ra.event_id as 'eventId',
+            ra.course_type_id as 'courseTypeId',
+            r.runner_id as 'runnerId',
+            r.position,
+            ra.date as 'date',
+            ra.id as 'raceId',
+            r.result as 'time',
+            r.result as 'result',
+            r.performance as 'performance',
+            r.info,
+            r.standard_type_id as 'standardTypeId',
+            r.category_id as 'categoryId',
+            r.personal_best as 'isPersonalBest',
+            r.season_best as 'isSeasonBest',
 			r.scoring_team as 'team',
-			CASE
-			   WHEN ra.date >= '%s' THEN r.percentage_grading_2015
-			   ELSE r.percentage_grading
-			END as percentageGrading,
+			r.age_grading as percentageGrading,
 			p.name as 'runnerName',
-			e.name as 'eventName', ra.description as 'raceDescription'
+			e.name as 'eventName', 
+            ra.description as 'raceDescription'
 			FROM results r
 			INNER JOIN runners p on p.id = r.runner_id
 			INNER JOIN race ra ON r.race_id = ra.id
 			INNER JOIN events e ON ra.event_id = e.id
 			WHERE 1=1 $whereEvent $whereFrom $whereTo
-			ORDER BY ra.date DESC, ra.id, r.position ASC, r.result ASC LIMIT %d", Rules::START_OF_2015_AGE_GRADING, $limit);
+			ORDER BY ra.date DESC, ra.id, r.position ASC, r.result ASC LIMIT %d", $limit);
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
@@ -305,34 +314,34 @@ class ResultsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    public function getResultStandardTypeId(int $catgeoryId, string $resultInHourMinutesSeconds, int $raceId, float $percentageGrading2015, string $resultDate): int
+    public function getResultStandardTypeId(int $catgeoryId, string $resultInHourMinutesSeconds, int $raceId, float $ageGrading, string $resultDate): int
     {
-        if ($percentageGrading2015 > 0 && $resultDate >= Rules::START_OF_2015_AGE_GRADING) {
-            if ($percentageGrading2015 >= 86) {
+        if ($resultDate >= Rules::START_OF_2015_AGE_GRADING) {
+            if ($ageGrading >= 86) {
                 return 14;
             }
 
-            if ($percentageGrading2015 >= 80) {
+            if ($ageGrading >= 80) {
                 return 15;
             }
 
-            if ($percentageGrading2015 >= 74) {
+            if ($ageGrading >= 74) {
                 return 16;
             }
 
-            if ($percentageGrading2015 >= 68) {
+            if ($ageGrading >= 68) {
                 return 17;
             }
 
-            if ($percentageGrading2015 >= 62) {
+            if ($ageGrading >= 62) {
                 return 18;
             }
 
-            if ($percentageGrading2015 >= 56) {
+            if ($ageGrading >= 56) {
                 return 19;
             }
 
-            if ($percentageGrading2015 >= 50) {
+            if ($ageGrading >= 50) {
                 return 20;
             } else {
                 return 0;
@@ -371,71 +380,80 @@ class ResultsDataAccess extends DataAccess
         return $standard;
     }
 
-    public function getAgeGrading(float $performance, int $runnerId, int $raceId)
+    public function getRoadRaceAgeGrading(float $performance, int $runnerId, int $raceId, int $dataSetYear) : float
     {
-        $sql = $this->resultsDatabase->prepare("
-			select			
-			ROUND((record.record * 100) / (%f * grade.grading_percentage), 2) as percentageGrading
-			FROM
-			 wma_age_grading grade
-			 INNER JOIN wma_records record ON grade.distance_id = record.distance_id
-			 INNER JOIN distance d ON record.distance_id = d.id
-			 INNER JOIN race race ON d.id = race.distance_id,
-			 runners p
+        $gradeTable = "wma_age_grading_" . $dataSetYear;
+        $recordTable = "wma_records_" . $dataSetYear;
+
+        $sql = sprintf("
+            SELECT
+                ROUND((record.record * 100) / (%f * grade.grading_percentage), 2) AS percentageGrading
+            FROM
+                %s grade
+                INNER JOIN %s record ON grade.distance_id = record.distance_id
+                INNER JOIN distance d ON record.distance_id = d.id
+                INNER JOIN race race ON d.id = race.distance_id, 
+                runners p
             WHERE
-            race.id = %d 
-            AND p.id = %d
-			AND p.dob <> '0000-00-00'
-			AND p.dob IS NOT NULL
-			AND grade.age = (YEAR(race.date) - YEAR(p.dob) - IF(DATE_FORMAT(p.dob, '%%j') > DATE_FORMAT(race.date, '%%j'), 1, 0))
-			AND grade.sex_id = p.sex_id
-			AND grade.sex_id = record.sex_id
-			", $performance, $raceId, $runnerId);
+                race.id = %d
+                AND p.id = %d
+                AND p.dob <> '0000-00-00'
+                AND grade.age = (YEAR(race.date) - YEAR(p.dob) - IF(DATE_FORMAT(p.dob, '%%j') > DATE_FORMAT(race.date, '%%j'), 1, 0))
+                AND grade.sex_id = p.sex_id
+                AND grade.sex_id = record.sex_id
+        ", $performance, $gradeTable, $recordTable, $raceId, $runnerId);
 
-        $result = $this->resultsDatabase->get_var($sql);
+        $stmt = $this->resultsDatabase->prepare($sql);
+        $result = $this->resultsDatabase->get_var($stmt);
 
-        if ($result === false) {
+        if (is_null($result) || $result === false) {
             return 0;
         }
 
         return $result;
     }
 
-    public function get2015FactorsAgeGrading(float $performance, int $runnerId, int $raceId)
+    public function getTrackAgeGrading(float $performance, int $runnerId, int $raceId, int $dataSetYear) : float
     {
-        $sql = $this->resultsDatabase->prepare("
-			select
-			ROUND((record.record * 100) / (%f * grade.grading_percentage), 2) as percentageGrading
-			FROM
-			 wma_age_grading_2015 grade
-			 INNER JOIN wma_records_2015 record ON grade.distance_id = record.distance_id
-			 INNER JOIN distance d ON record.distance_id = d.id
-			 INNER JOIN race race ON d.id = race.distance_id AND race.course_type_id = grade.course_type_id	AND race.course_type_id = record.course_type_id,
-			 runners p
-			WHERE
-			race.id = %d
-			AND p.id = %d
-			AND p.dob <> '0000-00-00'
-			AND p.dob IS NOT NULL
-			AND grade.age = (YEAR(race.date) - YEAR(p.dob) - IF(DATE_FORMAT(p.dob, '%%j') > DATE_FORMAT(race.date, '%%j'), 1, 0))
-			AND grade.sex_id = p.sex_id
-			AND grade.sex_id = record.sex_id
-			", $performance, $raceId, $runnerId);
+        $gradeTable = "wma_age_grading_" . $dataSetYear;
+        $recordTable = "wma_records_" . $dataSetYear;
 
-        $result = $this->resultsDatabase->get_var($sql);
+        $sql = sprintf("
+            SELECT
+                ROUND((record.record * 100) / (%f * grade.grading_percentage), 2) AS percentageGrading
+            FROM
+                %s grade
+                INNER JOIN %s record ON grade.distance_id = record.distance_id
+                INNER JOIN distance d ON record.distance_id = d.id
+                INNER JOIN race race ON d.id = race.distance_id 
+                    AND race.course_type_id = grade.course_type_id
+                    AND race.course_type_id = record.course_type_id,
+                runners p
+            WHERE
+                race.id = %d
+                AND p.id = %d
+                AND p.dob <> '0000-00-00'
+                AND grade.age = (YEAR(race.date) - YEAR(p.dob) - IF(DATE_FORMAT(p.dob, '%%j') > DATE_FORMAT(race.date, '%%j'), 1, 0))
+                AND grade.sex_id = p.sex_id
+                AND grade.sex_id = record.sex_id
+        ", $performance, $gradeTable, $recordTable, $raceId, $runnerId);
 
-        if ($result === false) {
+        $stmt = $this->resultsDatabase->prepare($sql);
+        $result = $this->resultsDatabase->get_var($stmt);
+
+        if (is_null($result) || $result === false) {
             return 0;
         }
 
         return $result;
     }
+
 
     public function isPersonalBest(int $raceId, int $runnerId, float $performance): bool
     {
         $sql = $this->resultsDatabase->prepare(
             "select  
-                count(CASE WHEN (d.result_unit_type_id != 3 AND r.performance <= %f) OR (d.result_unit_type_id = 3 AND r.performance >= %f) THEN 1 END ) as quickerResults
+                count(CASE WHEN (d.result_unit_type_id != 3 AND r.performance <= %f) OR (d.result_unit_type_id = 3 AND r.performance >= %f) THEN 1 END ) as betterResults
                 from
                 race existingRaces,
                 race thisRace,
@@ -466,9 +484,9 @@ class ResultsDataAccess extends DataAccess
             CourseTypes::INDOOR
         );
 
-        $quickerResultsCount = $this->resultsDatabase->get_var($sql);
+        $betterResultsCount = $this->resultsDatabase->get_var($sql);
 
-        return (is_null($quickerResultsCount) || $quickerResultsCount == 0);
+        return (is_null($betterResultsCount) || $betterResultsCount == 0);
     }
 
     public function checkAndUpdatePersonalBestResults(int $resultId)
@@ -576,12 +594,9 @@ class ResultsDataAccess extends DataAccess
 			INNER JOIN race race on race.id = r.race_id
 			WHERE race.date >= '%s'
 			AND r.runner_id = %d
-			AND ((r.percentage_grading_2015 > 0 AND race.date >= '%') OR
-				 (r.percentage_grading > 0 AND race.date < '%s'))",
+			AND r.age_grading > 0",
             $date,
-            $runnerId,
-            Rules::START_OF_2015_AGE_GRADING,
-            Rules::START_OF_2015_AGE_GRADING
+            $runnerId
         );
 
         $count = $this->resultsDatabase->get_var($sql);
@@ -599,10 +614,9 @@ class ResultsDataAccess extends DataAccess
 					FROM results r1, results r2
 					WHERE r1.runner_id = %d
 					AND r2.id = %d
-					AND ((r1.percentage_grading_2015 > r2.percentage_grading_2015 AND '%s' >= '%s') OR
-						(r1.percentage_grading > r2.percentage_grading AND '%s' < '%s'))
+					AND (r1.age_grading > r2.age_grading)
 				) = 0
-				", $resultId, $runnerId, $resultId, $date, Rules::START_OF_2015_AGE_GRADING, $date, Rules::START_OF_2015_AGE_GRADING);
+				", $resultId, $runnerId, $resultId);
 
             return $this->executeQuery(__METHOD__, $sql);
         } else {
@@ -626,11 +640,8 @@ class ResultsDataAccess extends DataAccess
                         FROM
                             (
                                 SELECT
-                                    r.id,
-                                    CASE
-                                    WHEN a.date >= '%s' THEN r.percentage_grading_2015
-                                    ELSE r.percentage_grading
-                                    END as percentageGrading
+                                    r.id,                                    
+                                    r.age_grading as percentageGrading
                                 FROM results r
                                 INNER JOIN race a ON a.id = r.race_id
                                 WHERE r.runner_id = %d
@@ -642,7 +653,7 @@ class ResultsDataAccess extends DataAccess
                     ) c
                     set r.percentage_grading_best = 1
                     where c.id = r.id
-				", Rules::START_OF_2015_AGE_GRADING, $runnerId);
+				", $runnerId);
 
             $this->executeQuery(__METHOD__, $sql);
         }
@@ -654,7 +665,7 @@ class ResultsDataAccess extends DataAccess
     {
         $sql = $this->resultsDatabase->prepare(
             "select  
-            count(CASE WHEN (d.result_unit_type_id != 3 AND r.performance <= %f) OR (d.result_unit_type_id = 3 AND r.performance >= %f) THEN 1 END ) as quickerResults
+            count(CASE WHEN (d.result_unit_type_id != 3 AND r.performance <= %f) OR (d.result_unit_type_id = 3 AND r.performance >= %f) THEN 1 END ) as betterResults
                 from
                 race existingRaces,
                 race thisRace,
@@ -687,9 +698,9 @@ class ResultsDataAccess extends DataAccess
             CourseTypes::INDOOR
         );
 
-        $quickerResultsCount = $this->resultsDatabase->get_var($sql);
+        $betterResultsCount = $this->resultsDatabase->get_var($sql);
 
-        return (is_null($quickerResultsCount) || $quickerResultsCount == 0);
+        return (is_null($betterResultsCount) || $betterResultsCount == 0);
     }
 
     public function isNewStandard(int $resultId): bool
@@ -782,31 +793,31 @@ class ResultsDataAccess extends DataAccess
         if (empty($badgeIds)) {
             return;
         }
-    
+
         // Fetch existing badge IDs for this runner
         $sql = $this->resultsDatabase->prepare("SELECT badge_id FROM runner_badges WHERE runner_id = %d", $runnerId);
         $results = $this->executeResultQuery(__METHOD__, $sql);
-    	$existingRunnerBadges = [];
+        $existingRunnerBadges = [];
         foreach ($results as $row) {
             $existingRunnerBadges[] = $row->badge_id;
         }
 
         // Determine which badge IDs are not already assigned
         $newBadgeIds = array_diff($badgeIds, $existingRunnerBadges);
-    
+
         if (empty($newBadgeIds)) {
             return;
         }
-    
+
         $values = [];
         $params = [];
-    
+
         foreach ($newBadgeIds as $badgeId) {
             $values[] = "(%d, %d)";
             $params[] = $runnerId;
             $params[] = $badgeId;
         }
-    
+
         $placeholders = implode(', ', $values);
         $insertStmt = $this->resultsDatabase->prepare("INSERT IGNORE INTO runner_badges (runner_id, badge_id) VALUES $placeholders", ...$params);
         $this->executeQuery(__METHOD__, $insertStmt);
