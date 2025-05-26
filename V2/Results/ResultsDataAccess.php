@@ -266,9 +266,11 @@ class ResultsDataAccess extends DataAccess
         $sql = $this->resultsDatabase->prepare("
             SELECT r.id, 
             ra.event_id as 'eventId',
+            ra.course_type_id as 'courseTypeId',
             r.runner_id as 'runnerId',
             r.position,
             ra.date as 'date',
+            ra.id as 'raceId',
             r.result as 'time',
             r.result as 'result',
             r.performance as 'performance',
@@ -280,7 +282,8 @@ class ResultsDataAccess extends DataAccess
 			r.scoring_team as 'team',
 			r.age_grading as percentageGrading,
 			p.name as 'runnerName',
-			e.name as 'eventName', ra.description as 'raceDescription'
+			e.name as 'eventName', 
+            ra.description as 'raceDescription'
 			FROM results r
 			INNER JOIN runners p on p.id = r.runner_id
 			INNER JOIN race ra ON r.race_id = ra.id

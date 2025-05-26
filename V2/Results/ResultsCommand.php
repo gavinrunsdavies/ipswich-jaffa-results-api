@@ -67,6 +67,23 @@ class ResultsCommand extends BaseCommand
 		return $this->dataAccess->getCountyChampions();
 	}
 
+	public function updateAgeGrading($fromDate, $toDate)
+	{
+		// Get all race results
+		$results = $this->dataAccess->getResults(null, $fromDate, $toDate, 1000);
+
+		foreach ($results as $result) {
+			
+			$ageGrading = $this->getAgeGrading($result->courseTypeId, $result->date, $result->performance, $result->runnerId, $result->raceId);
+
+			if ($ageGrading) {
+				$this->dataAccess->updateResult($result->id, "age_grading", $ageGrading);
+
+				$this->dataAccess->updatePercentageGradingPersonalBest($result->id, $result->runnerId, $result->date);
+			}
+		}
+	}
+
 	public function insertResult($resultRequest)
 	{
 		$isPersonalBest = false;
