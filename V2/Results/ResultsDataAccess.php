@@ -406,7 +406,7 @@ class ResultsDataAccess extends DataAccess
         $stmt = $this->resultsDatabase->prepare($sql);
         $result = $this->resultsDatabase->get_var($stmt);
 
-        if ($result === false) {
+        if (is_null($result) || $result === false) {
             return 0;
         }
 
@@ -441,7 +441,7 @@ class ResultsDataAccess extends DataAccess
         $stmt = $this->resultsDatabase->prepare($sql);
         $result = $this->resultsDatabase->get_var($stmt);
 
-        if ($result === false) {
+        if (is_null($result) || $result === false) {
             return 0;
         }
 
