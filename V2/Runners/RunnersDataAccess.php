@@ -37,17 +37,38 @@ class RunnersDataAccess extends DataAccess
     public function getRunner(int $runnerId)
     {
         $sql = $this->resultsDatabase->prepare(
-            "select r.id, r.name, r.sex_id as 'sexId', r.dob as 'dateOfBirth', 0 as 'isCurrentMember', s.sex, c.code as 'ageCategory'
-				FROM
-				runners r, category c, sex s
-				WHERE r.id = %d
-				AND r.sex_id = s.id
-				AND r.sex_id = c.sex_id
-				AND (
-					(TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) >= c.age_greater_equal AND TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) < c.age_less_than)
-					OR r.dob= '0000-00-00'
-				)
-				LIMIT 1",
+            "SELECT 
+                r.id,
+                r.name,
+                r.sex_id AS 'sexId',
+                r.dob AS 'dateOfBirth',
+                s.sex,
+                c.code AS 'ageCategory',
+                IFNULL(TIMESTAMPDIFF(YEAR, r.dob, last_race.last_race_date), 0) AS ageAtLastRace
+                FROM 
+                runners r
+                INNER JOIN sex s ON r.sex_id = s.id
+                LEFT JOIN (
+                    SELECT 
+                    res.runner_id,
+                    MAX(race.date) AS last_race_date
+                    FROM 
+                    results res
+                    INNER JOIN race ON res.race_id = race.id
+                    GROUP BY 
+                    res.runner_id
+                ) last_race ON last_race.runner_id = r.id
+                INNER JOIN category c 
+                    ON r.sex_id = c.sex_id 
+                    AND (
+                    (TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) >= c.age_greater_equal 
+                    AND TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) < c.age_less_than)
+                    OR r.dob = '0000-00-00'
+                    )
+                WHERE 
+                r.id = %d
+                LIMIT 1;
+                ",
             $runnerId
         );
 
