@@ -58,7 +58,7 @@ class RunnersCommand extends BaseCommand
 
 		$runner->certificates = $certificates;
 		$runner->rankings = $rankings;
-
+ 		
 		return $runner;
 	}
 

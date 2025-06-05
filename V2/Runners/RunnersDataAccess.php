@@ -41,7 +41,6 @@ class RunnersDataAccess extends DataAccess
                 r.id,
                 r.name,
                 r.sex_id AS 'sexId',
-                r.dob AS 'dateOfBirth',
                 s.sex,
                 c.code AS 'ageCategory',
                 IFNULL(TIMESTAMPDIFF(YEAR, r.dob, last_race.last_race_date), 0) AS ageAtLastRace
