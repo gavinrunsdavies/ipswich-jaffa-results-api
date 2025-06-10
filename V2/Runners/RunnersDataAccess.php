@@ -37,17 +37,37 @@ class RunnersDataAccess extends DataAccess
     public function getRunner(int $runnerId)
     {
         $sql = $this->resultsDatabase->prepare(
-            "select r.id, r.name, r.sex_id as 'sexId', r.dob as 'dateOfBirth', 0 as 'isCurrentMember', s.sex, c.code as 'ageCategory'
-				FROM
-				runners r, category c, sex s
-				WHERE r.id = %d
-				AND r.sex_id = s.id
-				AND r.sex_id = c.sex_id
-				AND (
-					(TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) >= c.age_greater_equal AND TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) < c.age_less_than)
-					OR r.dob= '0000-00-00'
-				)
-				LIMIT 1",
+            "SELECT 
+                r.id,
+                r.name,
+                r.sex_id AS 'sexId',
+                s.sex,
+                c.code AS 'ageCategory',
+                IFNULL(TIMESTAMPDIFF(YEAR, r.dob, last_race.last_race_date), 0) AS ageAtLastRace
+                FROM 
+                runners r
+                INNER JOIN sex s ON r.sex_id = s.id
+                LEFT JOIN (
+                    SELECT 
+                    res.runner_id,
+                    MAX(race.date) AS last_race_date
+                    FROM 
+                    results res
+                    INNER JOIN race ON res.race_id = race.id
+                    GROUP BY 
+                    res.runner_id
+                ) last_race ON last_race.runner_id = r.id
+                INNER JOIN category c 
+                    ON r.sex_id = c.sex_id 
+                    AND (
+                    (TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) >= c.age_greater_equal 
+                    AND TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) < c.age_less_than)
+                    OR r.dob = '0000-00-00'
+                    )
+                WHERE 
+                r.id = %d
+                LIMIT 1;
+                ",
             $runnerId
         );
 
@@ -129,56 +149,47 @@ class RunnersDataAccess extends DataAccess
     public function getRunnerRankings($runnerId, $sexId, $distances)
     {
         $results = [];
+        $rawSql = "SELECT *
+                    FROM (
+                        SELECT
+                            ROW_NUMBER() OVER (ORDER BY r.performance) AS rank,
+                            p.id AS runnerId,
+                            ra3.distance_id AS distanceId,
+                            e.name AS event,
+                            ra3.date,
+                            r.result,
+                            r.performance
+                        FROM results r
+                        JOIN (
+                            SELECT r1.runner_id, r1.performance, MIN(ra1.date) AS earliest
+                            FROM results r1
+                            INNER JOIN race ra1 ON r1.race_id = ra1.id
+                            INNER JOIN distance d ON ra1.distance_id = d.id
+                            JOIN (
+                                SELECT r2.runner_id, MIN(r2.performance) AS best
+                                FROM results r2
+                                INNER JOIN race ra2 ON r2.race_id = ra2.id
+                                INNER JOIN runners p2 ON r2.runner_id = p2.id
+                                INNER JOIN distance d ON ra2.distance_id = d.id
+                                WHERE r2.performance > 0
+                                AND ra2.distance_id = %d
+                                AND (ra2.course_type_id NOT IN (2, 4, 5, 7) OR ra2.course_type_id IS NULL)
+                                AND p2.sex_id = %d
+                                GROUP BY r2.runner_id
+                            ) rt ON r1.runner_id = rt.runner_id AND r1.performance = rt.best
+                            GROUP BY r1.runner_id, r1.performance
+                            ORDER BY r1.performance
+                            LIMIT 100
+                        ) rd ON r.runner_id = rd.runner_id AND r.performance = rd.performance
+                        INNER JOIN race ra3 ON r.race_id = ra3.id AND ra3.date = rd.earliest
+                        INNER JOIN runners p ON r.runner_id = p.id
+                        INNER JOIN events e ON ra3.event_id = e.id
+                        ORDER BY r.performance ASC
+                        LIMIT 100
+                    ) Ranked
+                    WHERE runnerId = %d;";
 
         foreach ($distances as $distanceId) {
-            $this->resultsDatabase->query("SET @cnt := 0");
-
-            $rawSql = "
-		SELECT * FROM (
-		    SELECT * FROM (
-		        SELECT @cnt := IF(@cnt IS NULL, 1, @cnt + 1) AS rank, Ranking.*
-		        FROM (
-		            SELECT @cnt := NULL,		      
-	                        p.id as runnerId,
-		                ra3.distance_id as distanceId,
-		                e.Name as event,
-		                ra3.date,
-		                r.result,
-		                r.performance as performance
-		            FROM results AS r
-		            JOIN (
-		                SELECT r1.runner_id, r1.performance, MIN(ra1.date) AS earliest
-		                FROM results AS r1
-		                INNER JOIN race ra1 ON r1.race_id = ra1.id
-		                INNER JOIN distance d ON ra1.distance_id = d.id
-		                JOIN (
-		                    SELECT r2.runner_id, MIN(r2.performance) as best
-		                    FROM results r2
-		                    INNER JOIN race ra2 ON ra2.id = r2.race_id
-		                    INNER JOIN runners p2 ON r2.runner_id = p2.id
-		                    INNER JOIN distance d ON ra2.distance_id = d.id
-		                    WHERE r2.performance > 0
-		                      AND ra2.distance_id = %d
-		                      AND (ra2.course_type_id NOT IN (2, 4, 5, 7) OR ra2.course_type_id IS NULL)
-		                      AND p2.sex_id = %d
-		                    GROUP BY r2.runner_id
-		                ) AS rt
-		                ON r1.runner_id = rt.runner_id AND r1.performance = rt.best
-		                GROUP BY r1.runner_id, r1.performance
-		                ORDER BY r1.performance
-		                LIMIT 100
-		            ) as rd
-		            ON r.runner_id = rd.runner_id AND r.performance = rd.performance
-		            INNER JOIN race ra3 ON r.race_id = ra3.id AND ra3.date = rd.earliest
-		            INNER JOIN runners p ON r.runner_id = p.id
-		            INNER JOIN events e ON ra3.event_id = e.id
-		            ORDER BY rd.performance ASC
-		            LIMIT 100
-		        ) Ranking
-		    ) RankedWithRank
-		    WHERE runnerId = %d
-		) FinalRankedResults;
-	        ";
 
             $sql = $this->resultsDatabase->prepare(
                 $rawSql,

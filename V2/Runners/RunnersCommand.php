@@ -24,24 +24,42 @@ class RunnersCommand extends BaseCommand
 
 	public function getRunner(int $runnerId)
 	{
-		$response = $this->dataAccess->getRunner($runnerId);
+		$runner = $this->dataAccess->getRunner($runnerId);
 		$certificates = $this->dataAccess->getStandardCertificates($runnerId);
-		$distances = array(
-			Distances::FIVE_KILOMETRES,
-			Distances::FIVE_MILES,
-			Distances::TEN_KILOMETRES,
-			Distances::TEN_MILES,
-			Distances::HALF_MARATHON,
-			Distances::TWENTY_MILES,
-			Distances::MARATHON
-		);
+		$rankings = [];
 
-		$rankings = $this->dataAccess->getRunnerRankings($runnerId, $response->sexId, $distances);
+		if ($runner->ageAtLastRace > 0) {
+			if ($runner->ageAtLastRace >= 16) {
+				$distances = array(
+					Distances::ONE_MILE,
+					Distances::FIVE_KILOMETRES,
+					Distances::FIVE_MILES,
+					Distances::TEN_KILOMETRES,
+					Distances::TEN_MILES,
+					Distances::HALF_MARATHON,
+					Distances::TWENTY_MILES,
+					Distances::MARATHON
+				);
+			} else {
+				$distances = array(
+					Distances::FOUR_HUNDRED_METRES,
+					Distances::SIX_HUNDRED_METRES,
+					Distances::EIGHT_HUNDRED_METRES,
+					Distances::ONE_KILOMETRE,
+					Distances::FIFTEN_HUNDRED_METRES,
+					Distances::ONE_MILE,
+					Distances::FIVE_KILOMETRES,
+					Distances::FIVE_MILES				
+				);
+			} 
 
-		$response->certificates = $certificates;
-		$response->rankings = $rankings;
+			$rankings = $this->dataAccess->getRunnerRankings($runnerId, $runner->sexId, $distances);
+		}
 
-		return $response;
+		$runner->certificates = $certificates;
+		$runner->rankings = $rankings;
+ 		
+		return $runner;
 	}
 
 	public function saveRunner($runnerRequest)
