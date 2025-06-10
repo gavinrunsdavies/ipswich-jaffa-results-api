@@ -40,7 +40,7 @@ class RunnersCommand extends BaseCommand
 					Distances::TWENTY_MILES,
 					Distances::MARATHON
 				);
-			} elseif ($runner->ageAtLastRace > 0) {
+			} else {
 				$distances = array(
 					Distances::FOUR_HUNDRED_METRES,
 					Distances::SIX_HUNDRED_METRES,
