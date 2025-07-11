@@ -156,9 +156,9 @@ class RacesDataAccess extends DataAccess
     public function getHistoricRaces()
     {
                 $sql = "SELECT
-  DISTINCT DATE_FORMAT(r.race_date, '%m-%d') AS calendar_day
+  DISTINCT DATE_FORMAT(r.date, '%m-%d') AS calendar_day
 FROM
-  races r
+  race r
 JOIN
   results res ON r.id = res.race_id
 ORDER BY
