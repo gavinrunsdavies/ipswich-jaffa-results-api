@@ -67,4 +67,9 @@ class RacesCommand extends BaseCommand
 	{
 		return $this->dataAccess->getLatestRacesDetails($count ?? 10);
 	}
+
+	public function getHistoricRaces()
+	{
+		return $this->dataAccess->getHistoricRaces();
+	}
 }
