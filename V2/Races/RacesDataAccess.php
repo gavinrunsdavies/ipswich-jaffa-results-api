@@ -155,16 +155,14 @@ class RacesDataAccess extends DataAccess
 
     public function getHistoricRaces()
     {
-                $sql = $this->resultsDatabase->prepare(
-            'SELECT
+                $sql = "SELECT
   DISTINCT DATE_FORMAT(r.race_date, '%m-%d') AS calendar_day
 FROM
   races r
 JOIN
   results res ON r.id = res.race_id
 ORDER BY
-  calendar_day;'
-        );
+  calendar_day;";
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
