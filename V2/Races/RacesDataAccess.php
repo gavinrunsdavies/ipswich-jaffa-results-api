@@ -153,16 +153,31 @@ class RacesDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    public function getHistoricRaces()
+    public function getAllHistoricRaces()
     {
-                $sql = "SELECT
-  DISTINCT DATE_FORMAT(r.date, '%m-%d') AS calendar_day
-FROM
-  race r
-JOIN
-  results res ON r.id = res.race_id
-ORDER BY
-  calendar_day;";
+        $sql = "SELECT e.name as eventName, e.id as eventId, race.description, race.id as raceId, d.distance, p.id as runnerId, p.name as runnerName, res.position, res.info, res.performance, res.percentage_grading_best as isPercentageGradingBest, res.personal_best as isPersonalBest 
+                from events e 
+                inner join race on race.event_id = e.id 
+                inner join results res on res.race_id = race.id 
+                inner join distance d on d.id = race.distance_id 
+                INNER join runners p on p.id = res.runner_id 
+                where DAY(date) = DAY(CURDATE()) and MONTH(date) = DAY(CURDATE())
+                order by race.id, position;";
+
+        return $this->executeResultsQuery(__METHOD__, $sql);
+    }
+
+    public function getTopHistoricRaces()
+    {
+        $sql = "SELECT e.name as eventName, e.id as eventId, race.description, race.id as raceId, d.distance, p.id as runnerId, p.name as runnerName, res.position, res.info, res.performance, res.percentage_grading_best as isPercentageGradingBest, res.personal_best as isPersonalBest 
+                from events e 
+                inner join race on race.event_id = e.id 
+                inner join results res on res.race_id = race.id 
+                inner join distance d on d.id = race.distance_id 
+                INNER join runners p on p.id = res.runner_id 
+                where DAY(date) = DAY(CURDATE()) and MONTH(date) = DAY(CURDATE()) AND
+                (position < 10 OR info <> '' OR res.personal_best = 1 OR percentage_grading_best = 1)
+                order by race.id, position;";
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }

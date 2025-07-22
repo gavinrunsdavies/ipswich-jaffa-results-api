@@ -70,6 +70,15 @@ class RacesCommand extends BaseCommand
 
 	public function getHistoricRaces()
 	{
-		return $this->dataAccess->getHistoricRaces();
+		$results = $this->dataAccess->getAllHistoricRaces();
+
+		if (empty($results)) {
+			return [];
+		} elseif (count($results) > 20) {
+			$results = $this->dataAccess->getTopHistoricRaces();
+		}
+
+		return $results;
+		// Pass to AI Engine to get more details
 	}
 }
