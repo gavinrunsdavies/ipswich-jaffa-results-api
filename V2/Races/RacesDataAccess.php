@@ -161,7 +161,7 @@ class RacesDataAccess extends DataAccess
                 inner join results res on res.race_id = race.id 
                 inner join distance d on d.id = race.distance_id 
                 INNER join runners p on p.id = res.runner_id 
-                where DAY(date) = DAY(CURDATE()) and MONTH(date) = DAY(CURDATE())
+                where DAY(date) = DAY(CURDATE()) and MONTH(date) = MONTH(CURDATE())
                 order by race.id, position;";
 
         return $this->executeResultsQuery(__METHOD__, $sql);
@@ -175,7 +175,7 @@ class RacesDataAccess extends DataAccess
                 inner join results res on res.race_id = race.id 
                 inner join distance d on d.id = race.distance_id 
                 INNER join runners p on p.id = res.runner_id 
-                where DAY(date) = DAY(CURDATE()) and MONTH(date) = DAY(CURDATE()) AND
+                where DAY(date) = DAY(CURDATE()) and MONTH(date) = MONTH(CURDATE()) AND
                 (position < 10 OR info <> '' OR res.personal_best = 1 OR percentage_grading_best = 1)
                 order by race.id, position;";
 
