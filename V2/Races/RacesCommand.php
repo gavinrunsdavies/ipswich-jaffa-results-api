@@ -71,7 +71,7 @@ class RacesCommand extends BaseCommand
 
 	public function getHistoricRaces()
 	{
-		 $data = getDailyCache('on-this-day', function () {
+		 $data = getDailyCache('on-this-day-summary', function () {
         	$rawData = $this->getHistoricRacesData();
 			$rawData->IsCached = true;
         	// TODO: Pass to AI Engine to summary
