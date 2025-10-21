@@ -155,7 +155,7 @@ class RacesDataAccess extends DataAccess
 
     public function getAllHistoricRaces()
     {
-        $sql = "SELECT e.name as eventName, e.id as eventId, race.description, race.id as raceId, d.distance, p.id as runnerId, p.name as runnerName, res.position, res.info, res.performance, res.percentage_grading_best as isPercentageGradingBest, res.personal_best as isPersonalBest 
+        $sql = "SELECT e.name as eventName, e.id as eventId, race.description, race.id as raceId, d.distance, p.id as runnerId, p.name as runnerName, res.position, res.info, res.performance, res.percentage_grading_best as isPercentageGradingBest, res.personal_best as isPersonalBest, YEAR(date) as year
                 from events e 
                 inner join race on race.event_id = e.id 
                 inner join results res on res.race_id = race.id 
@@ -169,7 +169,7 @@ class RacesDataAccess extends DataAccess
 
     public function getTopHistoricRaces()
     {
-        $sql = "SELECT e.name as eventName, e.id as eventId, race.description, race.id as raceId, d.distance, p.id as runnerId, p.name as runnerName, res.position, res.info, res.performance, res.percentage_grading_best as isPercentageGradingBest, res.personal_best as isPersonalBest 
+        $sql = "SELECT e.name as eventName, e.id as eventId, race.description, race.id as raceId, d.distance, p.id as runnerId, p.name as runnerName, res.position, res.info, res.performance, res.percentage_grading_best as isPercentageGradingBest, res.personal_best as isPersonalBest, YEAR(date) as year
                 from events e 
                 inner join race on race.event_id = e.id 
                 inner join results res on res.race_id = race.id 
