@@ -77,8 +77,7 @@ class RacesCommand extends BaseCommand
         	// Pass to AI Engine to summary
     	});
 		
-		$this->getHistoricRacesData();
-		
+		return $data;		
 	}
 
 	public function getHistoricRacesData()
