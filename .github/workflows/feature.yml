@@ -28,16 +28,15 @@ jobs:
 
       # ✅ Step 2: Deploy files to test site via FTP
       - name: 📂 Sync files to test
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0:
         with:
-          action: SamKirkland/FTP-Deploy-Action@4.3.0
-          with: |
-            server: ftp.ipswichjaffa.org.uk
-            username: githubftp@test.ipswichjaffa.org.uk
-            password: ${{ secrets.FtpServerPassword }}
-            server-dir: public_html/wp-content/plugins/ipswich-jaffa-results-api/
-            dry-run: false
-            exclude: |
-              **/.git*
-              **/.git*/**
-              Tests/**
-              Config.php
+          server: ftp.ipswichjaffa.org.uk
+          username: githubftp@test.ipswichjaffa.org.uk
+          password: ${{ secrets.FtpServerPassword }}
+          server-dir: public_html/wp-content/plugins/ipswich-jaffa-results-api/
+          dry-run: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            Tests/**
+            Config.php
