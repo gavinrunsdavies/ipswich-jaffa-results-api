@@ -28,7 +28,6 @@ jobs:
 
       # ✅ Step 2: Deploy files to test site via FTP
       - name: 📂 Sync files to test
-        uses: Wandalen/wretry.action@master
         with:
           action: SamKirkland/FTP-Deploy-Action@4.3.0
           with: |
@@ -42,5 +41,3 @@ jobs:
               **/.git*/**
               Tests/**
               Config.php
-        attempt_limit: 10
-        attempt_delay: 2000
