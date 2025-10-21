@@ -124,11 +124,14 @@ Wrap the entire output in a single `<div>` element using correct HTML. Do not in
 		$resultsJson = json_encode($raceResults);
 	
 		$requestBody = [
-			'model' => 'gpt-3.5-turbo',
-			'messages' => [				
-					'role' => 'user', 
-					'content' => $instruction . "\n\nJSON data:\n" . $resultsJson
-			]
+		    'model' => 'gpt-4o-mini', // better than 3.5-turbo for summarization
+		    'messages' => [
+		        [
+		            'role' => 'user',
+		            'content' => $instruction . "\n\nJSON data:\n" . $resultsJson
+		        ]
+		    ],
+		    'temperature' => 0.7,
 		];
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
