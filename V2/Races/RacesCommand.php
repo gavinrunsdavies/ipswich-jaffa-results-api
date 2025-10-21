@@ -109,25 +109,31 @@ class RacesCommand extends BaseCommand
 - Any runner with `isPercentageGradingBest` or `isPersonalBest` set to 1.
 
 For each mention:
-- Convert the runner's name to an HTML hyperlink using their ID: `<a href=\"/runner/{runnerId}\">{runnerName}</a>`.
-- Convert the event name to an HTML hyperlink using its ID: `<a href=\"/event/{eventId}\">{eventName}</a>`.
-- Mention the year of the race, parsed from the `date` field (e.g., \"in 2005\").
+- Convert the runner's name to an HTML hyperlink using their ID: `<a href=\"/member-results/members-results/?runner_id={runnerId}\">{runnerName}</a>`.
+- Convert the event name to an HTML hyperlink using its ID: `<a href=\"member-results/race-results/?raceId={raceId}\">{eventName}</a>`.
+- Mention the year of the race, parsed from the `year` field (e.g., \"in 2005\").
 - For top 3 finishes, convert the `performance` field from seconds to time format:
   - Use `m:ss` if under 1 hour, or `h:mm:ss` if 1 hour or more.
   - Append the time after their placing, e.g., '2nd place in 36:12' or '1st place in 1:12:45`.
 
+Sort it so the most significant performance is first, e.g. representing GB, england or a race win.
+
 Wrap the entire output in a single `<div>` element using correct HTML. Do not include JSON or additional explanation—just return HTML.
 ";
+
+		$resultsJson = json_encode($raceResults);
 	
-		$data = [
+		$requestBody = [
 			'model' => 'gpt-3.5-turbo',
 			'messages' => [
-				['role' => 'user', 'content' => $instruction]
+				[
+					'role' => 'user', 
+					'content' => $instruction . "\n\nJSON data:\n" . $resultsJson
 			]
 		];
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($requestBody));
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
 			'Content-Type: application/json',
 			'Authorization: Bearer ' . $api_key
