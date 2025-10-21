@@ -23,7 +23,7 @@ jobs:
       - name: 🧩 Create OpenAI config
         run: |
           mkdir -p config
-          echo "<?php define('OPEN_AI_API_SECRET', '${{ secrets.OPEN_AI_API_SECRET }}');" > config/openai.php
+          echo "<?php define('OPEN_AI_API_SCERET__HISTORIC_RACE_RESULTS', '${{ secrets.OPENAI_API_HISTORIC_RACE_RESULTS }}');" > config/openai.php
           echo "✅ Created config/openai.php"
 
       # ✅ Step 2: Deploy files to test site via FTP
