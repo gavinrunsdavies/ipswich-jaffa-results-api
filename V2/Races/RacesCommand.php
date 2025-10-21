@@ -125,8 +125,7 @@ Wrap the entire output in a single `<div>` element using correct HTML. Do not in
 	
 		$requestBody = [
 			'model' => 'gpt-3.5-turbo',
-			'messages' => [
-				[
+			'messages' => [				
 					'role' => 'user', 
 					'content' => $instruction . "\n\nJSON data:\n" . $resultsJson
 			]
