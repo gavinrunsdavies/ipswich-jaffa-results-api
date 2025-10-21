@@ -3,6 +3,7 @@
 namespace IpswichJAFFARunningClubAPI\V2\Races;
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseCommand.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/DailyCache.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Results/ResultsCommand.php';
 require_once 'RacesDataAccess.php';
 
@@ -70,6 +71,18 @@ class RacesCommand extends BaseCommand
 
 	public function getHistoricRaces()
 	{
+		 $data = getDailyCache('on-this-day', function () {
+        	$rawData = $this->getHistoricRacesData();
+			$rawData->IsCached = true;
+        	// Pass to AI Engine to summary
+    	});
+		
+		$this->getHistoricRacesData();
+		
+	}
+
+	public function getHistoricRacesData()
+	{
 		$results = $this->dataAccess->getAllHistoricRaces();
 
 		if (empty($results)) {
@@ -78,8 +91,9 @@ class RacesCommand extends BaseCommand
 			$results = $this->dataAccess->getTopHistoricRaces();
 		}
 
+		$rawData->IsCached = false;
+
 		return $results;
-		// Pass to AI Engine to get more details
 	}
 
 	private function GetAIGeneratedSummary($raceResults)
