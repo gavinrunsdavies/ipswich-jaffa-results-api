@@ -28,7 +28,7 @@ jobs:
 
       # ✅ Step 2: Deploy files to test site via FTP
       - name: 📂 Sync files to test
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0:
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
           server: ftp.ipswichjaffa.org.uk
           username: githubftp@test.ipswichjaffa.org.uk
