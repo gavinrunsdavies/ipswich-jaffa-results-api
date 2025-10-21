@@ -49,3 +49,6 @@ v2/config.live.php
 
 # Compare files
 *.php.bak
+
+# Generated files
+config/openai.php
