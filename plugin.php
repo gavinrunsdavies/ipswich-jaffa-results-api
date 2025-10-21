@@ -34,6 +34,14 @@ require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/TeamResults/TeamResultsControll
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'v3/ResultsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'v3/RunnerOfTheMonthController.php';
 
+if (file_exists(__DIR__ . '/config/openai.php')) {
+    require_once __DIR__ . '/config/openai.php';
+}
+
+if (!defined('OPENAI_API_HISTORIC_RACE_RESULTS') && getenv('OPENAI_API_HISTORIC_RACE_RESULTS')) {
+    define('OPENAI_API_HISTORIC_RACE_RESULTS', getenv('OPENAI_API_HISTORIC_RACE_RESULTS'));
+}
+
 // Create just one DB connection. Previously load was causing failure when multiple API calls were requested.
 $resultsDb = new \wpdb(JAFFA_RESULTS_DB_USER, JAFFA_RESULTS_DB_PASSWORD, JAFFA_RESULTS_DB_NAME, DB_HOST);
 
