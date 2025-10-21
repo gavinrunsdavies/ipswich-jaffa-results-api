@@ -19,6 +19,6 @@ define('JAFFA_RESULTS_DB_PASSWORD', '***');
 define('JAFFA_RESULTS_UkAthleticsWebAccessKey', '***');
 define('JAFFA_RESULTS_UkAthleticsLicenceCheckUrl', '***');
 
-define('OPEN_AI_API_SECRET', getenv('OPEN_AI_API_SECRET'));
+define('OPEN_AI_API_HISTORIC_RACE_RESULTS_SECRET', getenv('OPEN_AI_API_HISTORIC_RACE_RESULTS_SECRET'));
 
 ?>
