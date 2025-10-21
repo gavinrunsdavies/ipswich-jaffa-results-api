@@ -74,9 +74,10 @@ class RacesCommand extends BaseCommand
 		 $data = getDailyCache('on-this-day-summary', function () {
         	$rawData = $this->getHistoricRacesData();
 			$rawData->IsCached = true;
-        	// TODO: Pass to AI Engine to summary
 
-			return $rawData;
+			$htmlSummary = $this->GetAIGeneratedSummary($rawData);
+
+			return $htmlSummary;
     	});
 		
 		return $data;		
@@ -99,7 +100,7 @@ class RacesCommand extends BaseCommand
 
 	private function GetAIGeneratedSummary($raceResults)
 	{
-		$api_key = 'your-api-key-here';
+		$api_key = OPEN_AI_API_SCERET__HISTORIC_RACE_RESULTS;
 
 		$ch = curl_init('https://api.openai.com/v1/chat/completions');
 
@@ -131,7 +132,7 @@ Wrap the entire output in a single `<div>` element using correct HTML. Do not in
 		            'content' => $instruction . "\n\nJSON data:\n" . $resultsJson
 		        ]
 		    ],
-		    'temperature' => 0.7,
+		    'temperature' => 1.0,
 		];
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
