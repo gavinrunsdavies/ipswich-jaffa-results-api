@@ -7,12 +7,12 @@ function getDailyCache($key, $callback, $cache_dir = __DIR__ . '/cache/') {
     }
 
     $today = date('Y-m-d');
-    $yesterday = date('Y-m-d', strtotime('-1 day'));
+    $twoWeeksAgo = date('Y-m-d', strtotime('-14 day'));
 
     $filename = $cache_dir . sanitize_file_name($key . '-' . $today) . '.cache';
-    $old_filename = $cache_dir . sanitize_file_name($key . '-' . $yesterday) . '.cache';
+    $old_filename = $cache_dir . sanitize_file_name($key . '-' . $twoWeeksAgo) . '.cache';
 
-    // Delete yesterday's cache
+    // Delete older cache
     if (file_exists($old_filename)) {
         unlink($old_filename);
     }
