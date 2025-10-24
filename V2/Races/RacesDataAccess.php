@@ -172,7 +172,7 @@ class RacesDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 
-    public function getTopHistoricRaces()
+    public function getTopHistoricRaces(?string $date)
     {
 		if ($date === null) {
 	        $date = date('Y-m-d'); // default to today
