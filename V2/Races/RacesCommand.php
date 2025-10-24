@@ -71,7 +71,7 @@ class RacesCommand extends BaseCommand
 
 	public function getHistoricRaces(?string $date)
 	{
-		 $data = getDailyCache('on-this-day-summary', function () {
+		 $data = getDailyCache('on-this-day-summary1', function () {
         	$rawData = $this->getHistoricRacesData($date);
 			$htmlSummary = $this->GetAIGeneratedSummary($rawData);
 
