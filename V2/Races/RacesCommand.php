@@ -69,31 +69,33 @@ class RacesCommand extends BaseCommand
 		return $this->dataAccess->getLatestRacesDetails($count ?? 10);
 	}
 
-	public function getHistoricRaces()
+	public function getHistoricRaces(?string $date)
 	{
 		 $data = getDailyCache('on-this-day-summary', function () {
-        	$rawData = $this->getHistoricRacesData();
+        	$rawData = $this->getHistoricRacesData($date);
 			$rawData->IsCached = true;
 
 			$htmlSummary = $this->GetAIGeneratedSummary($rawData);
 
 			return $htmlSummary;
-    	});
+	    	},
+			$date
+		);
 		
 		return $data;		
 	}
 
-	public function getHistoricRacesData()
+	public function getHistoricRacesData(?string $date)
 	{
-		$results = $this->dataAccess->getAllHistoricRaces();
+		$results = $this->dataAccess->getAllHistoricRaces($date);
 
 		if (empty($results)) {
 			return [];
 		} elseif (count($results) > 20) {
-			$results = $this->dataAccess->getTopHistoricRaces();
+			$results = $this->dataAccess->getTopHistoricRaces($date);
 		}
 
-		$rawData->IsCached = false;
+		$results->IsCached = false;
 
 		return $results;
 	}
@@ -132,7 +134,7 @@ Wrap the entire output in a single `<div>` element using correct HTML. Do not in
 		            'content' => $instruction . "\n\nJSON data:\n" . $resultsJson
 		        ]
 		    ],
-		    'temperature' => 1.0,
+		    'temperature' => 0.9,
 		];
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -143,9 +145,27 @@ Wrap the entire output in a single `<div>` element using correct HTML. Do not in
 		]);
 
 		$response = curl_exec($ch);
+		$httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		curl_close($ch);
 
-		return $response;
+		if ($httpcode !== 200) {
+	        return new WP_Error('open_ai_api_error', 'OpenAI API request failed', ['response' => $response]);
+	    }
 
+	    $decoded = json_decode($response, true);
+	
+	    // Return just the assistant’s message (the useful part)
+	    if (isset($decoded['choices'][0]['message']['content'])) {
+	        return [
+	            'success' => true,
+	            'content' => $decoded['choices'][0]['message']['content']
+	        ];
+	    }
+	
+	    return [
+	        'success' => false,
+	        'error' => 'No response content found',
+	        'raw' => $decoded
+	    ];
 	}
 }
