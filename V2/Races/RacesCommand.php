@@ -73,8 +73,6 @@ class RacesCommand extends BaseCommand
 	{
 		 $data = getDailyCache('on-this-day-summary', function () {
         	$rawData = $this->getHistoricRacesData($date);
-			$rawData->IsCached = true;
-
 			$htmlSummary = $this->GetAIGeneratedSummary($rawData);
 
 			return $htmlSummary;
@@ -94,9 +92,7 @@ class RacesCommand extends BaseCommand
 		} elseif (count($results) > 20) {
 			$results = $this->dataAccess->getTopHistoricRaces($date);
 		}
-
-		$results->IsCached = false;
-
+		
 		return $results;
 	}
 
