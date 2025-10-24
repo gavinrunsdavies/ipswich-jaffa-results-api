@@ -80,7 +80,7 @@ class RacesCommand extends BaseCommand
 			$date
 		);
 		
-		return $date;		
+		return $data;		
 	}
 
 	public function getHistoricRacesData(?string $date)
