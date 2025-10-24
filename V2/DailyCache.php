@@ -1,15 +1,18 @@
 <?php
 
-function getDailyCache($key, $callback, $cache_dir = __DIR__ . '/cache/') {
+function getDailyCache($key, $callback, $date = null, $cache_dir = __DIR__ . '/cache/') {
     // Ensure cache directory exists
     if (!is_dir($cache_dir)) {
         mkdir($cache_dir, 0755, true);
     }
 
-    $today = date('Y-m-d');
+    if ($date === null) {
+        $date = date('Y-m-d'); // default to today
+    }
+
     $twoWeeksAgo = date('Y-m-d', strtotime('-14 day'));
 
-    $filename = $cache_dir . sanitize_file_name($key . '-' . $today) . '.cache';
+    $filename = $cache_dir . sanitize_file_name($key . '-' . $date) . '.cache';
     $old_filename = $cache_dir . sanitize_file_name($key . '-' . $twoWeeksAgo) . '.cache';
 
     // Delete older cache
