@@ -26,7 +26,7 @@ function getDailyCache($key, $callback, $date = null, $cache_dir = __DIR__ . '/c
     }
 
     // Generate and cache new data
-    $data = $callback();
+    $data = $callback($date);
     file_put_contents($filename, serialize($data));
 
     return $data;
