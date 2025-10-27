@@ -102,10 +102,10 @@ class RacesCommand extends BaseCommand
 
 		$ch = curl_init('https://api.openai.com/v1/chat/completions');
 
-		$instruction = "Summarize the races in the provided JSON data as a short, engaging 'On This Day' recap. 
+		$instruction = "Summarize the races in the provided JSON data as a short, engaging 'On This Day' recap of 5-10 lines. 
 			
 			Include:
-			- A fun one-sentence intro such as 'On this day in JAFFA history...' or a similar line.
+			- A fun one-sentence intro such as 'On this day in JAFFA history...' or a similar line, or fun fact at the end.
 			- Then list each highlight as a compact HTML list item (<li>), focusing on:
 			  - Top 3 finishers (`position` = 1, 2, or 3),
 			  - Any `info` field that is non-empty,
