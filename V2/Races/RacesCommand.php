@@ -123,7 +123,6 @@ class RacesCommand extends BaseCommand
 			Sort the items so the most significant performances appear first (e.g. representing GB/England, or a race win).
 			
 			Wrap everything in:
-			```html
 			  <ul>
 			    ...list items here...
 			  </ul>			
