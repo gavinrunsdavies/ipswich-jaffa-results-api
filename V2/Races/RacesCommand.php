@@ -118,6 +118,7 @@ class RacesCommand extends BaseCommand
 			- For top 3 finishes, convert the `performance` field from seconds to time format:
 			  - Use `m:ss` if under 1 hour, or `h:mm:ss` if 1 hour or more.
 			  - Append the time after their placing, e.g., '1st in 17:04' or '2nd in 1:12:45'.
+			- Group results and summaries of a similar race (eventName) and just add the link to the year when differnt.
 			
 			Sort the items so the most significant performances appear first (e.g. representing GB/England, or a race win).
 			
