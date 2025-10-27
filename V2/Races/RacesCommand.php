@@ -102,28 +102,28 @@ class RacesCommand extends BaseCommand
 
 		$ch = curl_init('https://api.openai.com/v1/chat/completions');
 
-		$instruction = "Summarize the races in the provided JSON data as a short, engaging “On This Day” recap. 
+		$instruction = "Summarize the races in the provided JSON data as a short, engaging 'On This Day' recap. 
 			
 			Include:
-			- A fun one-sentence intro such as “🏁 On this day in JAFFA history...” or a similar line.
+			- A fun one-sentence intro such as 'On this day in JAFFA history...' or a similar line.
 			- Then list each highlight as a compact HTML list item (<li>), focusing on:
 			  - Top 3 finishers (`position` = 1, 2, or 3),
 			  - Any `info` field that is non-empty,
 			  - Any runner with `isPercentageGradingBest` or `isPersonalBest` = 1.
 			
 			For each mention:
-			- Convert the runner's name to an HTML hyperlink using their ID: `<a href="/member-results/members-results/?runner_id={runnerId}">{runnerName}</a>`.
-			- Convert the event name to an HTML hyperlink using its ID: `<a href="member-results/race-results/?raceId={raceId}">{eventName}</a>`.
-			- Include the year of the race (from the `year` field, e.g., “(2023)”).
+			- Convert the runner's name to an HTML hyperlink using their ID: `<a href=\"/member-results/members-results/?runner_id={runnerId}\">{runnerName}</a>`.
+			- Convert the event name to an HTML hyperlink using its ID: `<a href=\"member-results/race-results/?raceId={raceId}\">{eventName}</a>`.
+			- Include the year of the race (from the `year` field, e.g., '(2023)').
 			- For top 3 finishes, convert the `performance` field from seconds to time format:
 			  - Use `m:ss` if under 1 hour, or `h:mm:ss` if 1 hour or more.
-			  - Append the time after their placing, e.g., “1st in 17:04” or “2nd in 1:12:45”.
+			  - Append the time after their placing, e.g., '1st in 17:04' or '2nd in 1:12:45'.
 			
 			Sort the items so the most significant performances appear first (e.g. representing GB/England, or a race win).
 			
 			Wrap everything in:
 			```html
-			<div class="race-summary">
+			<div class=\"race-summary\">
 			  <h3>🏁 On This Day in JAFFA History</h3>
 			  <ul>
 			    ...list items here...
