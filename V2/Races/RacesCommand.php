@@ -124,12 +124,9 @@ class RacesCommand extends BaseCommand
 			
 			Wrap everything in:
 			```html
-			<div class=\"race-summary\">
-			  <h3>🏁 On This Day in JAFFA History</h3>
 			  <ul>
 			    ...list items here...
-			  </ul>
-			</div>
+			  </ul>			
 			";
 
 		$resultsJson = json_encode($raceResults);
@@ -142,7 +139,7 @@ class RacesCommand extends BaseCommand
 		            'content' => $instruction . "\n\nJSON data:\n" . $resultsJson
 		        ]
 		    ],
-		    'temperature' => 0.9,
+		    'temperature' => 0.95,
 		];
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
