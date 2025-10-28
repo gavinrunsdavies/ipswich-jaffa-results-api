@@ -121,13 +121,17 @@ class RacesCommand extends BaseCommand
 				- - Runner: <a href=\"/member-results/members-results/?runner_id={runnerId}\">{runnerName}</a>
 				- - Event: <a href=\"member-results/race-results/?raceId={raceId}\">{eventName}</a>
 				- Mention the race year (YYYY).
-				- Convert performance seconds to time (m:ss if <1h, h:mm:ss otherwise).
+				- Always include the runner’s time from the `performance` field, converting seconds to time format:
+  				- - Use `m:ss` if under 1 hour, or `h:mm:ss` if 1 hour or more.
+  				- - Append it naturally in the sentence (e.g., 'in 59:33' or 'clocking 1:12:45'), even if not a top 3 finish.
 				- Sort items by significance (wins, medals, PBs, long-distance or international events first).
-
+				
 			Wrap everything in:	
 			<ul>
 			  ...list items here...
 			</ul>
+
+			Always include a converted race time for every runner mentioned. Do not omit times, even for personal bests or awards.
 			";
 
 		$resultsJson = json_encode($raceResults);
