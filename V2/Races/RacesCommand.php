@@ -144,7 +144,7 @@ class RacesCommand extends BaseCommand
 		            'content' => $instruction . "\n\nJSON data:\n" . $resultsJson
 		        ]
 		    ],
-		    'temperature' => 0.5,
+		    'temperature' => 0.4,
 		];
 
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
