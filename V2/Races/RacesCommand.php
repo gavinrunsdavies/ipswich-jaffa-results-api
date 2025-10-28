@@ -102,30 +102,32 @@ class RacesCommand extends BaseCommand
 
 		$ch = curl_init('https://api.openai.com/v1/chat/completions');
 
-		$instruction = "Summarize the races in the provided JSON data as a short, engaging 'On This Day' recap of 5-10 lines. 
-			
-			Include:
-			- A fun one-sentence intro such as 'On this day in JAFFA history...' or a similar line, or fun fact at the end.
-			- Then list each highlight as a compact HTML list item (<li>), focusing on:
-			  - Top 3 finishers (`position` = 1, 2, or 3),
-			  - Any `info` field that is non-empty,
-			  - Any runner with `isPercentageGradingBest` or `isPersonalBest` = 1.
-			
-			For each mention:
-			- Convert the runner's name to an HTML hyperlink using their ID: `<a href=\"/member-results/members-results/?runner_id={runnerId}\">{runnerName}</a>`.
-			- Convert the event name to an HTML hyperlink using its ID: `<a href=\"member-results/race-results/?raceId={raceId}\">{eventName}</a>`.
-			- Include the year of the race (from the `year` field, e.g., '(2023)').
-			- For top 3 finishes, convert the `performance` field from seconds to time format:
-			  - Use `m:ss` if under 1 hour, or `h:mm:ss` if 1 hour or more.
-			  - Append the time after their placing, e.g., '1st in 17:04' or '2nd in 1:12:45'.
-			- Group results and summaries of a similar race (eventName) and just add the link to the year when differnt.
-			
-			Sort the items so the most significant performances appear first (e.g. representing GB/England, or a race win).
-			
-			Wrap everything in:
-			  <ul>
-			    ...list items here...
-			  </ul>			
+		$instruction = "Summarize the races in the provided JSON data as a short, engaging “On This Day” recap (5–10 lines) for Ipswich JAFFA Running Club, based in Ipswich, Suffolk (UK).
+			Include:	
+				- A short opening line such as `On this day in JAFFA history…` or similar.
+				- Then list each highlight as a compact <li> inside a <ul>, focusing on:
+				- - Top 3 finishers (position = 1, 2, or 3),
+				- - Any info field that is non-empty,
+				- - Any runner with isPercentageGradingBest or isPersonalBest = 1.
+
+			Context & grouping:
+				- Group performances from the same eventName into a single <li>.
+				- If the same event appears in multiple years, include years in parentheses next to the event link.
+				- Note when a race is outside East Anglia or overseas, highlighting it as a notable away performance.
+
+			Output style:
+				- Each <li> should be compact, factual, and warm in tone, optionally adding a short club-related insight (“a big JAFFA showing in Essex”, “impressive PB streak”, etc.).
+				- Convert runner names and event names into hyperlinks:
+				- - Runner: <a href="/member-results/members-results/?runner_id={runnerId}">{runnerName}</a>
+				- - Event: <a href="member-results/race-results/?raceId={raceId}">{eventName}</a>
+				- Mention the race year (YYYY).
+				- Convert performance seconds to time (m:ss if <1h, h:mm:ss otherwise).
+				- Sort items by significance (wins, medals, PBs, long-distance or international events first).
+
+			Wrap everything in:	
+			<ul>
+			  ...list items here...
+			</ul>
 			";
 
 		$resultsJson = json_encode($raceResults);
