@@ -116,10 +116,10 @@ class RacesCommand extends BaseCommand
 				- Note when a race is outside East Anglia or overseas, highlighting it as a notable away performance.
 
 			Output style:
-				- Each <li> should be compact, factual, and warm in tone, optionally adding a short club-related insight (“a big JAFFA showing in Essex”, “impressive PB streak”, etc.).
+				- Each <li> should be compact, factual, and warm in tone, optionally adding a short club-related insight ('a big JAFFA showing in Essex', 'impressive PB race', etc.).
 				- Convert runner names and event names into hyperlinks:
-				- - Runner: <a href="/member-results/members-results/?runner_id={runnerId}">{runnerName}</a>
-				- - Event: <a href="member-results/race-results/?raceId={raceId}">{eventName}</a>
+				- - Runner: <a href=\"/member-results/members-results/?runner_id={runnerId}\">{runnerName}</a>
+				- - Event: <a href=\"member-results/race-results/?raceId={raceId}\">{eventName}</a>
 				- Mention the race year (YYYY).
 				- Convert performance seconds to time (m:ss if <1h, h:mm:ss otherwise).
 				- Sort items by significance (wins, medals, PBs, long-distance or international events first).
