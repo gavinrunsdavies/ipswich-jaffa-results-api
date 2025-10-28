@@ -121,9 +121,10 @@ class RacesCommand extends BaseCommand
 				- - Runner: <a href=\"/member-results/members-results/?runner_id={runnerId}\">{runnerName}</a>
 				- - Event: <a href=\"member-results/race-results/?raceId={raceId}\">{eventName}</a>
 				- Mention the race year (YYYY).
-				- Always include the runner’s time from the `performance` field, converting seconds to time format:
+				- Always include the runner’s time from the `performance` field when non-zero, converting the value which is in seconds to time format of:
   				- - Use `m:ss` if under 1 hour, or `h:mm:ss` if 1 hour or more.
   				- - Append it naturally in the sentence (e.g., 'in 59:33' or 'clocking 1:12:45'), even if not a top 3 finish.
+				- Make sure you get the conversion accurate
 				- Sort items by significance (wins, medals, PBs, long-distance or international events first).
 				
 			Wrap everything in:	
