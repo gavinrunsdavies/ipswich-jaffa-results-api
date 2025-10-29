@@ -20,20 +20,24 @@ jobs:
     - name: 🚚 Get latest code
       uses: actions/checkout@v2
 
-    - name: 📂 Sync files to live
-      uses: Wandalen/wretry.action@master
+    # ✅ Step 1: Create the OpenAI config file dynamically from GitHub secret
+    - name: 🧩 Create OpenAI config
+      run: |
+        mkdir -p config
+        echo "<?php define('OPEN_AI_API_SCERET__HISTORIC_RACE_RESULTS', '${{ secrets.OPENAI_API_HISTORIC_RACE_RESULTS }}');" > config/openai.php
+        echo "✅ Created config/openai.php"      
+
+    # ✅ Step 2: Deploy files to test site via FTP
+    - name: 📂 Sync files to test
+      uses: SamKirkland/FTP-Deploy-Action@4.3.0
       with:
-        action: SamKirkland/FTP-Deploy-Action@4.3.0
-        with: |
-          server: ftp.ipswichjaffa.org.uk
-          username: githubftp@ipswichjaffa.org.uk
-          password: ${{ secrets.FtpServerPassword }}
-          server-dir: public_html/wordpress/wp-content/plugins/ipswich-jaffa-results-api/
-          dry-run: false
-          exclude: |
-            **/.git*
-            **/.git*/**   
-            Tests/**      
-            Config.php
-        attempt_limit: 10
-        attempt_delay: 2000
+        server: ftp.ipswichjaffa.org.uk
+        username: githubftp@ipswichjaffa.org.uk
+        password: ${{ secrets.FtpServerPassword }}
+        server-dir: public_html/wordpress/wp-content/plugins/ipswich-jaffa-results-api/
+        dry-run: false
+        exclude: |
+          **/.git*
+          **/.git*/**   
+          Tests/**      
+          Config.php
