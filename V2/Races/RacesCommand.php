@@ -76,7 +76,7 @@ class RacesCommand extends BaseCommand
 
 			foreach ($rawData as &$row) {
 			    // use the performance field (string like "3573.000")
-			    $row['performance'] = secondsToTimeString($row['performance'] ?? 0);
+			    $row['performance'] = $this->secondsToTimeString($row['performance'] ?? 0);
 			}		
 
 			$htmlSummary = $this->getAIGeneratedSummary($rawData);
