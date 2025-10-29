@@ -73,7 +73,13 @@ class RacesCommand extends BaseCommand
 	{		
 		 $data = getDailyCache('on-this-day-summary', function ($date) {
         	$rawData = $this->getHistoricRacesData($date);
-			$htmlSummary = $this->GetAIGeneratedSummary($rawData);
+
+			foreach ($rawData as &$row) {
+			    // use the performance field (string like "3573.000")
+			    $row['performance'] = secondsToTimeString($row['performance'] ?? 0);
+			}		
+
+			$htmlSummary = $this->getAIGeneratedSummary($rawData);
 
 			return $htmlSummary;
 	    	},
@@ -96,7 +102,7 @@ class RacesCommand extends BaseCommand
 		return $results;
 	}
 
-	private function GetAIGeneratedSummary($raceResults)
+	private function getAIGeneratedSummary($raceResults)
 	{
 		$api_key = OPEN_AI_API_SCERET__HISTORIC_RACE_RESULTS;
 
@@ -121,10 +127,8 @@ class RacesCommand extends BaseCommand
 				- - Runner: <a href=\"/member-results/members-results/?runner_id={runnerId}\">{runnerName}</a>
 				- - Event: <a href=\"member-results/race-results/?raceId={raceId}\">{eventName}</a>
 				- Mention the race year (YYYY).
-				- Always include the runner’s time from the `performance` field when non-zero, converting the value which is in seconds to time format of:
-  				- - Use `m:ss` if under 1 hour, or `h:mm:ss` if 1 hour or more.
+				- Always include the runner’s time from the `performance` field when non-zero
   				- - Append it naturally in the sentence (e.g., 'in 59:33' or 'clocking 1:12:45'), even if not a top 3 finish.
-				- Make sure you get the conversion accurate
 				- Sort items by significance (wins, medals, PBs, long-distance or international events first).
 				
 			Wrap everything in:	
@@ -132,7 +136,7 @@ class RacesCommand extends BaseCommand
 			  ...list items here...
 			</ul>
 
-			Always include a converted race time for every runner mentioned. Do not omit times, even for personal bests or awards.
+			Always include a race time for every runner mentioned. Do not omit times, even for personal bests or awards.
 			";
 
 		$resultsJson = json_encode($raceResults);
@@ -179,4 +183,47 @@ class RacesCommand extends BaseCommand
 	        'raw' => $decoded
 	    ];
 	}
+
+	/**
+	 * Convert seconds (float|string) to human-readable time.
+	 * - Keeps one decimal place for fractional seconds if non-zero.
+	 * - < 3600s → m:ss(.d)
+	 * - >= 3600s → h:mm:ss(.d)
+	 *
+	 * Examples:
+	 *   3573.000  → "59:33"
+	 *   3573.40   → "59:33.4"
+	 *   3723.25   → "1:02:03.3"
+	 *
+	 * @param float|string $seconds
+	 * @return string
+	 */
+	function secondsToTimeString($seconds) {
+	    $sec = (float) $seconds;
+	    if (!is_finite($sec) || $sec < 0) return '';
+	
+	    // Whole seconds + fractional remainder
+	    $whole = floor($sec);
+	    $frac = $sec - $whole;
+	
+	    $h = intdiv($whole, 3600);
+	    $m = intdiv($whole % 3600, 60);
+	    $s = $whole % 60;
+	
+	    // Format base string (no decimals yet)
+	    if ($h > 0) {
+	        $base = sprintf('%d:%02d:%02d', $h, $m, $s);
+	    } else {
+	        $base = sprintf('%d:%02d', $m, $s);
+	    }
+	
+	    // Add decimal
+	    if ($frac >= 0.01) {
+	        $base .= sprintf('.%01d', (int) round($frac * 10));
+	    }
+	
+	    return $base;
+	}
+
+
 }
