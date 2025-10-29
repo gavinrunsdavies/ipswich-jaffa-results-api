@@ -1,4 +1,4 @@
-# Basic workflow to push all code changes to a feature branch to the JAFFA test site
+# 🚀 Deploy to JAFFA test website when pushing to any feature branch
 
 name: 🚀 Deploy to test website on push
 
@@ -6,24 +6,30 @@ on:
   push:
     branches: [ 'feature/**' ]
 
-  # Allows you to run this workflow manually from the Actions tab
+  # Allows manual trigger
   workflow_dispatch:
 
 jobs:
-
   web-deploy:
     name: 🎉 Deploy
     runs-on: ubuntu-latest
     environment: Test JAFFA
-    steps:       
-    - name: 🚚 Get latest code
-      uses: actions/checkout@v2
 
-    - name: 📂 Sync files to test
-      uses: Wandalen/wretry.action@master
-      with:
-        action: SamKirkland/FTP-Deploy-Action@4.3.0
-        with: |
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v2
+
+      # ✅ Step 1: Create the OpenAI config file dynamically from GitHub secret
+      - name: 🧩 Create OpenAI config
+        run: |
+          mkdir -p config
+          echo "<?php define('OPEN_AI_API_SCERET__HISTORIC_RACE_RESULTS', '${{ secrets.OPENAI_API_HISTORIC_RACE_RESULTS }}');" > config/openai.php
+          echo "✅ Created config/openai.php"
+
+      # ✅ Step 2: Deploy files to test site via FTP
+      - name: 📂 Sync files to test
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
           server: ftp.ipswichjaffa.org.uk
           username: githubftp@test.ipswichjaffa.org.uk
           password: ${{ secrets.FtpServerPassword }}
@@ -31,8 +37,6 @@ jobs:
           dry-run: false
           exclude: |
             **/.git*
-            **/.git*/**   
-            Tests/**      
+            **/.git*/**
+            Tests/**
             Config.php
-        attempt_limit: 10
-        attempt_delay: 2000

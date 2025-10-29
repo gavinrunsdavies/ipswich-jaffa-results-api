@@ -152,4 +152,71 @@ class RacesDataAccess extends DataAccess
 
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
+
+    public function getAllHistoricRaces(?string $date)
+    {
+		if ($date === null) {
+	        $date = date('Y-m-d'); // default to today
+	    }
+		
+        $sql = $this->resultsDatabase->prepare(
+				"SELECT 
+					e.name as eventName, 
+					race.description, 
+					race.id as raceId,
+					race.county, 
+   		            race.country_code AS countryCode, 
+					d.distance, 
+					p.id as runnerId, 
+					p.name as runnerName, 
+					res.position, 
+					res.info, 
+					res.performance, 
+					res.percentage_grading_best as isPercentageGradingBest, 
+					res.personal_best as isPersonalBest, 
+					YEAR(date) as year
+                from events e 
+                inner join race on race.event_id = e.id 
+                inner join results res on res.race_id = race.id 
+                inner join distance d on d.id = race.distance_id 
+                INNER join runners p on p.id = res.runner_id 
+                where DAY(date) = DAY(%s) and MONTH(date) = MONTH(%s) AND YEAR(date) <> YEAR(CURDATE())
+                order by race.id, position;", $date, $date);
+
+        return $this->executeResultsQuery(__METHOD__, $sql);
+    }
+
+    public function getTopHistoricRaces(?string $date)
+    {
+		if ($date === null) {
+	        $date = date('Y-m-d'); // default to today
+	    }
+		
+        $sql = $this->resultsDatabase->prepare(
+				"SELECT 
+					e.name as eventName, 
+					race.description, 
+					race.id as raceId, 
+					race.county, 
+   		            race.country_code AS countryCode, 
+					d.distance, 
+					p.id as runnerId, 
+					p.name as runnerName, 
+					res.position, 
+					res.info, 
+					res.performance, 
+					res.percentage_grading_best as isPercentageGradingBest, 
+					res.personal_best as isPersonalBest, 
+					YEAR(date) as year
+                from events e 
+                inner join race on race.event_id = e.id 
+                inner join results res on res.race_id = race.id 
+                inner join distance d on d.id = race.distance_id 
+                INNER join runners p on p.id = res.runner_id 
+                where DAY(date) = DAY(%s) and MONTH(date) = MONTH(%s) AND YEAR(date) <> YEAR(CURDATE()) AND
+                ((position > 0 AND position < 10) OR info <> '' OR res.personal_best = 1 OR percentage_grading_best = 1)
+                order by race.id, position;", $date, $date);
+
+        return $this->executeResultsQuery(__METHOD__, $sql);
+    }
 }

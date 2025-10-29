@@ -18,4 +18,5 @@ define('JAFFA_RESULTS_DB_PASSWORD', '***');
 
 define('JAFFA_RESULTS_UkAthleticsWebAccessKey', '***');
 define('JAFFA_RESULTS_UkAthleticsLicenceCheckUrl', '***');
+
 ?>

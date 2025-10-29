@@ -90,6 +90,17 @@ class RacesController extends BaseController implements IRoute
 			)
 		));
 
+		register_rest_route($this->route, '/races/history', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array($this, 'getHistoricRaces'),
+			'args'                => array(
+				'date'           => array(
+					'required'          => false,
+					'validate_callback' => array($this, 'isValidDate')
+				)
+			)
+		));
+
 		// Update Race - two routes
 		register_rest_route($this->route, '/races/(?P<id>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
@@ -198,6 +209,12 @@ class RacesController extends BaseController implements IRoute
 	{
 		$parameters = $request->get_query_params();
 		return rest_ensure_response($this->command->getLatestRacesDetails($parameters['count']));
+	}
+
+	public function getHistoricRaces(\WP_REST_Request $request)
+	{
+		$parameters = $request->get_query_params();
+		return rest_ensure_response($this->command->getHistoricRaces($parameters['date']));
 	}
 
 	public function isValidRaceUpdateField(string $value, $request, string $key)
