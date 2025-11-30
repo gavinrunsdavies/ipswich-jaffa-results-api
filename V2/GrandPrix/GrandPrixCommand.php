@@ -56,8 +56,8 @@ class GrandPrixCommand extends BaseCommand
 		$response = $this->dataAccess->getGrandPrixPoints($request['year'], $request['sexId']);
 
 		// Calculate GP points
-		// Handicap - base on position
-		// Ekiden - base on time for each race distance
+		// Handicap (eventId 89) - base on position
+		// Ekiden (eventId 203) - base on time for each race distance
 		// Others - base on time then position for event
 
 		// Group data in to events
@@ -67,10 +67,12 @@ class GrandPrixCommand extends BaseCommand
 		foreach ($response as $item) {
 			$eventId = $item->eventId;
 
-			if ($eventId == 203) {
+			if ($eventId == 203) { // Ekiden
 				$resultSetId = $eventId + '_' + $item->distanceId; // Change resultSetId to be eventId + distanceId to give a unique grouping.
-			} else {
+			} elseif ($eventId == 89) { // Handicap
 				$resultSetId = $eventId;
+			} else {
+				$resultSetId = $item->raceId;
 			}
 
 			if (!array_key_exists($resultSetId, $events)) {
@@ -78,7 +80,7 @@ class GrandPrixCommand extends BaseCommand
 					$sortOrder = 'RESULT';
 				} else if ($eventId == 89) {
 					$sortOrder = 'POSITION';
-				} else if ($item->result != '00:00:00' && $item->result != '') {
+				} else if ($item->performance > 0) {
 					$sortOrder = 'RESULT';
 				} else {
 					$sortOrder = 'POSITION';
@@ -227,22 +229,11 @@ class GrandPrixCommand extends BaseCommand
 
 	private function compareGrandPrixEventByResult($a, $b)
 	{
-		if ($a->result == $b->result) {
+		if ($a->performance == $b->performance) {
 			return 0;
 		}
-
-		// Add 00: prefix to compare hh:mm:ss to mm:ss
-		$aFullTime = $a->result;
-		if (strlen($a->result) < 8) {
-			$aFullTime = '00:' . $a->result;
-		}
-
-		$bFullTime = $b->result;
-		if (strlen($b->result) < 8) {
-			$bFullTime = '00:' . $b->result;
-		}
-
-		return ($aFullTime > $bFullTime) ? 1 : -1;
+		
+		return ($a->performance > $b->performance) ? 1 : -1;
 	}
 
 	private function compareGrandPrixRaces($a, $b)
