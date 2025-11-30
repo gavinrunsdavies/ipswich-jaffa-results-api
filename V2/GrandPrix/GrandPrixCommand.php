@@ -56,8 +56,8 @@ class GrandPrixCommand extends BaseCommand
 		$response = $this->dataAccess->getGrandPrixPoints($request['year'], $request['sexId']);
 
 		// Calculate GP points
-		// Handicap - base on position
-		// Ekiden - base on time for each race distance
+		// Handicap (eventId 89) - base on position
+		// Ekiden (eventId 203) - base on time for each race distance
 		// Others - base on time then position for event
 
 		// Group data in to events
@@ -67,10 +67,12 @@ class GrandPrixCommand extends BaseCommand
 		foreach ($response as $item) {
 			$eventId = $item->eventId;
 
-			if ($eventId == 203) {
+			if ($eventId == 203) { // Ekiden
 				$resultSetId = $eventId + '_' + $item->distanceId; // Change resultSetId to be eventId + distanceId to give a unique grouping.
-			} else {
+			} elseif ($eventId == 89) { // Handicap
 				$resultSetId = $eventId;
+			} else {
+				$resultSetId = $item->raceId;
 			}
 
 			if (!array_key_exists($resultSetId, $events)) {
