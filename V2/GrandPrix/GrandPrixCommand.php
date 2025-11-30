@@ -78,7 +78,7 @@ class GrandPrixCommand extends BaseCommand
 					$sortOrder = 'RESULT';
 				} else if ($eventId == 89) {
 					$sortOrder = 'POSITION';
-				} else if ($item->result != '00:00:00' && $item->result != '') {
+				} else if ($item->performance > 0) {
 					$sortOrder = 'RESULT';
 				} else {
 					$sortOrder = 'POSITION';
@@ -227,22 +227,11 @@ class GrandPrixCommand extends BaseCommand
 
 	private function compareGrandPrixEventByResult($a, $b)
 	{
-		if ($a->result == $b->result) {
+		if ($a->performance == $b->performance) {
 			return 0;
 		}
-
-		// Add 00: prefix to compare hh:mm:ss to mm:ss
-		$aFullTime = $a->result;
-		if (strlen($a->result) < 8) {
-			$aFullTime = '00:' . $a->result;
-		}
-
-		$bFullTime = $b->result;
-		if (strlen($b->result) < 8) {
-			$bFullTime = '00:' . $b->result;
-		}
-
-		return ($aFullTime > $bFullTime) ? 1 : -1;
+		
+		return ($a->performance > $b->performance) ? 1 : -1;
 	}
 
 	private function compareGrandPrixRaces($a, $b)
