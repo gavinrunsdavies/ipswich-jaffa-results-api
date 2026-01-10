@@ -68,7 +68,7 @@ class GrandPrixCommand extends BaseCommand
 			$eventId = $item->eventId;
 
 			if ($eventId == 203) { // Ekiden
-				$resultSetId = $eventId + '_' + $item->distanceId; // Change resultSetId to be eventId + distanceId to give a unique grouping.
+				$resultSetId = (string)$eventId . '_' . (string)$item->distanceId; // Change resultSetId to be eventId + distanceId to give a unique grouping.
 			} elseif ($eventId == 89) { // Handicap
 				$resultSetId = $eventId;
 			} else {
