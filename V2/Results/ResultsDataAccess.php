@@ -741,14 +741,63 @@ class ResultsDataAccess extends DataAccess
 
     public function getCategoryId(int $runnerId, string $date): ?int
     {
-        $sql = $this->resultsDatabase->prepare("select c.id
-					FROM
-					runners p, category c
-					WHERE p.id = %d
-					AND p.sex_id = c.sex_id
-					AND TIMESTAMPDIFF(YEAR, p.dob, '%s') >= c.age_greater_equal
-					AND TIMESTAMPDIFF(YEAR, p.dob, '%s') < c.age_less_than
-					LIMIT 1", $runnerId, $date, $date);
+        $sql = $this->resultsDatabase->prepare("
+            SELECT c.id
+            FROM runners p
+            JOIN category c ON p.sex_id = c.sex_id
+
+            WHERE p.id = %d
+
+            AND TIMESTAMPDIFF(
+                YEAR,
+                p.dob,
+                CASE 
+                    WHEN c.cutoff_type = 'AUG31_COMP_YEAR' THEN
+                        CASE
+                            WHEN MONTH('%s') >= 9 
+                                THEN CONCAT(YEAR('%s'), '-08-31')
+                            ELSE CONCAT(YEAR('%s') - 1, '-08-31')
+                        END
+
+                    WHEN c.cutoff_type = 'DEC31_CURRENT_YEAR'
+                        THEN CONCAT(YEAR('%s'), '-12-31')
+
+                    ELSE '%s'
+                END
+            ) >= c.age_greater_equal
+
+            AND TIMESTAMPDIFF(
+                YEAR,
+                p.dob,
+                CASE 
+                    WHEN c.cutoff_type = 'AUG31_COMP_YEAR' THEN
+                        CASE
+                            WHEN MONTH('%s') >= 9 
+                                THEN CONCAT(YEAR('%s'), '-08-31')
+                            ELSE CONCAT(YEAR('%s') - 1, '-08-31')
+                        END
+
+                    WHEN c.cutoff_type = 'DEC31_CURRENT_YEAR'
+                        THEN CONCAT(YEAR('%s'), '-12-31')
+
+                    ELSE '%s'
+                END
+            ) < c.age_less_than
+
+            AND (c.valid_from <= '%s' OR c.valid_from IS NULL)
+            AND (c.valid_to >= '%s' OR c.valid_to IS NULL)
+
+            LIMIT 1
+        ",
+            $runnerId,
+            $date, $date, $date,
+            $date, $date,
+            $date,
+            $date, $date, $date,
+            $date, $date,
+            $date,
+            $date
+        );
 
         return $this->resultsDatabase->get_var($sql);
     }
