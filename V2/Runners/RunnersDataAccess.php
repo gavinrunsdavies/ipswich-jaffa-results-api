@@ -38,15 +38,15 @@ class RunnersDataAccess extends DataAccess
     {
         $sql = $this->resultsDatabase->prepare(
             "SELECT 
-                r.id,
-                r.name,
-                r.sex_id AS 'sexId',
+                p.id,
+                p.name,
+                p.sex_id AS 'sexId',
                 s.sex,
                 c.code AS 'ageCategory',
-                IFNULL(TIMESTAMPDIFF(YEAR, r.dob, last_race.last_race_date), 0) AS ageAtLastRace
+                IFNULL(TIMESTAMPDIFF(YEAR, p.dob, last_race.last_race_date), 0) AS ageAtLastRace
                 FROM 
-                runners r
-                INNER JOIN sex s ON r.sex_id = s.id
+                runners p
+                INNER JOIN sex s ON p.sex_id = s.id
                 LEFT JOIN (
                     SELECT 
                     res.runner_id,
@@ -56,16 +56,54 @@ class RunnersDataAccess extends DataAccess
                     INNER JOIN race ON res.race_id = race.id
                     GROUP BY 
                     res.runner_id
-                ) last_race ON last_race.runner_id = r.id
+                ) last_race ON last_race.runner_id = p.id
                 INNER JOIN category c 
-                    ON r.sex_id = c.sex_id 
-                    AND (
-                    (TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) >= c.age_greater_equal 
-                    AND TIMESTAMPDIFF(YEAR, r.dob, CURDATE()) < c.age_less_than)
-                    OR r.dob = '0000-00-00'
+                    ON p.sex_id = c.sex_id 
+                    AND ((
+                    (
+                    TIMESTAMPDIFF(
+                        YEAR,
+                        p.dob,
+                        CASE 
+                            WHEN c.cutoff_type = 'AUG31_COMP_YEAR' THEN
+                                CASE
+                                    WHEN MONTH(CURDATE()) >= 9 
+                                        THEN CONCAT(YEAR(CURDATE()), '-08-31')
+                                    ELSE CONCAT(YEAR(CURDATE()) - 1, '-08-31')
+                                END
+
+                            WHEN c.cutoff_type = 'DEC31_CURRENT_YEAR'
+                                THEN CONCAT(YEAR(CURDATE()), '-12-31')
+
+                            ELSE CURDATE()
+                        END
+                    ) >= c.age_greater_equal
+
+                    AND TIMESTAMPDIFF(
+                        YEAR,
+                        p.dob,
+                        CASE 
+                            WHEN c.cutoff_type = 'AUG31_COMP_YEAR' THEN
+                                CASE
+                                    WHEN MONTH(CURDATE()) >= 9 
+                                        THEN CONCAT(YEAR(CURDATE()), '-08-31')
+                                    ELSE CONCAT(YEAR(CURDATE()) - 1, '-08-31')
+                                END
+
+                            WHEN c.cutoff_type = 'DEC31_CURRENT_YEAR'
+                                THEN CONCAT(YEAR(CURDATE()), '-12-31')
+
+                            ELSE CURDATE()
+                        END
+                    ) < c.age_less_than
+
+                    AND (c.valid_from <= CURDATE() OR c.valid_from IS NULL)
+                    AND (c.valid_to >= CURDATE() OR c.valid_to IS NULL)
                     )
+                    OR p.dob = '0000-00-00'
+                    ))
                 WHERE 
-                r.id = %d
+                p.id = %d
                 LIMIT 1;
                 ",
             $runnerId
