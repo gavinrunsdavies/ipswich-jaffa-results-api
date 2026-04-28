@@ -42,7 +42,7 @@ class RunnersDataAccess extends DataAccess
                 p.name,
                 p.sex_id AS 'sexId',
                 s.sex,
-                c.code AS 'ageCategory',
+                COALESCE(c.code, 'Unknown') AS 'ageCategory',
                 IFNULL(TIMESTAMPDIFF(YEAR, p.dob, last_race.last_race_date), 0) AS ageAtLastRace
                 FROM 
                 runners p
@@ -57,51 +57,21 @@ class RunnersDataAccess extends DataAccess
                     GROUP BY 
                     res.runner_id
                 ) last_race ON last_race.runner_id = p.id
-                INNER JOIN category c 
-                    ON p.sex_id = c.sex_id 
-                    AND ((
-                    (
-                    TIMESTAMPDIFF(
-                        YEAR,
-                        p.dob,
+                LEFT JOIN (
+                    SELECT
+                        c.*,
                         CASE 
-                            WHEN c.cutoff_type = 'AUG31_COMP_YEAR' THEN
-                                CASE
-                                    WHEN MONTH(CURDATE()) >= 9 
-                                        THEN CONCAT(YEAR(CURDATE()), '-08-31')
-                                    ELSE CONCAT(YEAR(CURDATE()) - 1, '-08-31')
-                                END
-
-                            WHEN c.cutoff_type = 'DEC31_CURRENT_YEAR'
-                                THEN CONCAT(YEAR(CURDATE()), '-12-31')
-
+                            WHEN c.cutoff_type = 'AUG31_COMP_YEAR' THEN CONCAT(YEAR(CURDATE()), '-08-31')
+                            WHEN c.cutoff_type = 'DEC31_CURRENT_YEAR' THEN CONCAT(YEAR(CURDATE()), '-12-31')
                             ELSE CURDATE()
-                        END
-                    ) >= c.age_greater_equal
-
-                    AND TIMESTAMPDIFF(
-                        YEAR,
-                        p.dob,
-                        CASE 
-                            WHEN c.cutoff_type = 'AUG31_COMP_YEAR' THEN
-                                CASE
-                                    WHEN MONTH(CURDATE()) >= 9 
-                                        THEN CONCAT(YEAR(CURDATE()), '-08-31')
-                                    ELSE CONCAT(YEAR(CURDATE()) - 1, '-08-31')
-                                END
-
-                            WHEN c.cutoff_type = 'DEC31_CURRENT_YEAR'
-                                THEN CONCAT(YEAR(CURDATE()), '-12-31')
-
-                            ELSE CURDATE()
-                        END
-                    ) < c.age_less_than
-
+                        END AS cutoff_date
+                    FROM category c
+                ) c ON p.sex_id = c.sex_id
+                    AND p.dob <> '0000-00-00'
+                    AND TIMESTAMPDIFF(YEAR, p.dob, c.cutoff_date) >= c.age_greater_equal
+                    AND TIMESTAMPDIFF(YEAR, p.dob, c.cutoff_date) < c.age_less_than
                     AND (c.valid_from <= CURDATE() OR c.valid_from IS NULL)
                     AND (c.valid_to >= CURDATE() OR c.valid_to IS NULL)
-                    )
-                    OR p.dob = '0000-00-00'
-                    ))
                 WHERE 
                 p.id = %d
                 LIMIT 1;
