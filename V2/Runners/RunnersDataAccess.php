@@ -40,42 +40,68 @@ class RunnersDataAccess extends DataAccess
             "SELECT 
                 p.id,
                 p.name,
-                p.sex_id AS 'sexId',
+                p.sex_id AS sexId,
                 s.sex,
-                COALESCE(c.code, 'Unknown') AS 'ageCategory',
+                COALESCE(c.code, 'Unknown') AS ageCategory,
                 IFNULL(TIMESTAMPDIFF(YEAR, p.dob, last_race.last_race_date), 0) AS ageAtLastRace
-                FROM 
-                runners p
-                INNER JOIN sex s ON p.sex_id = s.id
-                LEFT JOIN (
-                    SELECT 
+
+            FROM runners p
+
+            INNER JOIN sex s 
+                ON p.sex_id = s.id
+
+            LEFT JOIN (
+                SELECT 
                     res.runner_id,
                     MAX(race.date) AS last_race_date
-                    FROM 
-                    results res
-                    INNER JOIN race ON res.race_id = race.id
-                    GROUP BY 
-                    res.runner_id
-                ) last_race ON last_race.runner_id = p.id
-                LEFT JOIN (
-                    SELECT
-                        c.*,
-                        CASE 
-                            WHEN c.cutoff_type = 'AUG31_COMP_YEAR' THEN CONCAT(YEAR(CURDATE()), '-08-31')
-                            WHEN c.cutoff_type = 'DEC31_CURRENT_YEAR' THEN CONCAT(YEAR(CURDATE()), '-12-31')
-                            ELSE CURDATE()
-                        END AS cutoff_date
-                    FROM category c
-                ) c ON p.sex_id = c.sex_id
-                    AND p.dob <> '0000-00-00'
-                    AND TIMESTAMPDIFF(YEAR, p.dob, c.cutoff_date) >= c.age_greater_equal
-                    AND TIMESTAMPDIFF(YEAR, p.dob, c.cutoff_date) < c.age_less_than
-                    AND (c.valid_from <= CURDATE() OR c.valid_from IS NULL)
-                    AND (c.valid_to >= CURDATE() OR c.valid_to IS NULL)
-                WHERE 
-                p.id = %d
-                LIMIT 1;
-                ",
+                FROM results res
+                INNER JOIN race ON res.race_id = race.id
+                GROUP BY res.runner_id
+            ) last_race 
+                ON last_race.runner_id = p.id
+
+            LEFT JOIN (
+                SELECT 
+                    c.*,
+
+                    CASE 
+                        WHEN c.cutoff_type = 'AUG31_COMP_YEAR' THEN
+                            CONCAT(
+                                CASE 
+                                    WHEN MONTH(CURDATE()) >= 10 
+                                        THEN YEAR(CURDATE()) + 1
+                                    ELSE YEAR(CURDATE())
+                                END,
+                                '-08-31'
+                            )
+
+                        WHEN c.cutoff_type = 'DEC31_CURRENT_YEAR' THEN
+                            CONCAT(
+                                CASE 
+                                    WHEN MONTH(CURDATE()) >= 10 
+                                        THEN YEAR(CURDATE()) + 1
+                                    ELSE YEAR(CURDATE())
+                                END,
+                                '-12-31'
+                            )
+
+                        ELSE CURDATE()
+                    END AS cutoff_date
+
+                FROM category c
+            ) c 
+                ON p.sex_id = c.sex_id
+                AND p.dob <> '0000-00-00'
+
+                AND TIMESTAMPDIFF(YEAR, p.dob, c.cutoff_date) >= c.age_greater_equal
+                AND TIMESTAMPDIFF(YEAR, p.dob, c.cutoff_date) < c.age_less_than
+
+                AND (c.valid_from <= CURDATE() OR c.valid_from IS NULL)
+                AND (c.valid_to >= CURDATE() OR c.valid_to IS NULL)
+
+            WHERE p.id = %d
+            LIMIT 1;
+            ",
             $runnerId
         );
 

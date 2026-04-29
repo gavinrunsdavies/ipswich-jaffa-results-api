@@ -747,15 +747,39 @@ class ResultsDataAccess extends DataAccess
             JOIN (
                 SELECT 
                     c.*,
-                    CASE 
-                        WHEN c.cutoff_type = 'AUG31_COMP_YEAR'
-                            THEN CONCAT(YEAR('%s'), '-08-31')
 
-                        WHEN c.cutoff_type = 'DEC31_CURRENT_YEAR'
-                            THEN CONCAT(YEAR('%s'), '-12-31')
+                    -- Determine competition year
+                    CASE 
+                        WHEN MONTH('%s') >= 10 
+                            THEN YEAR('%s') + 1
+                        ELSE YEAR('%s')
+                    END AS comp_year,
+
+                    -- Compute cutoff date based on type
+                    CASE 
+                        WHEN c.cutoff_type = 'AUG31_COMP_YEAR' THEN
+                            CONCAT(
+                                CASE 
+                                    WHEN MONTH('%s') >= 10 
+                                        THEN YEAR('%s') + 1
+                                    ELSE YEAR('%s')
+                                END,
+                                '-08-31'
+                            )
+
+                        WHEN c.cutoff_type = 'DEC31_CURRENT_YEAR' THEN
+                            CONCAT(
+                                CASE 
+                                    WHEN MONTH('%s') >= 10 
+                                        THEN YEAR('%s') + 1
+                                    ELSE YEAR('%s')
+                                END,
+                                '-12-31'
+                            )
 
                         ELSE '%s'
                     END AS cutoff_date
+
                 FROM category c
             ) c ON p.sex_id = c.sex_id
 
@@ -769,10 +793,22 @@ class ResultsDataAccess extends DataAccess
 
             LIMIT 1
         ",
-            $date, // AUG31
-            $date, // DEC31
-            $date, // default
+            // competition year calc (3 params)
+            $date, $date, $date,
+
+            // AUG31 calc (3 params)
+            $date, $date, $date,
+
+            // DEC31 calc (3 params)
+            $date, $date, $date,
+
+            // default
+            $date,
+
+            // runner id
             $runnerId,
+
+            // valid_from / valid_to
             $date,
             $date
         );
