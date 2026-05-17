@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace IpswichJAFFARunningClubAPI\V2\Meetings;
 
@@ -40,6 +40,35 @@ class MeetingsDataAccess extends DataAccess
         return $this->executeResultQuery(__METHOD__, $sql);
     }
 
+    private function getMeetingIdForEventOnDate(int $eventId, string $date)
+    {
+        $sql = $this->resultsDatabase->prepare(
+            'SELECT r.meeting_id as meetingId FROM `race` r WHERE r.event_id = %d AND r.date = %s AND r.meeting_id IS NOT NULL LIMIT 1',
+            $eventId,
+            $date
+        );
+
+        $result = $this->executeResultQuery(__METHOD__, $sql);
+
+        if (!empty($result) && isset($result->meetingId) && is_numeric($result->meetingId) && $result->meetingId > 0) {
+            return (int) $result->meetingId;
+        }
+
+        return 0;
+    }
+
+    private function updateRacesWithMeetingId(int $eventId, string $date, int $meetingId)
+    {
+        $sql = $this->resultsDatabase->prepare(
+            'UPDATE `race` SET meeting_id = %d WHERE event_id = %d AND date = %s AND (meeting_id IS NULL OR meeting_id = 0)',
+            $meetingId,
+            $eventId,
+            $date
+        );
+
+        return $this->executeQuery(__METHOD__, $sql);
+    }
+
     public function getMeetingById(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
@@ -79,11 +108,33 @@ class MeetingsDataAccess extends DataAccess
 
     public function insertMeeting($meeting, int $eventId)
     {
-        $sql = $this->resultsDatabase->prepare('insert into `meeting`(`event_id`, `from_date`, `to_date`, `name`) values(%d, %s, %s, %s)', $eventId, $meeting['fromDate'], $meeting['toDate'], $meeting['name']);
+        $meetingId = $this->getMeetingIdForEventOnDate($eventId, $meeting['fromDate']);
 
-        return $this->insertEntity(__METHOD__, $sql, function ($id) {
-			return $this->getMeeting($id);
-		});
+        if ($meetingId > 0) {
+            $updateResult = $this->updateRacesWithMeetingId($eventId, $meeting['fromDate'], $meetingId);
+            if (is_wp_error($updateResult)) {
+                return $updateResult;
+            }
+
+            return $this->getMeeting($meetingId);
+        }
+
+        $sql = $this->resultsDatabase->prepare(
+            'INSERT INTO `meeting`(`event_id`, `from_date`, `to_date`, `name`) VALUES(%d, %s, %s, %s)',
+            $eventId,
+            $meeting['fromDate'],
+            $meeting['toDate'],
+            $meeting['name']
+        );
+
+        return $this->insertEntity(__METHOD__, $sql, function ($id) use ($eventId, $meeting) {
+            $updateResult = $this->updateRacesWithMeetingId($eventId, $meeting['fromDate'], $id);
+            if (is_wp_error($updateResult)) {
+                return $updateResult;
+            }
+
+            return $this->getMeeting($id);
+        });
     }
 
     public function updateMeeting(int $meetingId, string $field, string $value)
@@ -137,3 +188,4 @@ class MeetingsDataAccess extends DataAccess
         return $this->executeResultsQuery(__METHOD__, $sql);
     }
 }
+

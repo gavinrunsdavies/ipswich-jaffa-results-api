@@ -30,6 +30,8 @@ require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Runners/RunnersController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/RunnerOfTheMonth/RunnerOfTheMonthController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Statistics/StatisticsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/TeamResults/TeamResultsController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Volunteers/VolunteersController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/VolunteerRoles/VolunteerRolesController.php';
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'v3/ResultsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'v3/RunnerOfTheMonthController.php';
@@ -64,6 +66,8 @@ $runnersController = new IpswichJAFFARunningClubAPI\V2\Runners\RunnersController
 $runnerOfTheMonthController = new IpswichJAFFARunningClubAPI\V2\RunnerOfTheMonth\RunnerOfTheMonthController($routeV2, $resultsDb);
 $statisticsController = new IpswichJAFFARunningClubAPI\V2\Statistics\StatisticsController($routeV2, $resultsDb);
 $teamResultsController = new IpswichJAFFARunningClubAPI\V2\TeamResults\TeamResultsController($routeV2, $resultsDb);
+$volunteersController = new IpswichJAFFARunningClubAPI\V2\Volunteers\VolunteersController($routeV2, $resultsDb);
+$volunteerRolesController = new IpswichJAFFARunningClubAPI\V2\VolunteerRoles\VolunteerRolesController($routeV2, $resultsDb);
 
 $routeV3 = 'ipswich-jaffa-api/v3';
 $resultsV3Controller = new IpswichJAFFARunningClubAPI\V3\ResultsController($routeV3, $resultsDb);
@@ -89,6 +93,8 @@ add_action('rest_api_init', array($runnerResultsController, 'registerRoutes'));
 add_action('rest_api_init', array($runnerOfTheMonthController, 'registerRoutes'));
 add_action('rest_api_init', array($statisticsController, 'registerRoutes'));
 add_action('rest_api_init', array($teamResultsController, 'registerRoutes'));
+add_action('rest_api_init', array($volunteersController, 'registerRoutes'));
+add_action('rest_api_init', array($volunteerRolesController, 'registerRoutes'));
 
 add_action('rest_api_init', array($resultsV3Controller, 'registerRoutes'));
 add_action('rest_api_init', array($runnerOfTheMonthV3Controller, 'registerRoutes'));
