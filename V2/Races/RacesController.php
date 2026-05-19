@@ -7,6 +7,7 @@ require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/IRoute.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Meetings/MeetingsCommand.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Events/EventsCommand.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Volunteers/VolunteersDataAccess.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Results/ResultsCommand.php';
 require_once 'RacesCommand.php';
 
 use IpswichJAFFARunningClubAPI\V2\BaseController as BaseController;
@@ -14,12 +15,14 @@ use IpswichJAFFARunningClubAPI\V2\Events\EventsCommand as EventsCommand;
 use IpswichJAFFARunningClubAPI\V2\IRoute as IRoute;
 use IpswichJAFFARunningClubAPI\V2\Meetings\MeetingsCommand as MeetingsCommand;
 use IpswichJAFFARunningClubAPI\V2\Volunteers\VolunteersDataAccess as VolunteersDataAccess;
+use IpswichJAFFARunningClubAPI\V2\Results\ResultsCommand as ResultsCommand;
 
 class RacesController extends BaseController implements IRoute
 {	
 	private $meetingsCommand;
 	private $eventsCommand;
 	private $volunteersDataAccess;
+	private $resultsCommand;
 
 	public function __construct(string $route, $db)
 	{
@@ -27,6 +30,7 @@ class RacesController extends BaseController implements IRoute
 		$this->meetingsCommand = new MeetingsCommand($db);
 		$this->eventsCommand = new EventsCommand($db);
 		$this->volunteersDataAccess = new VolunteersDataAccess($db);
+		$this->resultsCommand = new ResultsCommand($db);
 	}
 
 	public function registerRoutes()
@@ -250,6 +254,18 @@ class RacesController extends BaseController implements IRoute
 		}
 
 		$insights = $this->eventsCommand->getEventRaceInsights($race->eventId);
+
+		// Attach per-race results to each race object
+		if (!empty($meetingData->races) && is_array($meetingData->races)) {
+			foreach ($meetingData->races as $idx => $r) {
+				$resultsForRace = $this->resultsCommand->getRaceResults($r->id);
+				if (is_wp_error($resultsForRace)) {
+					$meetingData->races[$idx]->results = array();
+				} else {
+					$meetingData->races[$idx]->results = $resultsForRace;
+				}
+			}
+		}
 
 		return rest_ensure_response(array(
 			'meeting' => $meetingData->meeting,
