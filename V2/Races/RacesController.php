@@ -4,16 +4,29 @@ namespace IpswichJAFFARunningClubAPI\V2\Races;
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/IRoute.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Meetings/MeetingsCommand.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Events/EventsCommand.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Volunteers/VolunteersDataAccess.php';
 require_once 'RacesCommand.php';
 
 use IpswichJAFFARunningClubAPI\V2\BaseController as BaseController;
+use IpswichJAFFARunningClubAPI\V2\Events\EventsCommand as EventsCommand;
 use IpswichJAFFARunningClubAPI\V2\IRoute as IRoute;
+use IpswichJAFFARunningClubAPI\V2\Meetings\MeetingsCommand as MeetingsCommand;
+use IpswichJAFFARunningClubAPI\V2\Volunteers\VolunteersDataAccess as VolunteersDataAccess;
 
 class RacesController extends BaseController implements IRoute
 {	
+	private $meetingsCommand;
+	private $eventsCommand;
+	private $volunteersDataAccess;
+
 	public function __construct(string $route, $db)
 	{
 		parent::__construct($route, new RacesCommand($db));
+		$this->meetingsCommand = new MeetingsCommand($db);
+		$this->eventsCommand = new EventsCommand($db);
+		$this->volunteersDataAccess = new VolunteersDataAccess($db);
 	}
 
 	public function registerRoutes()
@@ -177,6 +190,17 @@ class RacesController extends BaseController implements IRoute
 				)
 			)
 		));
+
+		register_rest_route($this->route, '/races/(?P<raceId>[\d]+)/results-page', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array($this, 'getRaceResultsPage'),
+			'args'                => array(
+				'raceId'            => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId')
+				)
+			)
+		));
 	}
 
 	public function saveRace(\WP_REST_Request $request)
@@ -203,6 +227,37 @@ class RacesController extends BaseController implements IRoute
 	public function deleteRace(\WP_REST_Request $request)
 	{
 		return rest_ensure_response($this->command->deleteRace($request['raceId']));
+	}
+
+	public function getRaceResultsPage(\WP_REST_Request $request)
+	{
+		$race = $this->command->getRace($request['raceId']);
+		if (is_wp_error($race)) {
+			return rest_ensure_response($race);
+		}
+
+		$meetingData = $this->meetingsCommand->getMeetingForRace($request['raceId']);
+		if (is_wp_error($meetingData)) {
+			return rest_ensure_response($meetingData);
+		}
+
+		$volunteers = array();
+		if (!empty($meetingData->meeting->id) && $meetingData->meeting->id > 0) {
+			$volunteerResult = $this->volunteersDataAccess->getVolunteersForMeeting($meetingData->meeting->id);
+			if (!is_wp_error($volunteerResult)) {
+				$volunteers = $volunteerResult;
+			}
+		}
+
+		$insights = $this->eventsCommand->getEventRaceInsights($race->eventId);
+
+		return rest_ensure_response(array(
+			'meeting' => $meetingData->meeting,
+			'races' => $meetingData->races,
+			'results' => $meetingData->teams,
+			'volunteers' => $volunteers,
+			'insights' => $insights
+		));
 	}
 
 	public function getLatestRacesDetails(\WP_REST_Request $request)
