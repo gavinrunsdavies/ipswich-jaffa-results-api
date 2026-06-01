@@ -283,7 +283,7 @@ class RacesController extends BaseController implements IRoute
 		$insightsAttendeesRequiredData = array_flip(['name', 'count', 'lastRaceDate']);
 		$insightsYearsRequiredData = array_flip(['year', 'count', 'distance','minPerformance', 'meanPerformance', 'maxPerformance']);
 
-		$insightsResponse = new stdClass();
+		$insightsResponse = new \stdClass();
 		$insightsResponse->years     = array_map( fn($item) => array_intersect_key( (array)$item, $insightsYearsRequiredData ), $insightsData['years'] );
 		$insightsResponse->distances = array_map( fn($item) => array_intersect_key( (array)$item, $insightsDistanceRequiredData ), $insightsData['distance'] );
 		$insightsResponse->attendees = array_map( fn($item) => array_intersect_key( (array)$item, $insightsAttendeesRequiredData ), $insightsData['attendees'] );
