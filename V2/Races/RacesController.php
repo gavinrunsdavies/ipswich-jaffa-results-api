@@ -18,7 +18,7 @@ use IpswichJAFFARunningClubAPI\V2\Volunteers\VolunteersDataAccess as VolunteersD
 use IpswichJAFFARunningClubAPI\V2\Results\ResultsCommand as ResultsCommand;
 
 class RacesController extends BaseController implements IRoute
-{	
+{
 	private $meetingsCommand;
 	private $eventsCommand;
 	private $volunteersDataAccess;
@@ -253,7 +253,8 @@ class RacesController extends BaseController implements IRoute
 			}
 		}
 
-		$insights = $this->eventsCommand->getEventRaceInsights($race->eventId);
+		$insightsData = $this->eventsCommand->getEventRaceInsights($race->eventId);
+		$insightsResponse = $this->getMappedRaceInsightsData($insightsData);
 
 		// Attach per-race results to each race object
 		if (!empty($meetingData->races) && is_array($meetingData->races)) {
@@ -270,10 +271,24 @@ class RacesController extends BaseController implements IRoute
 		return rest_ensure_response(array(
 			'meeting' => $meetingData->meeting,
 			'races' => $meetingData->races,
-			'results' => $meetingData->teams,
+			'teams' => $meetingData->teams,
 			'volunteers' => $volunteers,
-			'insights' => $insights
+			'insights' => $insightsResponse
 		));
+	}
+
+	private function getMappedRaceInsightsData($insightsData)
+	{
+		$insightsDistanceRequiredData = array_flip(['distance', 'count', 'meanPerformance', 'minPerformance', 'fastestRunnerId', 'fastestRunnerName', 'fastestRaceDate', 'maxPerformance']);
+		$insightsAttendeesRequiredData = array_flip(['name', 'count', 'lastRaceDate']);
+		$insightsYearsRequiredData = array_flip(['year', 'count', 'distance','minPerformance', 'meanPerformance', 'maxPerformance']);
+
+		$insightsResponse = new stdClass();
+		$insightsResponse->years     = array_map( fn($item) => array_intersect_key( (array)$item, $insightsYearsRequiredData ), $insightsData['years'] );
+		$insightsResponse->distances = array_map( fn($item) => array_intersect_key( (array)$item, $insightsDistanceRequiredData ), $insightsData['distance'] );
+		$insightsResponse->attendees = array_map( fn($item) => array_intersect_key( (array)$item, $insightsAttendeesRequiredData ), $insightsData['attendees'] );
+
+		return $insightsResponse;
 	}
 
 	public function getLatestRacesDetails(\WP_REST_Request $request)
