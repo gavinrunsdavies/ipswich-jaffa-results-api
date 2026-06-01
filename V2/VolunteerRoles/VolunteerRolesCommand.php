@@ -30,7 +30,13 @@ class VolunteerRolesCommand extends BaseCommand
 
     public function saveVolunteerRole(\WP_REST_Request $request)
     {
-        $response = $this->dataAccess->insertVolunteerRole($request['volunteerRole']);
+        $volunteerRole = $request['volunteerRole'];
+
+        if (is_string($volunteerRole)) {
+            $volunteerRole = array('role' => $volunteerRole);
+        }
+
+        $response = $this->dataAccess->insertVolunteerRole($volunteerRole);
 
         return rest_ensure_response($response);
     }

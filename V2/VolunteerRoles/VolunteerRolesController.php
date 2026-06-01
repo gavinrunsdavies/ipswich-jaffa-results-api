@@ -88,15 +88,19 @@ class VolunteerRolesController extends BaseController implements IRoute
 
     public function validateVolunteerRole($volunteerRole, $request, $key)
     {
-        if (empty($volunteerRole[$key]) || !is_string($volunteerRole[$key])) {
-            return new \WP_Error(
-                'rest_invalid_param',
-                sprintf('%s %s has invalid volunteerRole value.', $key, json_encode($volunteerRole)),
-                array('status' => 400)
-            );
+        if (is_string($volunteerRole) && !empty($volunteerRole)) {
+            return true;
         }
 
-        return true;
+        if (is_array($volunteerRole) && !empty($volunteerRole['role']) && is_string($volunteerRole['role'])) {
+            return true;
+        }
+
+        return new \WP_Error(
+            'rest_invalid_param',
+            sprintf('%s %s has invalid volunteerRole value.', $key, json_encode($volunteerRole)),
+            array('status' => 400)
+        );
     }
 
     public function isValidVolunteerRoleUpdateField($value, $request, $key)
