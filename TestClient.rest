@@ -98,3 +98,19 @@ GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/5
 GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/6
 ### Statistics 
 GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/statistics/type/7
+
+### Get Volunteer Roles
+GET {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/volunteer-roles
+
+### Save Volunteer Role
+POST {{Protocol}}://{{Host}}/wp-json/ipswich-jaffa-api/v2/volunteers
+Authorization: Basic YWRtaW46Y2x1YmphZmZh
+Content-Type: application/json
+
+{
+  "volunteerAssignment": {
+    "raceId": 9191,
+    "runnerId": 3220,
+    "volunteerRoleId": 12
+  }
+}

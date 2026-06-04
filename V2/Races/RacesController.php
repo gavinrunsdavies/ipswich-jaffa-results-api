@@ -249,50 +249,129 @@ class RacesController extends BaseController implements IRoute
 		if (!empty($meetingData->meeting->id) && $meetingData->meeting->id > 0) {
 			$volunteerResult = $this->volunteersDataAccess->getVolunteersForMeeting($meetingData->meeting->id);
 			if (!is_wp_error($volunteerResult)) {
-				$volunteers = $volunteerResult;
-			}
-		}
+                foreach ($volunteerResult as $volunteer) {
+                    $volunteers[] = (object) array(
+                        'runnerId' => isset($volunteer->runner_id) ? (int) $volunteer->runner_id : null,
+                        'runnerName' => $volunteer->runner_name ?? null,
+                        'volunteerRoleId' => isset($volunteer->volunteer_role_id) ? (int) $volunteer->volunteer_role_id : null,
+                        'volunteerRoleName' => $volunteer->volunteer_role_name ?? null
+                    );
+                }
+            }
+        }
 
-		$insightsData = $this->eventsCommand->getEventRaceInsights($race->eventId);
-		$insightsResponse = $this->getMappedRaceInsightsData($insightsData);
+        $insightsData = $this->eventsCommand->getEventRaceInsights($race->eventId);
+        $insightsResponse = $this->getMappedRaceInsightsData($insightsData);
 
-		// Attach per-race results to each race object
-		if (!empty($meetingData->races) && is_array($meetingData->races)) {
-			foreach ($meetingData->races as $idx => $r) {
-				$resultsForRace = $this->resultsCommand->getRaceResults($r->id);
-				if (is_wp_error($resultsForRace)) {
-					$meetingData->races[$idx]->results = array();
-				} else {
-					$meetingData->races[$idx]->results = $resultsForRace;
-				}
-			}
-		}
+        $event = (object) array(
+            'id' => isset($meetingData->event->id) ? (int) $meetingData->event->id : null,
+            'name' => $meetingData->event->name ?? null
+        );
 
-		return rest_ensure_response(array(
-			'meeting' => $meetingData->meeting,
-			'races' => $meetingData->races,
-			'teams' => $meetingData->teams,
-			'volunteers' => $volunteers,
-			'insights' => $insightsResponse
-		));
-	}
+        $meeting = (object) array(
+            'id' => isset($meetingData->meeting->id) ? (int) $meetingData->meeting->id : null,
+            'name' => $meetingData->meeting->name ?? null,
+            'fromDate' => $meetingData->meeting->fromDate ?? null,
+            'toDate' => $meetingData->meeting->toDate ?? null
+        );
 
-	private function getMappedRaceInsightsData($insightsData)
-	{
-		$insightsDistanceRequiredData = array_flip(['distance', 'count', 'meanPerformance', 'minPerformance', 'fastestRunnerId', 'fastestRunnerName', 'fastestRaceDate', 'maxPerformance']);
-		$insightsAttendeesRequiredData = array_flip(['name', 'count', 'lastRaceDate']);
-		$insightsYearsRequiredData = array_flip(['year', 'count', 'distance','minPerformance', 'meanPerformance', 'maxPerformance']);
+        $races = array();
+        if (!empty($meetingData->races) && is_array($meetingData->races)) {
+            foreach ($meetingData->races as $raceItem) {
+                $races[] = (object) array(
+                    'id' => isset($raceItem->id) ? (int) $raceItem->id : null,
+                    'date' => $raceItem->date ?? null,
+                    'description' => $raceItem->description ?? null,
+                    'distance' => $raceItem->distance ?? null,
+                    'courseType' => $raceItem->courseType ?? null,
+                    'courseTypeId' => isset($raceItem->courseTypeId) ? (int) $raceItem->courseTypeId : null,
+                    'conditions' => $raceItem->conditions ?? null,
+                    'venue' => $raceItem->venue ?? null,
+                    'county' => $raceItem->county ?? null,
+                    'area' => $raceItem->area ?? null,
+                    'countryCode' => $raceItem->countryCode ?? null,
+                    'resultUnitTypeId' => isset($raceItem->resultUnitTypeId) ? (int) $raceItem->resultUnitTypeId : null,
+                    'report' => $raceItem->report ?? null
+                );
+            }
+        }
 
-		$insightsResponse = new \stdClass();
-		$insightsResponse->years     = array_map( fn($item) => array_intersect_key( (array)$item, $insightsYearsRequiredData ), $insightsData['years'] );
-		$insightsResponse->distances = array_map( fn($item) => array_intersect_key( (array)$item, $insightsDistanceRequiredData ), $insightsData['distance'] );
-		$insightsResponse->attendees = array_map( fn($item) => array_intersect_key( (array)$item, $insightsAttendeesRequiredData ), $insightsData['attendees'] );
+        $teams = array();
+        if (!empty($meetingData->teams) && is_array($meetingData->teams)) {
+            foreach ($meetingData->teams as $team) {
+                $teamResults = array();
+                if (!empty($team->results) && is_array($team->results)) {
+                    foreach ($team->results as $result) {
+                        $teamResults[] = (object) array(
+                            'teamOrder' => isset($result->teamOrder) ? (int) $result->teamOrder : null,
+                            'runnerId' => isset($result->runnerId) ? (int) $result->runnerId : null,
+                            'runnerName' => $result->runnerName ?? null,
+                            'runnerResult' => $result->runnerResult ?? null
+                        );
+                    }
+                }
 
-		return $insightsResponse;
-	}
+                $teams[] = (object) array(
+                    'teamName' => $team->teamName ?? null,
+                    'teamCategory' => $team->teamCategory ?? null,
+                    'teamPosition' => isset($team->teamPosition) ? (int) $team->teamPosition : null,
+                    'teamResult' => $team->teamResult ?? null,
+                    'results' => $teamResults
+                );
+            }
+        }
 
-	public function getLatestRacesDetails(\WP_REST_Request $request)
-	{
+        return rest_ensure_response(array(
+            'event' => $event,
+            'meeting' => $meeting,
+            'races' => $races,
+            'teams' => $teams,
+            'volunteers' => $volunteers,
+            'insights' => $insightsResponse
+        ));
+    }
+
+    private function getMappedRaceInsightsData($insightsData)
+    {
+        $insightsResponse = new \stdClass();
+        $insightsResponse->years = array_map(
+            fn($item) => (object) array(
+                'year' => isset($item->year) ? (int) $item->year : null,
+                'count' => isset($item->count) ? (int) $item->count : null,
+                'distance' => $item->distance ?? null,
+                'minPerformance' => isset($item->minPerformance) ? (float) $item->minPerformance : null,
+                'meanPerformance' => isset($item->meanPerformance) ? (float) $item->meanPerformance : null,
+                'maxPerformance' => isset($item->maxPerformance) ? (float) $item->maxPerformance : null
+            ),
+            $insightsData['years']
+        );
+        $insightsResponse->distances = array_map(
+            fn($item) => (object) array(
+                'distance' => $item->distance ?? null,
+                'count' => isset($item->count) ? (int) $item->count : null,
+                'meanPerformance' => isset($item->meanPerformance) ? (float) $item->meanPerformance : null,
+                'minPerformance' => isset($item->minPerformance) ? (float) $item->minPerformance : null,
+                'fastestRunnerId' => isset($item->fastestRunnerId) ? (int) $item->fastestRunnerId : null,
+                'fastestRunnerName' => $item->fastestRunnerName ?? null,
+                'fastestRaceDate' => $item->fastestRaceDate ?? null,
+                'maxPerformance' => isset($item->maxPerformance) ? (float) $item->maxPerformance : null
+            ),
+            $insightsData['distance']
+        );
+        $insightsResponse->attendees = array_map(
+            fn($item) => (object) array(
+                'name' => $item->name ?? null,
+                'count' => isset($item->count) ? (int) $item->count : null,
+                'lastRaceDate' => $item->lastRaceDate ?? null
+            ),
+            $insightsData['attendees']
+        );
+
+        return $insightsResponse;
+    }
+
+    public function getLatestRacesDetails(\WP_REST_Request $request)
+    {
 		$parameters = $request->get_query_params();
 		return rest_ensure_response($this->command->getLatestRacesDetails($parameters['count']));
 	}
