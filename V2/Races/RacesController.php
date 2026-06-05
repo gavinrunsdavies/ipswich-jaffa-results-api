@@ -278,6 +278,33 @@ class RacesController extends BaseController implements IRoute
         $races = array();
         if (!empty($meetingData->races) && is_array($meetingData->races)) {
             foreach ($meetingData->races as $raceItem) {
+                // Get race results
+                $raceResults = $this->resultsCommand->getRaceResults($raceItem->id);
+                $normalizedResults = array();
+                
+                if (!is_wp_error($raceResults) && !empty($raceResults)) {
+                    foreach ($raceResults as $result) {
+                        $normalizedResults[] = (object) array(
+                            'position' => isset($result->position) ? (int) $result->position : null,
+                            'runnerId' => isset($result->runnerId) ? (int) $result->runnerId : null,
+                            'runnerName' => $result->runnerName ?? null,
+                            'performance' => isset($result->performance) ? (float) $result->performance : null,
+                            'isPersonalBest' => isset($result->isPersonalBest) ? (int) $result->isPersonalBest : 0,
+                            'isSeasonBest' => isset($result->isSeasonBest) ? (int) $result->isSeasonBest : 0,
+                            'categoryCode' => $result->categoryCode ?? null,
+                            'team' => isset($result->team) ? (int) $result->team : 0,
+                            'info' => $result->info ?? null,
+                            'percentageGrading' => isset($result->percentageGrading) ? (float) $result->percentageGrading : 0,
+                            'percentageGradingBest' => isset($result->percentageGradingBest) ? (int) $result->percentageGradingBest : 0,
+                            'standardType' => $result->standardType ?? null,
+                            'runnerTotalResults' => isset($result->runnerTotalResults) ? (int) $result->runnerTotalResults : 0,
+                            'runnerBadges' => is_array($result->runnerBadges) ? $result->runnerBadges : array(),
+                            'previousPersonalBestPerformance' => isset($result->previousPersonalBestPerformance) ? (float) $result->previousPersonalBestPerformance : null,
+                            'previousPersonalBestResult' => $result->previousPersonalBestResult ?? null
+                        );
+                    }
+                }
+
                 $races[] = (object) array(
                     'id' => isset($raceItem->id) ? (int) $raceItem->id : null,
                     'date' => $raceItem->date ?? null,
@@ -291,7 +318,8 @@ class RacesController extends BaseController implements IRoute
                     'area' => $raceItem->area ?? null,
                     'countryCode' => $raceItem->countryCode ?? null,
                     'resultUnitTypeId' => isset($raceItem->resultUnitTypeId) ? (int) $raceItem->resultUnitTypeId : null,
-                    'report' => $raceItem->report ?? null
+                    'report' => $raceItem->report ?? null,
+                    'results' => $normalizedResults
                 );
             }
         }
