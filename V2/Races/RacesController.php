@@ -349,13 +349,26 @@ class RacesController extends BaseController implements IRoute
             }
         }
 
+        $otherRaces = array();
+        $racesForEvent = $this->command->getRaces($race->eventId, null);
+        if (!is_wp_error($racesForEvent) && !empty($racesForEvent)) {
+            foreach ($racesForEvent as $raceItem) {
+                $otherRaces[] = (object) array(
+                    'id' => isset($raceItem->id) ? (int) $raceItem->id : null,
+                    'date' => $raceItem->date ?? null,
+                    'count' => isset($raceItem->count) ? (int) $raceItem->count : null
+                );
+            }
+        }
+
         return rest_ensure_response(array(
             'event' => $event,
             'meeting' => $meeting,
             'races' => $races,
             'teams' => $teams,
             'volunteers' => $volunteers,
-            'insights' => $insightsResponse
+            'insights' => $insightsResponse,
+            'otherRaces' => $otherRaces
         ));
     }
 
