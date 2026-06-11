@@ -49,7 +49,7 @@ class MeetingsCommand extends BaseCommand
 				public $id = 0;
 				public $fromDate;
 				public $toDate;
-				public $description = '';
+				public $report = '';
 
 				public function __construct($name, $date)
 				{

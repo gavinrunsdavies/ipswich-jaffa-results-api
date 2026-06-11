@@ -75,6 +75,16 @@ abstract class DataAccess
         return $results;
     }
 
+    protected function executeInsertQuery(string $methodName, $sql)
+    {
+        return $this->executeQuery($methodName, $sql);
+    }
+
+    protected function executeUpdateQuery(string $methodName, $sql)
+    {
+        return $this->executeQuery($methodName, $sql);
+    }
+
     protected function insertEntity(string $methodName, $sql, $getEntityFunction)
     {        
         $result = $this->resultsDatabase->query($sql);
