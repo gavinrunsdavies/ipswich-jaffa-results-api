@@ -270,10 +270,12 @@ class RacesController extends BaseController implements IRoute
 
         $meeting = (object) array(
             'id' => isset($meetingData->meeting->id) ? (int) $meetingData->meeting->id : null,
-            'name' => $meetingData->meeting->name ?? null,
-            'fromDate' => $meetingData->meeting->fromDate ?? null,
-            'toDate' => $meetingData->meeting->toDate ?? null
+            'subtitle' => $this->getRaceResultsMeetingSubtitle($meetingData->meeting)
         );
+
+        if (!empty($meetingData->meeting->report)) {
+            $meeting->report = $meetingData->meeting->report;
+        }
 
         $races = array();
         if (!empty($meetingData->races) && is_array($meetingData->races)) {
@@ -307,18 +309,10 @@ class RacesController extends BaseController implements IRoute
 
                 $races[] = (object) array(
                     'id' => isset($raceItem->id) ? (int) $raceItem->id : null,
-                    'date' => $raceItem->date ?? null,
-                    'description' => $raceItem->description ?? null,
-                    'distance' => $raceItem->distance ?? null,
-                    'courseType' => $raceItem->courseType ?? null,
-                    'courseTypeId' => isset($raceItem->courseTypeId) ? (int) $raceItem->courseTypeId : null,
-                    'conditions' => $raceItem->conditions ?? null,
-                    'venue' => $raceItem->venue ?? null,
-                    'county' => $raceItem->county ?? null,
-                    'area' => $raceItem->area ?? null,
-                    'countryCode' => $raceItem->countryCode ?? null,
                     'resultUnitTypeId' => isset($raceItem->resultUnitTypeId) ? (int) $raceItem->resultUnitTypeId : null,
+                    'courseTypeId' => isset($raceItem->courseTypeId) ? (int) $raceItem->courseTypeId : null,
                     'report' => $raceItem->report ?? null,
+                    'header' => $this->getRaceHeader($raceItem),
                     'results' => $normalizedResults
                 );
             }
@@ -409,6 +403,39 @@ class RacesController extends BaseController implements IRoute
         );
 
         return $insightsResponse;
+    }
+
+    private function getRaceResultsMeetingSubtitle($meeting)
+    {
+        $subtitleParts = array();
+
+        if (!empty($meeting->name)) {
+            $subtitleParts[] = $meeting->name;
+        }
+
+        if (!empty($meeting->fromDate)) {
+            try {
+                $date = new \DateTime($meeting->fromDate);
+                $subtitleParts[] = $date->format('j F Y');
+            } catch (\Exception $ex) {
+                $subtitleParts[] = $meeting->fromDate;
+            }
+        }
+
+        return implode(' · ', $subtitleParts);
+    }
+
+    private function getRaceHeader($raceItem)
+    {
+        $headerParts = array_filter(array(
+            $raceItem->description ?? null,
+            $raceItem->distance ?? null,
+            $raceItem->courseType ?? null,
+            $raceItem->venue ?? null,
+            $raceItem->conditions ?? null
+        ));
+
+        return implode(' · ', $headerParts);
     }
 
     public function getLatestRacesDetails(\WP_REST_Request $request)
