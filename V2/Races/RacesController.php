@@ -409,7 +409,9 @@ class RacesController extends BaseController implements IRoute
     {
         $subtitleParts = array();
 
-        if (!empty($meeting->name)) {
+        if (!empty($meeting->name) && empty($meeting->eventName)) {
+            $subtitleParts[] = $meeting->name;
+        } elseif (!empty($meeting->name) && !empty($meeting->eventName) && strtolower(trim($meeting->name)) !== strtolower(trim($meeting->eventName))) {
             $subtitleParts[] = $meeting->name;
         }
 
