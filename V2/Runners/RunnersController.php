@@ -28,6 +28,17 @@ class RunnersController extends BaseController implements IRoute
 			'callback' => array($this, 'getRunners')
 		));
 
+		register_rest_route($this->route, '/runners/(?P<runnerId>[\d]+)/profile', array(
+			'methods' => \WP_REST_Server::READABLE,
+			'callback' => array($this, 'getRunnerProfile'),
+			'args' => array(
+				'runnerId' => array(
+					'required' => true,
+					'validate_callback' => array($this, 'isValidId'),
+				)
+			)
+		));
+
 		register_rest_route($this->route, '/runners/(?P<runnerId>[\d]+)', array(
 			'methods' => \WP_REST_Server::READABLE,
 			'callback' => array($this, 'getRunner'),
@@ -103,6 +114,11 @@ class RunnersController extends BaseController implements IRoute
 	public function getRunner(\WP_REST_Request $request)
 	{
 		return rest_ensure_response($this->command->getRunner($request['runnerId']));
+	}
+
+	public function getRunnerProfile(\WP_REST_Request $request)
+	{
+		return rest_ensure_response($this->command->getRunnerProfile($request['runnerId']));
 	}
 
 	public function saveRunner(\WP_REST_Request $request)
