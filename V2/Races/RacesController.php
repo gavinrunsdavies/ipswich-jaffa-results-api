@@ -270,9 +270,7 @@ class RacesController extends BaseController implements IRoute
 
         $meeting = (object) array(
             'id' => isset($meetingData->meeting->id) ? (int) $meetingData->meeting->id : null,
-            'subtitle' => $this->getRaceResultsMeetingSubtitle($meetingData->meeting),
-            'fromDate' => $meetingData->meeting->fromDate ?? $race->date ?? null,
-            'toDate' => $meetingData->meeting->toDate ?? $meetingData->meeting->fromDate ?? $race->date ?? null
+            'subtitle' => $this->getRaceResultsMeetingSubtitle($meetingData->meeting)
         );
 
         if (!empty($meetingData->meeting->report)) {
