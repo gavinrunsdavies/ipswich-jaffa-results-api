@@ -33,4 +33,19 @@ abstract class BaseCommand
 
         return rest_ensure_response($queryFunction($response));
     }
+
+    protected function toInt($value): int
+    {
+        return (int) $value;
+    }
+
+    protected function toFloat($value): float
+    {
+        return (float) $value;
+    }
+
+    protected function toBool($value): bool
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? (bool) $value;
+    }
 }
