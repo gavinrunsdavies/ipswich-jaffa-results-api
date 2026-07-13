@@ -98,12 +98,18 @@ class RunnersCommand extends BaseCommand
 			}
 		}
 
-		return array(
+		$profile = array(
 			'runner' => $runner,
 			'distances' => $distances,
-			'results' => $results,
+			'results' => $this->normalizeResults($results),
 			'insightsByDistance' => $insightsByDistance,
 		);
+
+		if (isset($profile['runner']->rankings)) {
+			$profile['runner']->rankings = $this->normalizeRankings($profile['runner']->rankings);
+		}
+
+		return $profile;
 	}
 
 	public function saveRunner($runnerRequest)
@@ -134,6 +140,54 @@ class RunnersCommand extends BaseCommand
 		}
 	}
 
+	private function normalizeResults($results)
+	{
+		if (!is_array($results)) {
+			return $results;
+		}
+
+		return array_map(function ($result) {
+			if (!is_object($result)) {
+				return $result;
+			}
+
+			$result->eventId = $this->toInt($result->eventId);
+			$result->distanceId = $this->toInt($result->distanceId);
+			$result->id = $this->toInt($result->id);
+			$result->raceId = $this->toInt($result->raceId);
+			$result->position = $this->toInt($result->position);
+			$result->courseTypeId = $this->toInt($result->courseTypeId);
+			$result->performance = $this->toFloat($result->performance);
+			$result->percentageGrading = $this->toFloat($result->percentageGrading);
+			$result->percentageGradingBest = $this->toBool($result->percentageGradingBest);
+			$result->isPersonalBest = $this->toBool($result->isPersonalBest);
+			$result->isSeasonBest = $this->toBool($result->isSeasonBest);
+			unset($result->time);
+			unset($result->result);
+
+			return $result;
+		}, $results);
+	}
+
+	private function normalizeRankings($rankings)
+	{
+		if (!is_array($rankings)) {
+			return $rankings;
+		}
+
+		return array_map(function ($ranking) {
+			if (!is_object($ranking)) {
+				return $ranking;
+			}
+
+			$ranking->rank = $this->toInt($ranking->rank);
+			$ranking->runnerId = $this->toInt($ranking->runnerId);
+			$ranking->distanceId = $this->toInt($ranking->distanceId);
+			$ranking->performance = $this->toFloat($ranking->performance);
+			return $ranking;
+		}, $rankings);
+	}
+
 	private function getTopDistanceIds(array $results): array
 	{
 		$counts = array();
@@ -143,7 +197,7 @@ class RunnersCommand extends BaseCommand
 				continue;
 			}
 
-			if (isset($result->performance) && $result->performance == '0.000') {
+			if (isset($result->performance) && (float) $result->performance <= 0) {
 				continue;
 			}
 
