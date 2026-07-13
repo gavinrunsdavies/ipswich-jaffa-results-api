@@ -32,6 +32,7 @@ require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Statistics/StatisticsController
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/TeamResults/TeamResultsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Volunteers/VolunteersController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/VolunteerRoles/VolunteerRolesController.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/OpenGraph/OpenGraphTags.php';
 
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'v3/ResultsController.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'v3/RunnerOfTheMonthController.php';
@@ -74,6 +75,8 @@ $resultsV3Controller = new IpswichJAFFARunningClubAPI\V3\ResultsController($rout
 $runnerOfTheMonthV3Controller = new IpswichJAFFARunningClubAPI\V3\RunnerOfTheMonthController($routeV3, $resultsDb);
 
 $helper = new IpswichJAFFARunningClubAPI\WordPressApiHelper();
+$openGraphTags = new IpswichJAFFARunningClubAPI\V2\OpenGraph\OpenGraphTags($resultsDb);
+$openGraphTags->register();
 
 add_action('rest_api_init', array($categoriesController, 'registerRoutes'));
 add_action('rest_api_init', array($courseTypesController, 'registerRoutes'));
