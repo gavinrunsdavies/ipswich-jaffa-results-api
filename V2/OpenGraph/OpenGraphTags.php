@@ -74,10 +74,6 @@ class OpenGraphTags
             return sanitize_text_field(wp_unslash($_GET['raceId']));
         }
 
-        if (isset($_GET['race']) && is_scalar($_GET['race'])) {
-            return sanitize_text_field(wp_unslash($_GET['race']));
-        }
-
         return '';
     }
 
@@ -101,6 +97,7 @@ class OpenGraphTags
             'eventName' => isset($meetingData->event->name) ? sanitize_text_field($meetingData->event->name) : '',
             'meetingSubtitle' => $this->buildMeetingSubtitle($meetingData->meeting),
             'report' => isset($meetingData->meeting->report) ? wp_strip_all_tags($meetingData->meeting->report) : '',
+            'image' => isset($meetingData->meeting->image) ? esc_url($meetingData->meeting->image) : '',
         );
     }
 
@@ -159,6 +156,10 @@ class OpenGraphTags
 
     private function buildImage(array $raceData): string
     {
+        if (!empty($raceData['image'])) {
+            return $raceData['image'];
+        }
+
         $siteIcon = get_site_icon_url();
         return !empty($siteIcon) ? $siteIcon : '';
     }
