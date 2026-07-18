@@ -277,6 +277,10 @@ class RacesController extends BaseController implements IRoute
             $meeting->report = $meetingData->meeting->report;
         }
 
+		if (!empty($meetingData->meeting->image)) {
+            $meeting->image = esc_url($meetingData->meeting->image);
+        }
+
         $races = array();
         if (!empty($meetingData->races) && is_array($meetingData->races)) {
             foreach ($meetingData->races as $raceItem) {

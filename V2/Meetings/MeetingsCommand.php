@@ -50,6 +50,7 @@ class MeetingsCommand extends BaseCommand
 				public $fromDate;
 				public $toDate;
 				public $report = '';
+				public $image = '';
 
 				public function __construct($name, $date)
 				{
