@@ -68,7 +68,7 @@ class RunnersCommand extends BaseCommand
 		$runner->certificates = $certificates;
 		$runner->rankings = $rankings;
  		
-		return $runner;
+		return $this->normalizeRunner($runner);
 	}
 
 	public function getRunnerProfile(int $runnerId)
@@ -98,18 +98,12 @@ class RunnersCommand extends BaseCommand
 			}
 		}
 
-		$profile = array(
+		return array(
 			'runner' => $runner,
-			'distances' => $distances,
+			'distances' => $this->normalizeDistances($distances),
 			'results' => $this->normalizeResults($results),
 			'insightsByDistance' => $insightsByDistance,
 		);
-
-		if (isset($profile['runner']->rankings)) {
-			$profile['runner']->rankings = $this->normalizeRankings($profile['runner']->rankings);
-		}
-
-		return $profile;
 	}
 
 	public function saveRunner($runnerRequest)
@@ -138,6 +132,45 @@ class RunnersCommand extends BaseCommand
 				array('status' => 400)
 			);
 		}
+	}
+
+	private function normalizeRunner($runner)
+	{
+		if (!is_object($runner)) {
+			return $runner;
+		}
+
+		$runner->id = $this->toInt($runner->id);
+		$runner->sexId = $this->toInt($runner->sexId);
+		$runner->ageAtLastRace = $this->toInt($runner->ageAtLastRace);
+
+		if (isset($runner->certificates)) {
+			$runner->certificates = $this->normalizeCertificates($runner->certificates);
+		}
+
+		if (isset($runner->rankings)) {
+			$runner->rankings = $this->normalizeRankings($runner->rankings);
+		}
+
+		return $runner;
+	}
+
+	private function normalizeCertificates($certificates)
+	{
+		if (!is_array($certificates)) {
+			return $certificates;
+		}
+
+		return array_map(function ($certificate) {
+			if (!is_object($certificate)) {
+				return $certificate;
+			}
+
+			$certificate->performance = $this->toFloat($certificate->performance);
+			unset($certificate->result);
+
+			return $certificate;
+		}, $certificates);
 	}
 
 	private function normalizeResults($results)
@@ -184,8 +217,33 @@ class RunnersCommand extends BaseCommand
 			$ranking->runnerId = $this->toInt($ranking->runnerId);
 			$ranking->distanceId = $this->toInt($ranking->distanceId);
 			$ranking->performance = $this->toFloat($ranking->performance);
+			unset($ranking->result);
+
 			return $ranking;
 		}, $rankings);
+	}
+
+	private function normalizeDistances($distances)
+	{
+		if (!is_array($distances)) {
+			return $distances;
+		}
+
+		// Only include the fields the RunnerProfile UI uses and cast to correct types
+		return array_map(function ($distance) {
+			if (!is_object($distance)) {
+				return $distance;
+			}
+
+			$normalized = new \stdClass();
+			$normalized->id = $this->toInt($distance->id);
+			$normalized->text = isset($distance->text) ? (string) $distance->text : '';
+			$normalized->units = $this->toInt($distance->units);
+			$normalized->miles = $this->toFloat($distance->miles);
+			$normalized->resultUnitTypeName = isset($distance->resultUnitTypeName) ? (string) $distance->resultUnitTypeName : '';
+
+			return $normalized;
+		}, $distances);
 	}
 
 	private function getTopDistanceIds(array $results): array

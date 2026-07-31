@@ -35,6 +35,18 @@ class RunnerResultsCommand extends BaseCommand
 	public function getMemberInsightsRaceDistance( \WP_REST_Request $request ) {
 		$raceTimes = $this->dataAccess->getMemberInsightsRaceDistance($request['distanceId']);
 
+		// Ensure numeric types for charting in the UI
+		if (is_array($raceTimes)) {
+			foreach ($raceTimes as $rt) {
+				if (isset($rt->timeBand)) {
+					$rt->timeBand = (int) $rt->timeBand;
+				}
+				if (isset($rt->count)) {
+					$rt->count = (int) $rt->count;
+				}
+			}
+		}
+
 		$memberTotals = $this->dataAccess->getRunnerDistanceResultMinMaxAverage($request['runnerId'], $request['distanceId']);
 
 		$response = array();
