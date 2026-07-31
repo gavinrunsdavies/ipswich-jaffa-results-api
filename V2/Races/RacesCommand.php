@@ -104,42 +104,20 @@ class RacesCommand extends BaseCommand
 
 	private function getAIGeneratedSummary($raceResults)
 	{
-		$api_key = OPEN_AI_API_SCERET__HISTORIC_RACE_RESULTS;
+		$api_key = null;
+		if (defined('OPENAI_API_HISTORIC_RACE_RESULTS')) {
+			$api_key = OPENAI_API_HISTORIC_RACE_RESULTS;
+		} elseif (defined('OPEN_AI_API_SCERET__HISTORIC_RACE_RESULTS')) {
+			$api_key = OPEN_AI_API_SCERET__HISTORIC_RACE_RESULTS;
+		}
+
+		if (empty($api_key)) {
+			return new \WP_Error('open_ai_api_error', 'OpenAI API key is not configured.', array('status' => 500));
+		}
 
 		$ch = curl_init('https://api.openai.com/v1/chat/completions');
 
-		$instruction = "Summarize the races in the provided JSON data as a short, engaging “On This Day” recap (5–10 lines) for Ipswich JAFFA Running Club, based in Ipswich, Suffolk (UK).
-			Include:	
-				- A short opening line such as `On this day in JAFFA history…` or similar.
-				- Then list each highlight as a compact <li> inside a <ul>, focusing on:
-				- - Top 3 finishers (position = 1, 2, or 3),
-				- - Any info field that is non-empty,
-				- - Any runner with isPercentageGradingBest or isPersonalBest = 1.
-
-			Context & grouping:
-				- Group performances from the same eventName into a single <li>.
-				- If the same event appears in multiple years, include years in parentheses next to the event link.
-				- Note when a race is outside East Anglia or overseas, highlighting it as a notable away performance.
-
-			Output style:
-				- Each <li> should be compact, factual, and warm in tone, optionally adding a short club-related insight ('a big JAFFA showing in Essex', 'impressive PB race', etc.).
-				- Convert runner names and event names into hyperlinks:
-				- - Runner: <a href=\"/member-results/members-results/?runner_id={runnerId}\">{runnerName}</a>
-				- - Event: <a href=\"member-results/race-results/?raceId={raceId}\">{eventName}</a>
-				- Mention the race year (YYYY).
-				- Always include the runner’s time from the `performance` field when non-zero
-  				- - Append it naturally in the sentence (e.g., 'in 59:33' or 'clocking 1:12:45'), even if not a top 3 finish.
-				- Sort items by significance (wins, medals, PBs, long-distance or international events first).
-				
-			Wrap everything in:	
-			<ul>
-			  ...list items here...
-			</ul>
-
-			Always include a race time for every runner mentioned. Do not omit times, even for personal bests or awards.
-			";
-
-		$resultsJson = json_encode($raceResults);
+		$instruction = $this->loadRaceReportInstruction();
 	
 		$requestBody = [
 		    'model' => 'gpt-4o-mini', // better than 3.5-turbo for summarization
@@ -182,6 +160,20 @@ class RacesCommand extends BaseCommand
 	        'error' => 'No response content found',
 	        'raw' => $decoded
 	    ];
+	}
+
+	private function loadRaceReportInstruction()
+	{
+		$instructionFile = IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Races/race-report-instruction.txt';
+		if (file_exists($instructionFile)) {
+			$content = file_get_contents($instructionFile);
+			if ($content !== false) {
+				return trim($content);
+			}
+		}
+
+		return "Summarize the races in the provided JSON data as a short, engaging “On This Day” recap (5–10 lines) for Ipswich JAFFA Running Club, based in Ipswich, Suffolk (UK).\n\nInclude:\n  - A short opening line such as 'On this day in JAFFA history…' or similar.\n  - Then list each highlight as a compact <li> inside a <ul>, focusing on: top 3 finishers, non-empty info fields, and runners with isPercentageGradingBest or isPersonalBest = 1.\n\nContext & grouping:\n  - Group performances from the same eventName into a single <li>.\n  - If the same event appears in multiple years, include years in parentheses next to the event link.\n  - Note away performances outside East Anglia or overseas.\n\nOutput style:\n  - Each <li> should be compact, factual, and warm in tone.\n  - Convert runner names and event names into hyperlinks.\n  - Mention the race year (YYYY).\n  - Always include the runner’s time when non-zero.\n  - Sort items by significance (wins, medals, PBs, long-distance or international events first).\n\nWrap everything in a <ul> with <li> items only.\n\nAlways include a race time for every runner mentioned. Do not omit times, even for personal bests or awards.";
+
 	}
 
 	/**

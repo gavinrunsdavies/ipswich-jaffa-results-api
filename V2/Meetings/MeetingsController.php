@@ -98,6 +98,41 @@ class MeetingsController extends BaseController implements IRoute
 			)
 		));
 
+		register_rest_route($this->route, '/meetings/(?P<meetingId>[\d]+)/report', array(
+			'methods'             => \WP_REST_Server::READABLE,
+			'callback'            => array($this, 'generateMeetingReport'),
+			'args'                => array(
+				'meetingId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId'),
+				)
+			)
+		));
+
+		register_rest_route($this->route, '/meetings/(?P<meetingId>[\d]+)/report', array(
+			'methods'             => \WP_REST_Server::CREATABLE,
+			'permission_callback' => array($this, 'isAuthorized'),
+			'callback'            => array($this->command, 'saveMeetingReport'),
+			'args'                => array(
+				'meetingId'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'isValidId'),
+				),
+				'report'           => array(
+					'required'          => true,
+					'validate_callback' => array($this, 'validateMeetingReport')
+				),
+				'featured_image'           => array(
+					'required'          => false,
+					'validate_callback' => array($this, 'validateMeetingImage')
+				),
+				'image'           => array(
+					'required'          => false,
+					'validate_callback' => array($this, 'validateMeetingImage')
+				)
+			)
+		));
+
 		// Patch - updates
 		register_rest_route($this->route, '/events/(?P<eventId>[\d]+)/meetings/(?P<meetingId>[\d]+)', array(
 			'methods'             => \WP_REST_Server::EDITABLE,
@@ -145,6 +180,11 @@ class MeetingsController extends BaseController implements IRoute
 		return rest_ensure_response($this->command->getMeetings($request['eventId']));
 	}
 	
+	public function generateMeetingReport(\WP_REST_Request $request)
+	{
+		return rest_ensure_response($this->command->generateMeetingReport($request['meetingId']));
+	}
+
 	public function isValidMeetingUpdateField(string $value, \WP_REST_Request $request, string $key)
 	{
 		if ($value == 'from_date' || $value == 'to_date' || $value == 'name') {
@@ -156,6 +196,36 @@ class MeetingsController extends BaseController implements IRoute
 				array('status' => 400)
 			);
 		}
+	}
+
+	public function validateMeetingReport($report, $request, string $key)
+	{
+		if (!is_string($report) || trim($report) === '') {
+			return new \WP_Error(
+				'rest_invalid_param',
+				sprintf('%s must be a non-empty string.', $key),
+				array('status' => 400)
+			);
+		}
+
+		return true;
+	}
+
+	public function validateMeetingImage($image, $request, string $key)
+	{
+		if ($image === null || $image === '') {
+			return true;
+		}
+
+		if (!is_string($image) || filter_var($image, FILTER_VALIDATE_URL) === false) {
+			return new \WP_Error(
+				'rest_invalid_param',
+				sprintf('%s must be a valid URL.', $key),
+				array('status' => 400)
+			);
+		}
+
+		return true;
 	}
 
 	public function validateMeeting($meeting, $request, string $key)
