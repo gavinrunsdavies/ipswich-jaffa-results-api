@@ -72,7 +72,7 @@ class MeetingsDataAccess extends DataAccess
     public function getMeetingById(int $meetingId)
     {
         $sql = $this->resultsDatabase->prepare(
-            'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate, m.report as report, m.image as image
+            'SELECT m.id as id, m.name as name, m.from_date as fromDate, m.to_date as toDate, m.report as report, m.featured_image_url as image
 			FROM `meeting` m
 			WHERE m.id = %d',
             $meetingId
