@@ -127,6 +127,12 @@ performance - previousPersonalBestPerformance
 
 Both values are in seconds.
 
+This is the ONLY valid way to calculate a PB improvement.
+
+Do not use `previousPersonalBestResult` for any arithmetic or duration comparison.
+`previousPersonalBestResult` is a display string only and may contain formatted values such as "00: 7:50" or "7:50" that are not raw seconds.
+If you are uncertain, ignore the display string and rely only on `performance` and `previousPersonalBestPerformance`.
+
 Describe the improvement naturally, for example:
 - "shaving 12 seconds from his previous best"
 - "taking more than a minute off her PB"
@@ -134,9 +140,7 @@ Describe the improvement naturally, for example:
 
 Do NOT quote the previous PB unless specifically useful.
 
-Never calculate the improvement from `previousPersonalBestResult`.
-
-`previousPersonalBestResult` may only be used as a cross-check.
+Do not infer an improvement from the text of `previousPersonalBestResult` under any circumstance.
 
 ## TIMES
 
