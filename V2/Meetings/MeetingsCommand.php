@@ -157,7 +157,7 @@ class MeetingsCommand extends BaseCommand
 			'races' => $meetingRaces,
 			'recordContext' => $recordContext
 		);
-
+return $input;
 		return $this->getAIGeneratedMeetingReport($input);
 	}
 
