@@ -229,7 +229,7 @@ class MeetingsCommand extends BaseCommand
 			return new \WP_Error('open_ai_api_error', 'OpenAI API key is not configured.', array('status' => 500));
 		}
 
-		$instruction = "Create an HTML meeting report for Ipswich JAFFA Running Club using the provided meeting and race data. Output should be friendly, concise and in HTML only. Use a short introduction naming the meeting and dates, then include highlights in a <ul> with <li> items. Mention key races, distances, venues, top performances, club wins, any notable PBs, and any record context available for the races' distances. If there are no races, say so clearly in a paragraph. Do not output markdown or JSON. Return valid HTML for display.";
+		$instruction = $this->loadMeetingReportInstruction();
 
 		$payload = array(
 			'model' => 'gpt-4o-mini',
@@ -271,6 +271,19 @@ class MeetingsCommand extends BaseCommand
 			'error' => 'No response content found',
 			'raw' => $decoded
 		);
+	}
+
+	private function loadMeetingReportInstruction()
+	{
+		$instructionFile = IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Meetings/meeting-report-instruction.txt';
+		if (file_exists($instructionFile)) {
+			$content = file_get_contents($instructionFile);
+			if ($content !== false) {
+				return trim($content);
+			}
+		}
+
+		return "Create an HTML meeting report for Ipswich JAFFA Running Club using the provided meeting and race data. Output should be friendly, concise and in HTML only. Use a short introduction naming the meeting and dates, then include highlights in a <ul> with <li> items. Mention key races, distances, venues, top performances, club wins, any notable PBs, and any record context available for the races' distances. If there are no races, say so clearly in a paragraph. Do not output markdown or JSON. Return valid HTML for display.";
 	}
 
 	public function updateMeeting(\WP_REST_Request $request)
