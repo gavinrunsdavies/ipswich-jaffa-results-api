@@ -191,12 +191,10 @@ class MeetingsCommand extends BaseCommand
 	{
 		$meetingId = (int) $request['meetingId'];
 		$report = trim($request['report'] ?? '');
-		$image = null;
+		$imageUrl = null;
 
-		if (!empty($request['featured_image'])) {
-			$image = trim($request['featured_image']);
-		} elseif (!empty($request['image'])) {
-			$image = trim($request['image']);
+		if (!empty($request['featuredImage'])) {
+			$imageUrl = trim($request['featuredImage']);
 		}
 
 		$response = $this->dataAccess->updateMeeting($meetingId, 'report', $report);
@@ -204,8 +202,8 @@ class MeetingsCommand extends BaseCommand
 			return $response;
 		}
 
-		if ($image !== null && $image !== '') {
-			$response = $this->dataAccess->updateMeeting($meetingId, 'image', $image);
+		if ($imageUrl !== null && $imageUrl !== '') {
+			$response = $this->dataAccess->updateMeeting($meetingId, 'featured_image_url', $imageUrl);
 			if (is_wp_error($response)) {
 				return $response;
 			}

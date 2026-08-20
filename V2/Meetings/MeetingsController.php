@@ -122,11 +122,7 @@ class MeetingsController extends BaseController implements IRoute
 					'required'          => true,
 					'validate_callback' => array($this, 'validateMeetingReport')
 				),
-				'featured_image'           => array(
-					'required'          => false,
-					'validate_callback' => array($this, 'validateMeetingImage')
-				),
-				'image'           => array(
+				'featuredImage'           => array(
 					'required'          => false,
 					'validate_callback' => array($this, 'validateMeetingImage')
 				)
