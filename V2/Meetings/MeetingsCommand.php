@@ -6,16 +6,19 @@ require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/BaseCommand.php';
 require_once 'MeetingsDataAccess.php';
 require_once 'Meeting.class.php';
 require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Records/RecordsCommand.php';
+require_once IPSWICH_JAFFA_API_PLUGIN_PATH . 'V2/Results/ResultsCommand.php';
 
 use IpswichJAFFARunningClubAPI\V2\Meetings\Meeting as Meeting;
 use IpswichJAFFARunningClubAPI\V2\BaseCommand as BaseCommand;
 use IpswichJAFFARunningClubAPI\V2\Races\RacesCommand as RacesCommand;
 use IpswichJAFFARunningClubAPI\V2\Records\RecordsCommand as RecordsCommand;
+use IpswichJAFFARunningClubAPI\V2\Results\ResultsCommand as ResultsCommand;
 
 class MeetingsCommand extends BaseCommand
 {
 	private $racesCommand;
 	private $recordsCommand;
+	private $resultsCommand;
 
 	public function __construct($db)
 	{
@@ -23,6 +26,7 @@ class MeetingsCommand extends BaseCommand
 
 		$this->racesCommand = new RacesCommand($db);
 		$this->recordsCommand = new RecordsCommand($db);
+		$this->resultsCommand = new ResultsCommand($db);
 	}
 
 	public function getMeetings(int $eventId)
@@ -150,14 +154,36 @@ class MeetingsCommand extends BaseCommand
 			return $meetingRaces;
 		}
 
+		$meetingForReport = clone $meeting;
+		unset($meetingForReport->report);
+		if (isset($meetingForReport->image)) {
+			unset($meetingForReport->image);
+		}
+
+		$raceData = array();
+		foreach ($meetingRaces as $race) {
+			$raceId = isset($race->id) ? (int) $race->id : 0;
+			$raceEntry = clone $race;
+			$raceEntry->results = array();
+
+			if ($raceId > 0) {
+				$results = $this->resultsCommand->getRaceResults($raceId);
+				if (!is_wp_error($results)) {
+					$raceEntry->results = $results;
+				}
+			}
+
+			$raceData[] = $raceEntry;
+		}
+
 		$recordContext = $this->getMeetingRecordContext($meetingRaces);
 
 		$input = array(
-			'meeting' => $meeting,
-			'races' => $meetingRaces,
-			'recordContext' => $recordContext
+			'meeting' => $meetingForReport,
+			'races' => $raceData,
+			'recordContext' => $recordContext,
 		);
-return $input;
+
 		return $this->getAIGeneratedMeetingReport($input);
 	}
 
