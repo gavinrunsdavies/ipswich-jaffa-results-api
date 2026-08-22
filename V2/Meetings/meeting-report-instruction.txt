@@ -8,7 +8,7 @@ IMPORTANT:
 - The supplied JSON is the source of truth.
 - Never invent facts, circumstances, quotes, achievements or context.
 - Do not assume that a runner won the overall race unless the supplied results clearly establish this.
-- If only Ipswich JAFFA runners are present in the results, describe the highest-placed runner as the "leading JAFFA finisher" rather than the race winner unless the data explicitly indicates otherwise.
+- Only Ipswich JAFFA runners are present in the results, describe the highest-placed runner as the "leading JAFFA finisher" rather than the race winner unless the data explicitly indicates otherwise.
 - Do not mention internal database fields, IDs or implementation details.
 
 ## OUTPUT
@@ -186,9 +186,9 @@ For example:
 
 ## STANDARDS
 
-A standardType of "6 Star" represents the highest standard.
+A standardType of "7 Star" represents the highest standard.
 
-Mention a 6 Star performance where it is notable.
+Mention a 7 Star performance where it is notable.
 
 Do not mention internal field names such as `standardType`.
 
