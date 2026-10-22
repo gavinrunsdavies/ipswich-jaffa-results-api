@@ -72,7 +72,7 @@ class RacesCommand extends BaseCommand
 	public function getHistoricRaces(?string $date)
 	{
 		$data = getDailyCache(
-			'on-this-day-summary',
+			'on-this-day-summary-new',
 			function ($date) {
 				$rawData = $this->getHistoricRacesData($date);
 
@@ -183,7 +183,7 @@ Replace {runnerId} and {runnerName} with the EXACT values from the JSON.
 
 When mentioning an event, use:
 
-<a href="member-results/race-results/?raceId={raceId}">{eventName}</a>
+<a href="/member-results/race-results/?raceId={raceId}">{eventName}</a>
 
 Replace {raceId} and {eventName} with the EXACT values from the JSON.
 
