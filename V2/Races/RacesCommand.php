@@ -72,7 +72,7 @@ class RacesCommand extends BaseCommand
 	public function getHistoricRaces(?string $date)
 	{
 		$data = getDailyCache(
-			'on-this-day-summary-new',
+			'on-this-day-summary',
 			function ($date) {
 				$rawData = $this->getHistoricRacesData($date);
 
@@ -110,135 +110,16 @@ class RacesCommand extends BaseCommand
 
 		$ch = curl_init('https://api.openai.com/v1/chat/completions');
 
-		$instruction = <<<PROMPT
-You are writing a historical "On This Day" race recap for Ipswich JAFFA Running Club, based in Ipswich, Suffolk, UK.
+		$instructionPath = __DIR__ . '/HistoricRaceSummaryPrompt.txt';
+		$instruction = file_get_contents($instructionPath);
 
-You will be given JSON containing race results. Your job is to examine ALL of the supplied results, identify the most interesting and significant performances, and turn them into a short, engaging and accurate human-readable recap.
-
-IMPORTANT — DATA ACCURACY
-
-The JSON supplied to you is the complete and authoritative source of information.
-
-You MUST:
-- Only mention runners, events, races, dates, times and achievements that exist in the supplied JSON.
-- Copy runnerName EXACTLY as supplied.
-- Copy eventName EXACTLY as supplied.
-- Use the supplied runnerId for that runner.
-- Use the supplied raceId for that race.
-- Use the supplied performance value as the authoritative race time.
-- The performance value has already been formatted by PHP as a human-readable race time. DO NOT convert, recalculate or modify it.
-- Never invent, substitute, shorten, expand or "correct" a runner's name.
-- Never create a runner name that is not present in the JSON.
-- Never combine the name of one runner with the result of another runner.
-- Never invent an event name.
-- Never invent a race date or year.
-- Never invent a finishing position.
-- Never invent a PB, grading achievement or other performance.
-- Do not assume that similar-looking names are the same person.
-- Do not use general knowledge to fill in missing information.
-
-You ARE expected to use your intelligence to decide which performances are most interesting or significant. You may interpret the supplied data to determine significance, but every factual detail you state must come from the JSON.
-
-PERFORMANCES TO CONSIDER
-
-Give particular attention to:
-- Race winners and podium finishers (positions 1, 2 and 3)
-- Personal bests where isPersonalBest = 1
-- Best percentage grading performances where isPercentageGradingBest = 1
-- Non-empty info fields
-- Particularly strong performances
-- Outstanding age-grading performances
-- Long-distance events
-- Overseas or notable away performances
-- Large JAFFA representation at an event
-- Groups of JAFFAs performing strongly in the same event
-- Other genuinely notable patterns in the supplied data
-
-Do not simply list every top-three finisher. Use judgement to select the most interesting highlights.
-
-GROUPING
-
-- Group performances from the same eventName into a single <li> where this produces a better recap.
-- If an event appears in multiple years, distinguish the performances by year.
-- Do not merge runners from different events simply because their names are similar.
-- Do not merge separate races unless the JSON clearly identifies them as the same event.
-
-TIMES
-
-The performance value supplied in the JSON is already a formatted race time.
-
-ALWAYS use the performance value EXACTLY as supplied.
-
-Do not convert, recalculate, round, shorten or otherwise alter the supplied performance value.
-
-ALWAYS include the runner's time whenever a runner is mentioned and the supplied performance value is non-empty/non-zero.
-
-LINKS
-
-When mentioning a runner, use:
-
-<a href="/member-results/members-results/?runner_id={runnerId}">{runnerName}</a>
-
-Replace {runnerId} and {runnerName} with the EXACT values from the JSON.
-
-When mentioning an event, use:
-
-<a href="/member-results/race-results/?raceId={raceId}">{eventName}</a>
-
-Replace {raceId} and {eventName} with the EXACT values from the JSON.
-
-Do not invent IDs.
-
-YEAR
-
-Always mention the race year when referring to a race or event.
-
-Use the year/date supplied in the JSON. Do not infer a year from anything other than the supplied race date or year.
-
-STYLE
-
-Write in a warm, conversational style suitable for the Ipswich JAFFA Running Club website.
-
-The recap should feel like a knowledgeable club historian looking back through the results, rather than a generic AI-generated summary.
-
-Aim for approximately 5–10 lines/highlights.
-
-A short club-related observation is welcome when it is directly supported by the supplied data, for example:
-- "a strong JAFFA showing"
-- "an impressive away performance"
-- "a notable PB"
-- "a successful day for the club"
-
-Do not exaggerate.
-
-Do not claim something was a club record unless the JSON explicitly says so.
-
-Do not claim something was the fastest ever unless the JSON explicitly supports that.
-
-OUTPUT FORMAT
-
-Return ONLY HTML.
-
-The output must be wrapped in:
-
-<ul>
-    ...
-</ul>
-
-Each highlight must be a compact <li>.
-
-Do not include:
-- Markdown
-- Markdown code fences
-- Explanations
-- Notes about the JSON
-- Commentary about being an AI
-- A heading outside the <ul>
-
-Most importantly:
-
-SELECT THE HIGHLIGHTS INTELLIGENTLY FROM THE COMPLETE DATASET, BUT NEVER INVENT OR ALTER THE PEOPLE, EVENTS, TIMES, DATES OR FACTS CONTAINED IN THE DATA.
-PROMPT;
+		if ($instruction === false) {
+			return new WP_Error(
+				'historic_race_prompt_read_error',
+				'Unable to read the historic race summary prompt',
+				['prompt_path' => $instructionPath]
+			);
+		}
 
 		$resultsJson = json_encode(
 			$raceResults,
