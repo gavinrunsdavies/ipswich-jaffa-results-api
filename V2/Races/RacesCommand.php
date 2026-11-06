@@ -175,7 +175,7 @@ class RacesCommand extends BaseCommand
 
 			curl_close($ch);
 
-			return new WP_Error(
+			return new \WP_Error(
 				'open_ai_curl_error',
 				'OpenAI API request failed: ' . $curlError
 			);
@@ -188,7 +188,7 @@ class RacesCommand extends BaseCommand
 		$decoded = json_decode($response, true);
 
 		if ($httpcode < 200 || $httpcode >= 300) {
-			return new WP_Error(
+			return new \WP_Error(
 				'open_ai_api_error',
 				'OpenAI API request failed',
 				[
