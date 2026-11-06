@@ -114,7 +114,7 @@ class RacesCommand extends BaseCommand
 		$instruction = file_get_contents($instructionPath);
 
 		if ($instruction === false) {
-			return new WP_Error(
+			return new \WP_Error(
 				'historic_race_prompt_read_error',
 				'Unable to read the historic race summary prompt',
 				['prompt_path' => $instructionPath]
@@ -127,7 +127,7 @@ class RacesCommand extends BaseCommand
 		);
 
 		if ($resultsJson === false) {
-			return new WP_Error(
+			return new \WP_Error(
 				'open_ai_json_error',
 				'Unable to encode race results as JSON'
 			);
@@ -150,7 +150,7 @@ class RacesCommand extends BaseCommand
 		$jsonBody = json_encode($requestBody);
 
 		if ($jsonBody === false) {
-			return new WP_Error(
+			return new \WP_Error(
 				'open_ai_request_json_error',
 				'Unable to encode OpenAI request'
 			);
